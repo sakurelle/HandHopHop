@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">HandHopHop</string>
+
+    <string name="home_title_incomplete">Вы не закончили…</string>
+    <string name="home_project_prefix">Проект:</string>
+    <string name="home_project_name">Дерево</string>
+    <string name="home_only_start">Осталось только начать</string>
+
+    <string name="home_statistics">Статистика</string>
+    <string name="home_start">Начать</string>
+
+    <string name="nav_home">Домой</string>
+    <string name="nav_online">Онлайн\nсхемы</string>
+    <string name="nav_downloads">Скачанные\nсхемы</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="nav_add">Добавить</string>
+</resources>

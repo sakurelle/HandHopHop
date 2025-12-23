@@ -1,0 +1,39 @@
+<resources>
+    <!-- Радиусы -->
+    <dimen name="radius_0">0dp</dimen>
+    <dimen name="block_radius">16dp</dimen>
+
+    <!-- Верхний баннер -->
+    <dimen name="top_banner_height">96dp</dimen>
+    <dimen name="top_banner_bottom_padding">14dp</dimen>
+
+    <!-- Фон-паттерн -->
+    <dimen name="bg_pattern_alpha">1</dimen>
+
+    <!-- Центральная колонка из 3 прямоугольников -->
+    <dimen name="center_block_width">330dp</dimen>
+    <dimen name="center_block_gap">15dp</dimen>
+    <dimen name="screen_side_padding">18dp</dimen>
+
+    <!-- Внутренние отступы верхнего блока -->
+    <dimen name="preview_text_h_padding">12dp</dimen>
+    <dimen name="preview_text_v_padding">10dp</dimen>
+
+    <!-- Кнопки-блоки -->
+    <dimen name="stats_button_height">55dp</dimen>
+    <dimen name="start_button_height">55dp</dimen>
+    <dimen name="button_h_padding">14dp</dimen>
+
+    <!-- Elevation (тени нет) -->
+    <dimen name="block_elevation">0dp</dimen>
+
+    <!-- Bottom bar -->
+    <dimen name="bottom_bar_height">72dp</dimen>
+    <dimen name="bottom_item_width">64dp</dimen>
+    <dimen name="center_gap_width">56dp</dimen>
+
+    <!-- FAB -->
+    <dimen name="fab_size">56dp</dimen>
+    <dimen name="fab_lift">18dp</dimen>
+    <dimen name="nav_icon_button_size">36dp</dimen>
+</resources>

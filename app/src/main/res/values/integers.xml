@@ -1,0 +1,5 @@
+<resources>
+    <integer name="fs_title_sp">18</integer>
+    <integer name="fs_body_sp">14</integer>
+    <integer name="fs_label_sp">11</integer>
+</resources>
