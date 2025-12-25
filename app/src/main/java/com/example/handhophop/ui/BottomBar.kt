@@ -6,8 +6,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -82,7 +85,7 @@ fun BottomBar(
 
                 NavItem(
                     title = stringResource(R.string.nav_online),
-                    icon = Icons.Outlined.Person,
+                    icon = Icons.Outlined.Search,
                     selected = selected == BottomItem.Online,
                     onClick = {
                         navController.navigate(Screen.OnlineSchemes.route) {
@@ -100,7 +103,7 @@ fun BottomBar(
 
                 NavItem(
                     title = stringResource(R.string.nav_downloads),
-                    icon = Icons.Outlined.Person,
+                    icon = Icons.Outlined.Done,
                     selected = false,
                     onClick = { /* TODO */ },
                     activeColor = iconActive,
