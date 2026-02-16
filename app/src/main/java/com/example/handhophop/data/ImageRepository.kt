@@ -5,6 +5,7 @@ import com.example.handhophop.data.remote.NekoImageDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import kotlin.random.Random
 
 data class ImageItem(
     val id: String,
@@ -46,7 +47,7 @@ class ImageRepository(
             return ImageItem(
                 id = dto.id.toString(),
                 imageUrl = dto.url,
-                aspectRatio = 1f
+                aspectRatio = Random.nextFloat()
             )
         }
 

@@ -1,66 +1,76 @@
 package com.example.handhophop.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.handhophop.R
 import com.example.handhophop.data.ImageItem
+// Исправлен импорт (убрана опечатка uiimport)
+import com.example.handhophop.ui.OnlineSchemesViewModel
+//import com.example.handhophop.uiimport.OnlineSchemesViewModel
 
 @Composable
 fun OnlineSchemesScreen(
+    selectedVm: SelectedSchemeViewModel,
     navController: NavHostController,
-    selectedVm: SelectedSchemeViewModel
+    viewModel: OnlineSchemesViewModel = viewModel(),
+    onItemClick: (String) -> Unit
 ) {
-    val bg = colorResource(R.color.bg_beige)
-    val vm: OnlineSchemesViewModel = viewModel()
-    val state by vm.state.collectAsState()
+    val state by viewModel.state.collectAsState()
 
-    Box(Modifier.fillMaxSize().background(bg)) {
-        BackgroundPattern()
-
-        Column(Modifier.fillMaxSize()) {
-            TopBanner(title = stringResource(R.string.online_title))
-
-            OnlineSchemesMasonry(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                items = state.items,
-                isLoading = state.isLoading,
-                reachedEnd = state.reachedEnd,
-                error = state.error,
-                onNeedMore = { vm.loadMore() },
-                onClickItem = { item ->
-                    selectedVm.select(item.imageUrl)
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            )
-
-            BottomBar(navController = navController, modifier = Modifier.fillMaxWidth())
+    Column(modifier = Modifier.fillMaxSize()) {
+        // --- БЛОК ФИЛЬТРАЦИИ ---
+        Surface(
+            tonalElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = state.isSquareFilterEnabled,
+                    onCheckedChange = { viewModel.toggleFilter(it) }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (state.isSquareFilterEnabled) "Только квадратные" else "Все форматы",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
+
+        // --- СПИСОК ---
+        // Используем weight(1f), чтобы список не вытеснял чекбокс и не пропадал
+        OnlineSchemesMasonry(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            items = state.filteredItems,
+            isLoading = state.isLoading,
+            reachedEnd = state.reachedEnd,
+            error = state.error,
+            onNeedMore = { viewModel.loadMore() },
+            onClickItem = { item ->
+                onItemClick(item.imageUrl)
+            }
+        )
     }
 }
 
 @Composable
-private fun OnlineSchemesMasonry(
-    modifier: Modifier,
+fun OnlineSchemesMasonry(
+    modifier: Modifier = Modifier,
     items: List<ImageItem>,
     isLoading: Boolean,
     reachedEnd: Boolean,
@@ -68,62 +78,62 @@ private fun OnlineSchemesMasonry(
     onNeedMore: () -> Unit,
     onClickItem: (ImageItem) -> Unit
 ) {
-    val spacing = dimensionResource(R.dimen.online_grid_item_spacing)
-    val padH = dimensionResource(R.dimen.online_grid_padding_h)
-    val padV = dimensionResource(R.dimen.online_grid_padding_v)
-
-    val cardColor = colorResource(R.color.card_beige)
-    val r = dimensionResource(R.dimen.block_radius)
-    val elevation0 = dimensionResource(R.dimen.block_elevation)
-
     Box(modifier = modifier) {
+        // Если список пуст после фильтрации
+        if (items.isEmpty() && !isLoading) {
+            Text(
+                text = "Нет изображений для этого фильтра",
+                modifier = Modifier.align(Alignment.Center),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
-            verticalItemSpacing = spacing,
-            horizontalArrangement = Arrangement.spacedBy(spacing),
-            contentPadding = PaddingValues(start = padH, end = padH, top = padV, bottom = padV)
+            contentPadding = PaddingValues(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalItemSpacing = 8.dp
         ) {
-            items(items) { item ->
+            // Добавлен KEY для корректного обновления элементов при фильтрации
+            items(items, key = { it.imageUrl }) { item ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onClickItem(item) },
-                    shape = RoundedCornerShape(r),
-                    colors = CardDefaults.cardColors(containerColor = cardColor),
-                    elevation = CardDefaults.cardElevation(defaultElevation = elevation0)
+                    onClick = { onClickItem(item) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     AsyncImage(
                         model = item.imageUrl,
                         contentDescription = null,
-                        contentScale = ContentScale.FillWidth,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        // Важно для Masonry: сохраняем пропорции картинки
+                        contentScale = ContentScale.FillWidth
                     )
                 }
             }
 
-            item {
-                SideEffect {
-                    if (!isLoading && !reachedEnd && items.isNotEmpty()) onNeedMore()
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = spacing),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    when {
-                        isLoading -> CircularProgressIndicator(color = colorResource(R.color.text_dark))
-                        error != null -> Text(
-                            text = error,
-                            color = colorResource(R.color.text_dark),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        else -> Spacer(Modifier.height(0.dp)) // reachedEnd — ничего не показываем
+            // Подгрузка данных
+            if (!reachedEnd && items.isNotEmpty()) {
+                item {
+                    LaunchedEffect(items.size) {
+                        onNeedMore()
                     }
                 }
             }
+        }
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp)
+            )
+        }
+
+        error?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.align(Alignment.Center).padding(16.dp)
+            )
         }
     }
 }

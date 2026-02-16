@@ -32,5 +32,6 @@
 
     <string name="pick_from_gallery">Выбрать из доступных</string>
     <string name="back_gallery">Вернуться</string>
-    
+
+    <string name="filter_not_tall">Без вытянутых вверх</string>
 </resources>

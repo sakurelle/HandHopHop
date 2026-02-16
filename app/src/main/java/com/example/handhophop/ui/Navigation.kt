@@ -1,10 +1,13 @@
 package com.example.handhophop.ui
 
+import android.media.Image
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.handhophop.data.ImageItem
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -34,7 +37,11 @@ fun HandHophopNavigation() {
             HomeScreen(navController = navController, selectedVm = selectedVm)
         }
         composable(Screen.OnlineSchemes.route) {
-            OnlineSchemesScreen(navController = navController, selectedVm = selectedVm)
+            OnlineSchemesScreen(navController = navController, selectedVm = selectedVm,onItemClick = { scheme ->
+                // 1. Update the selected scheme in the ViewModel
+                // 2. Navigate to the scheme screen
+                navController.navigate(Screen.ShemeScreen.route)
+            })
         }
         composable(Screen.ShemeScreen.route) {
             ShemeScreen(navController = navController, selectedVm = selectedVm)
