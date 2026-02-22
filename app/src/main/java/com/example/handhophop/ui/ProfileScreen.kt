@@ -13,17 +13,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.handhophop.R
-
+import com.example.handhophop.data.local.ProfileState
 
 @Composable
 fun ProfileTopBanner() {
@@ -39,9 +37,7 @@ fun ProfileTopBanner() {
         shape = RoundedCornerShape(radius0),
         colors = CardDefaults.cardColors(containerColor = bannerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation0)
-    ) {
-
-    }
+    ) {}
 }
 
 @Composable
@@ -77,12 +73,12 @@ private fun ProfileAvatar(
     }
 }
 
-
-
 @Composable
-fun ProfileScreen(navController: NavHostController) {
+fun ProfileScreen(
+    navController: NavHostController,
+    vm: ProfileViewModel
+) {
     val bg = colorResource(R.color.bg_beige)
-    val vm: ProfileViewModel = viewModel()
     val state by vm.state.collectAsState()
 
     Box(
@@ -102,16 +98,12 @@ fun ProfileScreen(navController: NavHostController) {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(y = dimensionResource(R.dimen.profile_avatar_overlap)),
-                    onClick = {
-                        navController.navigate(Screen.ProfilePhoto.route)
-                    }
+                    onClick = { navController.navigate(Screen.ProfilePhoto.route) }
                 )
             }
 
             Spacer(
-                modifier = Modifier.height(
-                    dimensionResource(R.dimen.profile_banner_bottom_space)
-                )
+                modifier = Modifier.height(dimensionResource(R.dimen.profile_banner_bottom_space))
             )
 
             ProfileCenterContent(
@@ -122,14 +114,10 @@ fun ProfileScreen(navController: NavHostController) {
                 onPhoneChange = { vm.update { s -> s.copy(phone = it) } }
             )
 
-            BottomBar(
-                navController = navController,
-                modifier = Modifier.fillMaxWidth()
-            )
+            BottomBar(navController = navController, modifier = Modifier.fillMaxWidth())
         }
     }
 }
-
 
 @Composable
 private fun ColumnScope.ProfileCenterContent(
@@ -148,8 +136,7 @@ private fun ColumnScope.ProfileCenterContent(
             .fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 

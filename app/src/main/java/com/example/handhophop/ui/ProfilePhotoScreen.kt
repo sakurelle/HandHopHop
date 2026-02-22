@@ -3,38 +3,37 @@ package com.example.handhophop.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-
-
 import com.example.handhophop.R
 
 @Composable
-fun ProfilePhotoScreen(navController: NavHostController) {
+fun ProfilePhotoScreen(
+    navController: NavHostController,
+    vm: ProfileViewModel
+) {
     val bg = colorResource(R.color.bg_beige)
-    val vm: ProfileViewModel = viewModel()
     val state by vm.state.collectAsState()
 
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri != null) vm.update { it.copy(avatarUri = uri.toString()) }
+        if (uri != null) vm.setAvatarFromPicker(uri)
     }
 
     Box(Modifier.fillMaxSize().background(bg)) {
@@ -84,7 +83,6 @@ private fun ColumnScope.PhotoCenter(
 
         Spacer(Modifier.height(gap))
 
-
         FlatCardButton(
             modifier = Modifier.width(w),
             text = stringResource(R.string.back_gallery),
@@ -98,7 +96,6 @@ private fun PhotoPreviewCard(avatarUri: String?) {
     val r = dimensionResource(R.dimen.block_radius)
     val elevation0 = dimensionResource(R.dimen.block_elevation)
     val sidePad = dimensionResource(R.dimen.photo_card_hpad)
-
     val outer = colorResource(R.color.card_beige)
 
     Card(

@@ -1,13 +1,11 @@
 package com.example.handhophop.ui
 
-import android.media.Image
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.handhophop.data.ImageItem
+import com.example.handhophop.ui.util.rememberAppViewModelFactory
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -18,16 +16,13 @@ sealed class Screen(val route: String) {
     object ProfilePhoto : Screen("profile_photo")
 }
 
-/**
- * Навигация приложения.
- *
- * Содержит описание всех экранов и маршрутов.
- * Использует Jetpack Navigation Compose.
- */
 @Composable
 fun HandHophopNavigation() {
     val navController = rememberNavController()
-    val selectedVm: SelectedSchemeViewModel = viewModel()
+
+    val factory = rememberAppViewModelFactory()
+    val selectedVm: SelectedSchemeViewModel = viewModel(factory = factory)
+    val profileVm: ProfileViewModel = viewModel(factory = factory)
 
     NavHost(
         navController = navController,
@@ -36,24 +31,31 @@ fun HandHophopNavigation() {
         composable(Screen.Home.route) {
             HomeScreen(navController = navController, selectedVm = selectedVm)
         }
+
         composable(Screen.OnlineSchemes.route) {
-            OnlineSchemesScreen(navController = navController, selectedVm = selectedVm,onItemClick = { scheme ->
-                // 1. Update the selected scheme in the ViewModel
-                // 2. Navigate to the scheme screen
-                navController.navigate(Screen.ShemeScreen.route)
-            })
+            OnlineSchemesScreen(
+                navController = navController,
+                onItemClick = { url ->
+                    selectedVm.select(url)
+                    navController.navigate(Screen.ShemeScreen.route)
+                }
+            )
         }
+
         composable(Screen.ShemeScreen.route) {
             ShemeScreen(navController = navController, selectedVm = selectedVm)
         }
+
         composable(Screen.Statistics.route) {
             StatisticsScreen(navController = navController)
         }
+
         composable(Screen.Profile.route) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(navController = navController, vm = profileVm)
         }
+
         composable(Screen.ProfilePhoto.route) {
-            ProfilePhotoScreen(navController = navController)
+            ProfilePhotoScreen(navController = navController, vm = profileVm)
         }
     }
 }

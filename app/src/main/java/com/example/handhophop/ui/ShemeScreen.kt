@@ -1,63 +1,58 @@
 package com.example.handhophop.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Paint
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.core.graphics.get
+import androidx.core.graphics.createBitmap
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import coil.compose.AsyncImage
 import com.example.handhophop.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import androidx.core.graphics.get
-import androidx.core.graphics.createBitmap
+import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 @Composable
 fun ShemeScreen(
@@ -76,43 +71,86 @@ fun ShemeScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             TopBanner(title = stringResource(R.string.home_title_incomplete))
-
             CenterContentScheme(imageUrl = selectedUrl)
-
             BottomBar(navController = navController, modifier = Modifier.fillMaxWidth())
         }
     }
 }
 
+/**
+ * ✅ Скроллимый экран схемы:
+ * - схема может быть большой
+ * - ниже всегда доступны "Скачать" и палитра
+ * - bitmap загружается 1 раз, схема строится 1 раз
+ */
 @Composable
 private fun ColumnScope.CenterContentScheme(imageUrl: String?) {
     val sidePad = dimensionResource(id = R.dimen.screen_side_padding)
+    val context = LocalContext.current
+    val key = imageUrl ?: "drawable:${R.drawable.project_preview}"
+    val gap = dimensionResource(R.dimen.center_block_gap)
 
-    Box(
+    var loading by remember(key) { mutableStateOf(true) }
+    var scheme by remember(key) { mutableStateOf<SchemeData?>(null) }
+    var error by remember(key) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(key) {
+        loading = true
+        error = null
+        scheme = null
+
+        val bmp = if (imageUrl != null) {
+            loadBitmapFromUrl(context, imageUrl)
+        } else {
+            loadBitmapFromDrawable(context, R.drawable.project_preview)
+        }
+
+        scheme = if (bmp != null) {
+            buildScheme(source = bmp, minSideCells = 128, paletteSize = 10)
+        } else null
+
+        if (scheme == null) error = "Не удалось построить схему"
+        loading = false
+    }
+
+    LazyColumn(
         modifier = Modifier
             .weight(1f)
             .fillMaxWidth()
             .padding(horizontal = sidePad),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.spacedBy(gap),
+        contentPadding = PaddingValues(vertical = gap)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.center_block_gap))
-        ) {
-            SchemePreviewBlock(imageUrl = imageUrl)
-            DownloadButton()
+        item {
+            SchemeCard(
+                loading = loading,
+                scheme = scheme,
+                error = error
+            )
+        }
 
-            ColorPaletteFromImage(imageUrl = imageUrl, fallbackDrawable = R.drawable.project_preview)
+        item {
+            DownloadButton(enabled = (scheme != null && !loading))
+        }
+
+        item {
+            scheme?.let { PaletteBar(it) }
         }
     }
 }
 
 @Composable
-private fun SchemePreviewBlock(imageUrl: String?) {
+private fun SchemeCard(
+    loading: Boolean,
+    scheme: SchemeData?,
+    error: String?
+) {
     val r = dimensionResource(R.dimen.block_radius)
     val elevation0 = dimensionResource(R.dimen.block_elevation)
     val pad = dimensionResource(R.dimen.preview_text_h_padding)
     val outerColor = colorResource(R.color.card_beige)
+
+    val aspect = scheme?.let { it.gridW.toFloat() / it.gridH.toFloat() } ?: 1f
 
     Card(
         modifier = Modifier
@@ -122,43 +160,35 @@ private fun SchemePreviewBlock(imageUrl: String?) {
         colors = CardDefaults.cardColors(containerColor = outerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation0)
     ) {
-        if (imageUrl != null) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            val painter = painterResource(R.drawable.project_preview)
-            val intrinsic: Size = painter.intrinsicSize
-            val aspect = if (intrinsic.width > 0f && intrinsic.height > 0f) {
-                intrinsic.width / intrinsic.height
-            } else 1f
-
-            Image(
-                painter = painter,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(aspect)
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(aspect),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                loading -> CircularProgressIndicator()
+                scheme != null -> NumberedSchemeCanvas(scheme = scheme)
+                else -> Text(
+                    text = error ?: "Нет схемы",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun DownloadButton() {
+private fun DownloadButton(enabled: Boolean) {
     val h = dimensionResource(R.dimen.stats_button_height)
     val r = dimensionResource(R.dimen.block_radius)
     val elevation0 = dimensionResource(R.dimen.block_elevation)
-
     val bg = colorResource(R.color.primary_brown)
-    val textWhite = Color.White
 
     Button(
-        onClick = { /* TODO */ },
+        onClick = { /* TODO: сохранить в Downloads */ },
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .height(h),
@@ -168,57 +198,20 @@ private fun DownloadButton() {
     ) {
         Text(
             text = stringResource(R.string.download_scheme),
-            color = textWhite,
+            color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium
         )
     }
 }
 
-/**
- *   Палитра из изображения:
- * - если imageUrl != null → грузим через Coil bitmap
- * - иначе → берём bitmap из drawable
- * - считаем 10 самых частых цветов (с квантованием)
- */
 @Composable
-private fun ColorPaletteFromImage(
-    imageUrl: String?,
-    @DrawableRes fallbackDrawable: Int
-) {
+private fun PaletteBar(scheme: SchemeData) {
     val titleColor = colorResource(R.color.text_dark)
-    val gap = 8.dp
-    val context = LocalContext.current
-
-    val key = imageUrl ?: "drawable:$fallbackDrawable"
-
-    var palette by remember(key) { mutableStateOf<List<Color>>(emptyList()) }
-    var loading by remember(key) { mutableStateOf(true) }
-
-    LaunchedEffect(key) {
-        loading = true
-        palette = emptyList()
-
-        val bmp: Bitmap? = if (imageUrl != null) {
-            loadBitmapFromUrl(context, imageUrl)
-        } else {
-            loadBitmapFromDrawable(context, fallbackDrawable)
-        }
-
-        palette = if (bmp != null) {
-            // считаем 10 популярных
-            extractTopColors(bmp, topN = 10)
-        } else {
-            // если вдруг не получилось — старый вариант
-            (1..10).map { getColorForIndex(it) }
-        }
-
-        loading = false
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(gap)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = stringResource(R.string.color_palette),
@@ -227,18 +220,14 @@ private fun ColorPaletteFromImage(
             fontWeight = FontWeight.SemiBold
         )
 
-        if (loading) {
-            CircularProgressIndicator(color = titleColor)
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                palette.take(10).forEachIndexed { index, c ->
-                    ColorSwatch(color = c, number = index + 1)
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            scheme.palette.take(10).forEachIndexed { index, c ->
+                ColorSwatch(color = c, number = index + 1)
             }
         }
     }
@@ -266,6 +255,290 @@ private fun ColorSwatch(color: Color, number: Int) {
     }
 }
 
+/**
+ * ✅ Схема "сеткой по номерам" + zoom/pan.
+ *
+ * Важно:
+ * - при scale == 1 и 1 пальце мы НЕ перехватываем жест → можно скроллить страницу
+ * - zoom/pan включается при 2 пальцах (или если scale>1)
+ * - трансформация через graphicsLayer (стабильно)
+ */
+@Composable
+private fun NumberedSchemeCanvas(scheme: SchemeData) {
+    var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) { mutableStateOf(1f) }
+    var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) { mutableStateOf(Offset.Zero) }
+
+    val minScale = 1f
+    val maxScale = 6f
+
+    val textPaint = remember {
+        Paint().apply {
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+        }
+    }
+
+    fun clampOffset(viewW: Float, viewH: Float, sc: Float, off: Offset): Offset {
+        val scaledW = viewW * sc
+        val scaledH = viewH * sc
+        val minX = min(0f, viewW - scaledW)
+        val minY = min(0f, viewH - scaledH)
+        return Offset(
+            x = off.x.coerceIn(minX, 0f),
+            y = off.y.coerceIn(minY, 0f)
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds()
+            .background(Color.White)
+            .pointerInput(scheme.gridW, scheme.gridH, scheme.indices.size) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+
+                    var active = false
+
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val pressed = event.changes.any { it.pressed }
+                        if (!pressed) break
+
+                        val pointers = event.changes.count { it.pressed }
+
+                        // ✅ если scale==1 и 1 палец — не активируем, пусть LazyColumn скроллит
+                        if (!active) {
+                            if (pointers >= 2 || scale > 1f) {
+                                active = true
+                            } else {
+                                // не consume — отдаём событие родителю (скроллу)
+                                continue
+                            }
+                        }
+
+                        // активное управление схемой
+                        val zoom = event.calculateZoom()
+                        val pan = event.calculatePan()
+                        val centroid = event.calculateCentroid()
+
+                        val viewW = size.width.toFloat()
+                        val viewH = size.height.toFloat()
+
+                        val oldScale = scale
+                        val newScale = (oldScale * zoom).coerceIn(minScale, maxScale)
+                        val r = newScale / oldScale
+
+                        val newOffset = (offset - centroid) * r + centroid + pan
+
+                        scale = newScale
+                        offset = clampOffset(viewW, viewH, newScale, newOffset)
+
+                        // ✅ потребляем изменения, чтобы скролл не боролся с паном
+                        event.changes.forEach { ch ->
+                            if (ch.positionChanged()) ch.consume()
+                        }
+                    }
+                }
+            }
+    ) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    translationX = offset.x
+                    translationY = offset.y
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0f, 0f)
+                }
+        ) {
+            val w = scheme.gridW
+            val h = scheme.gridH
+
+            // при aspectRatio карточки сетка заполняет canvas корректно
+            val cell = size.width / w.toFloat()
+
+            // видимая область
+            val left = (-offset.x) / scale
+            val top = (-offset.y) / scale
+            val right = (size.width - offset.x) / scale
+            val bottom = (size.height - offset.y) / scale
+
+            val x0 = floor(left / cell).toInt().coerceIn(0, w - 1)
+            val y0 = floor(top / cell).toInt().coerceIn(0, h - 1)
+            val x1 = ceil(right / cell).toInt().coerceIn(0, w - 1)
+            val y1 = ceil(bottom / cell).toInt().coerceIn(0, h - 1)
+
+            val effectiveCellPx = cell * scale
+            val drawNumbers = effectiveCellPx >= 18f
+            val gridStroke = Stroke(width = (1f / scale).coerceAtLeast(0.5f))
+
+            for (yy in y0..y1) {
+                val topY = yy * cell
+                for (xx in x0..x1) {
+                    val i = yy * w + xx
+                    val idx = scheme.indices[i]
+                    val color = scheme.palette[idx]
+
+                    val leftX = xx * cell
+                    val rectSize = Size(cell, cell)
+
+                    // легкая заливка
+                    drawRect(
+                        color = color.copy(alpha = 0.18f),
+                        topLeft = Offset(leftX, topY),
+                        size = rectSize
+                    )
+
+                    // сетка
+                    drawRect(
+                        color = Color.Black.copy(alpha = 0.25f),
+                        topLeft = Offset(leftX, topY),
+                        size = rectSize,
+                        style = gridStroke
+                    )
+
+                    // номер
+                    if (drawNumbers) {
+                        val number = (idx + 1).toString()
+                        textPaint.color = Color.Black.copy(alpha = 0.75f).toArgb()
+                        textPaint.textSize = cell * 0.55f
+
+                        val cx = leftX + cell / 2f
+                        val cy = topY + cell / 2f - (textPaint.ascent() + textPaint.descent()) / 2f
+                        drawContext.canvas.nativeCanvas.drawText(number, cx, cy, textPaint)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// -------------------------
+// Scheme data + build
+// -------------------------
+private data class SchemeData(
+    val gridW: Int,
+    val gridH: Int,
+    val palette: List<Color>,   // size K
+    val indices: IntArray       // size gridW*gridH, each 0..K-1
+)
+
+private fun buildScheme(
+    source: Bitmap,
+    minSideCells: Int,
+    paletteSize: Int
+): SchemeData {
+    val (gw, gh) = calcGridSize(source.width, source.height, minSideCells)
+    val small = Bitmap.createScaledBitmap(source, gw, gh, false)
+
+    val palette = extractTopColorsFromSmallBitmap(small, topN = paletteSize, step = 32)
+    val paletteInts = palette.map { it.toArgb() }
+
+    val indices = IntArray(gw * gh)
+    for (y in 0 until gh) {
+        for (x in 0 until gw) {
+            val c = small[x, y]
+            val a = (c ushr 24) and 0xFF
+            indices[y * gw + x] =
+                if (a < 40) nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
+                else nearestColorIndex(c, paletteInts)
+        }
+    }
+
+    return SchemeData(
+        gridW = gw,
+        gridH = gh,
+        palette = palette,
+        indices = indices
+    )
+}
+
+private fun calcGridSize(w: Int, h: Int, minSide: Int): Pair<Int, Int> {
+    val minDim = min(w, h)
+    if (minDim <= 0) return 128 to 128
+    val scale = minSide.toFloat() / minDim.toFloat()
+    val nw = max(1, (w * scale).roundToInt())
+    val nh = max(1, (h * scale).roundToInt())
+    return nw to nh
+}
+
+private fun extractTopColorsFromSmallBitmap(
+    bmp: Bitmap,
+    topN: Int,
+    step: Int
+): List<Color> {
+    val counts = HashMap<Int, Int>(4096)
+    val w = bmp.width
+    val h = bmp.height
+
+    for (y in 0 until h) {
+        for (x in 0 until w) {
+            val c = bmp[x, y]
+            val a = (c ushr 24) and 0xFF
+            if (a < 40) continue
+
+            val r = (c ushr 16) and 0xFF
+            val g = (c ushr 8) and 0xFF
+            val b = c and 0xFF
+
+            val rq = quantize(r, step)
+            val gq = quantize(g, step)
+            val bq = quantize(b, step)
+
+            val packed = (0xFF shl 24) or (rq shl 16) or (gq shl 8) or bq
+            counts[packed] = (counts[packed] ?: 0) + 1
+        }
+    }
+
+    val sorted = counts.entries
+        .sortedByDescending { it.value }
+        .take(topN)
+        .map { Color(it.key) }
+
+    return if (sorted.isNotEmpty()) sorted else listOf(
+        Color(0xFF000000),
+        Color(0xFFFFFFFF),
+        Color(0xFF7F7F7F)
+    ).take(topN)
+}
+
+private fun nearestColorIndex(argb: Int, palette: List<Int>): Int {
+    val r = (argb ushr 16) and 0xFF
+    val g = (argb ushr 8) and 0xFF
+    val b = argb and 0xFF
+
+    var best = 0
+    var bestD = Int.MAX_VALUE
+
+    for (i in palette.indices) {
+        val p = palette[i]
+        val pr = (p ushr 16) and 0xFF
+        val pg = (p ushr 8) and 0xFF
+        val pb = p and 0xFF
+
+        val dr = r - pr
+        val dg = g - pg
+        val db = b - pb
+        val d = dr * dr + dg * dg + db * db
+
+        if (d < bestD) {
+            bestD = d
+            best = i
+        }
+    }
+    return best
+}
+
+private fun quantize(v: Int, step: Int): Int {
+    val q = (v / step) * step
+    return min(255, max(0, q))
+}
+
+// -------------------------
+// Bitmap loading helpers
+// -------------------------
 private suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? = withContext(Dispatchers.IO) {
     try {
         val loader = ImageLoader(context)
@@ -276,8 +549,7 @@ private suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? = 
 
         val result = loader.execute(request)
         if (result is SuccessResult) {
-            val drawable = result.drawable
-            drawableToBitmap(drawable)
+            drawableToBitmap(result.drawable)
         } else null
     } catch (_: Exception) {
         null
@@ -308,84 +580,5 @@ private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitm
         }
     } catch (_: Exception) {
         null
-    }
-}
-
-/**
- * Берём topN наиболее частых цветов.
- * Чтобы “популярность” была стабильной, делаем квантование цвета:
- * сжимаем RGB до шагов, тогда близкие оттенки считаются одинаковыми.
- */
-private fun extractTopColors(source: Bitmap, topN: Int): List<Color> {
-    val bmp = downscaleBitmap(source, maxSide = 240)
-
-    val counts = HashMap<Int, Int>(4096)
-
-    val w = bmp.width
-    val h = bmp.height
-
-    // шаг квантования
-    val step = 32
-
-    for (y in 0 until h) {
-        for (x in 0 until w) {
-            val c = bmp[x, y]
-
-            val a = (c ushr 24) and 0xFF
-            if (a < 40) continue
-
-            val r = (c ushr 16) and 0xFF
-            val g = (c ushr 8) and 0xFF
-            val b = c and 0xFF
-
-            val rq = quantize(r, step)
-            val gq = quantize(g, step)
-            val bq = quantize(b, step)
-
-            val packed = (0xFF shl 24) or (rq shl 16) or (gq shl 8) or bq
-            counts[packed] = (counts[packed] ?: 0) + 1
-        }
-    }
-
-    val sorted = counts.entries
-        .sortedByDescending { it.value }
-        .take(topN)
-        .map { Color(it.key) }
-
-    return sorted.ifEmpty { (1..topN).map { getColorForIndex(it) } }
-}
-
-private fun quantize(v: Int, step: Int): Int {
-    val q = (v / step) * step
-    return min(255, max(0, q))
-}
-
-@SuppressLint("UseKtx")
-private fun downscaleBitmap(bmp: Bitmap, maxSide: Int): Bitmap {
-    val w = bmp.width
-    val h = bmp.height
-    val maxDim = max(w, h)
-    if (maxDim <= maxSide) return bmp
-
-    val scale = maxSide.toFloat() / maxDim.toFloat()
-    val nw = max(1, (w * scale).toInt())
-    val nh = max(1, (h * scale).toInt())
-    return Bitmap.createScaledBitmap(bmp, nw, nh, true)
-}
-
-
-private fun getColorForIndex(index: Int): Color {
-    return when (index) {
-        1 -> Color(0xFFA5D6A7)
-        2 -> Color(0xFF90CAF9)
-        3 -> Color(0xFFCE93D8)
-        4 -> Color(0xFFFFCC80)
-        5 -> Color(0xFFEF9A9A)
-        6 -> Color(0xFFBDBDBD)
-        7 -> Color(0xFF64B5F6)
-        8 -> Color(0xFF4DB6AC)
-        9 -> Color(0xFF8D6E63)
-        10 -> Color(0xFF795548)
-        else -> Color.Gray
     }
 }

@@ -3,10 +3,15 @@ package com.example.handhophop.data.remote
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-data class NekoImageDto(
+data class NekoImageDto(fir
     val id: Int,
     val url: String,
-    val rating: String
+    val rating: String,
+    val artist_name: String? = null,
+    val color_dominant: List<Int>? = null,
+    val color_palette: List<List<Int>>? = null,
+    val tags: List<String>? = null,
+    val source_url: String? = null
 )
 
 interface NekoApi {

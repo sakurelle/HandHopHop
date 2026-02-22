@@ -19,13 +19,11 @@ data class ImageListState(
     val reachedEnd: Boolean = false,
     val isSquareFilterEnabled: Boolean = false
 ) {
-    // Вычисляемый список на основе фильтра
     val filteredItems: List<ImageItem>
         get() = if (isSquareFilterEnabled) {
-            // Квадратными считаем те, у кого соотношение сторон от 0.9 до 1.1
-            items.filter { it.aspectRatio < 0.5f }
+            // квадрат ~ 1.0 (0.9..1.1)
+            items.filter { it.aspectRatio > 0f && it.aspectRatio in 0.9f..1.1f }
         } else {
-            // Прямоугольными считаем те, которые явно не квадратные
             items
         }
 }
@@ -35,7 +33,7 @@ class OnlineSchemesViewModel(
 ) : ViewModel() {
 
     companion object {
-        private const val MAX_ITEMS = 100 // Увеличил лимит, чтобы было из чего фильтровать
+        private const val MAX_ITEMS = 500
         private const val PAGE_SIZE = 20
     }
 
@@ -72,9 +70,9 @@ class OnlineSchemesViewModel(
                     _state.update { it.copy(isLoading = false, reachedEnd = true) }
                 } else {
                     page += 1
-                    _state.update { currentState ->
-                        val merged = currentState.items + newItems
-                        currentState.copy(
+                    _state.update { st ->
+                        val merged = st.items + newItems
+                        st.copy(
                             items = merged,
                             isLoading = false,
                             reachedEnd = merged.size >= MAX_ITEMS

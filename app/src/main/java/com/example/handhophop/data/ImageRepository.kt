@@ -5,7 +5,6 @@ import com.example.handhophop.data.remote.NekoImageDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import kotlin.random.Random
 
 data class ImageItem(
     val id: String,
@@ -20,12 +19,6 @@ class ImageRepository(
     private val cache = mutableMapOf<Int, List<ImageItem>>()
     private var nextId: Int = 1
 
-    /**
-     * Запрашивает следующее изображение по id и пропускает:
-     * - HTTP ошибки (404/500)
-     * - любые рейтинги кроме "safe"
-     * Возвращает первый найденный safe-результат.
-     */
     private suspend fun loadNextSafeImage(): ImageItem {
         var attempts = 0
 
@@ -36,9 +29,9 @@ class ImageRepository(
 
             val dto: NekoImageDto = try {
                 api.getImageById(currentId)
-            } catch (e: HttpException) {
+            } catch (_: HttpException) {
                 continue
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 continue
             }
 
@@ -47,7 +40,8 @@ class ImageRepository(
             return ImageItem(
                 id = dto.id.toString(),
                 imageUrl = dto.url,
-                aspectRatio = Random.nextFloat()
+                aspectRatio = 0f,
+                author = dto.artist_name ?: ""
             )
         }
 
