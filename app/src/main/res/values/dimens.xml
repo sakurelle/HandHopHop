@@ -69,10 +69,10 @@
     <dimen name="profile_avatar_size">90dp</dimen>
 
     <!-- Насколько аватар заезжает на баннер (половина аватара) -->
-    <dimen name="profile_avatar_overlap">45dp</dimen>
+    <dimen name="profile_avatar_overlap">17dp</dimen>
 
     <!-- Отступ под баннером, чтобы контент не налез -->
-    <dimen name="profile_banner_bottom_space">45dp</dimen>
+    <dimen name="profile_banner_bottom_space">17dp</dimen>
 
     <!-- Bottom bar: индикатор выбранной иконки -->
     <dimen name="nav_selected_indicator_width">22dp</dimen>
@@ -81,5 +81,25 @@
     <dimen name="nav_selected_indicator_gap_under_icon">2dp</dimen>
 
     <dimen name="nav_icon_text_gap">2dp</dimen>
+
+
+    <!-- для нижнего бара -->
+    <dimen name="top_bar_height">50dp</dimen>
+    <dimen name = "main_radius">15dp</dimen>
+    <dimen name="top_bar_str">30sp</dimen>
+    <dimen name="button_text">12sp</dimen>
+    <dimen name= "plus_padding">8dp</dimen>
+    <dimen name="plus_size">50dp</dimen>
+    <dimen name="bottom_pading">15dp</dimen>
+    <dimen name="top_bar_padding">5dp</dimen>
+    <dimen name="main_padding">15dp</dimen>
+
+    <dimen name="str_empty">22sp</dimen>
+    <dimen name="button_text_main">20sp</dimen>
+    <dimen name="button_height">60dp</dimen>
+    <dimen name="border_width">1dp</dimen>
+    <dimen name="avatar_size">150dp</dimen>
+    <dimen name ="nik_size">40sp</dimen>
+    <dimen name="text_size">20sp</dimen>
 
 </resources>

@@ -34,4 +34,9 @@
     <string name="back_gallery">Вернуться</string>
 
     <string name="filter_not_tall">Без вытянутых вверх</string>
+
+    <string name="home">Домой</string>
+    <string name="online_sheme">Онлайн\nсхемы</string>
+    <string name="download_sheme">Скачанные\nсхемы</string>
+    <string name="profile">Профиль</string>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.handhophop.R
@@ -25,8 +26,8 @@ import com.example.handhophop.data.local.ProfileState
 
 @Composable
 fun ProfileTopBanner() {
-    val h = dimensionResource(R.dimen.top_banner_height)
-    val radius0 = dimensionResource(R.dimen.radius_0)
+    val h = dimensionResource(R.dimen.top_bar_height)
+    val radius0 = dimensionResource(R.dimen.main_radius)
     val elevation0 = dimensionResource(R.dimen.block_elevation)
     val bannerColor = colorResource(R.color.card_beige)
 
@@ -34,7 +35,11 @@ fun ProfileTopBanner() {
         modifier = Modifier
             .fillMaxWidth()
             .height(h),
-        shape = RoundedCornerShape(radius0),
+        shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = radius0,
+            bottomEnd = radius0),
         colors = CardDefaults.cardColors(containerColor = bannerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation0)
     ) {}

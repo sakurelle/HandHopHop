@@ -2,195 +2,186 @@ package com.example.handhophop.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.handhophop.R
-
-private enum class BottomItem {
-    Home, Online, Add, Downloads, Profile
-}
 
 @Composable
 fun BottomBar(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val navBg = colorResource(R.color.bar)
-    val icon = colorResource(R.color.nav_icon)
-    val iconActive = colorResource(R.color.bg_beige)
-    val fabBg = colorResource(R.color.fab_bg)
+    val bottomBarBackground = colorResource(R.color.bottom_bar)
+    val buttonBackground = colorResource(R.color.button)
+    val whiteColor = colorResource(R.color.white)
+    val colorButPlus = colorResource(R.color.plus_button)
+    val radius = dimensionResource(R.dimen.main_radius)
+    val plusSize = dimensionResource(R.dimen.plus_size)
+    // plusPadding больше не нужен для смещения, но может быть полезен для других отступов
+    // val plusPadding = dimensionResource(R.dimen.plus_padding)
+    val barHeight = dimensionResource(R.dimen.bottom_bar_height)
+    val bottomPadding = dimensionResource(R.dimen.bottom_pading)
 
-    val barH = dimensionResource(R.dimen.bottom_bar_height)
-    val itemW = dimensionResource(R.dimen.bottom_item_width)
-    val centerGap = dimensionResource(R.dimen.center_gap_width)
-
-    val fabSize = dimensionResource(R.dimen.fab_size)
-    val fabLift = dimensionResource(R.dimen.fab_lift)
-    val iconBtnSize = dimensionResource(R.dimen.nav_icon_button_size)
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    val selected = when (currentRoute) {
-        Screen.Home.route -> BottomItem.Home
-        Screen.OnlineSchemes.route -> BottomItem.Online
-        Screen.Profile.route -> BottomItem.Profile
-        else -> BottomItem.Home
-    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
 
-    Box(modifier = modifier) {
-        Surface(color = navBg) {
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Surface(
+            modifier = Modifier,
+            color = bottomBarBackground,
+            shape = RoundedCornerShape(topStart = radius, topEnd = radius)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(barH),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .height(IntrinsicSize.Min)
+                    .padding(
+                        bottom =bottomPadding),
+                // ИЗМЕНЕНО: Выравниваем все элементы по верху, чтобы они были на одной линии
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 NavItem(
-                    title = stringResource(R.string.nav_home),
-                    icon = Icons.Outlined.Home,
-                    selected = selected == BottomItem.Home,
-                    onClick = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    activeColor = iconActive,
-                    inactiveColor = icon,
-                    width = itemW,
-                    iconButtonSize = iconBtnSize
+                    title = stringResource(R.string.home),
+                    icon = painterResource(R.drawable.home),
+                    selected = currentRoute == Screen.Home.route,
+                    onClick = { navController.navigate(Screen.Home.route) { launchSingleTop = true } },
+                    activeColor = whiteColor,
+                    inactiveColor = buttonBackground,
+                    activeContainerColor = buttonBackground
                 )
 
                 NavItem(
-                    title = stringResource(R.string.nav_online),
-                    icon = Icons.Outlined.Search,
-                    selected = selected == BottomItem.Online,
-                    onClick = {
-                        navController.navigate(Screen.OnlineSchemes.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    activeColor = iconActive,
-                    inactiveColor = icon,
-                    width = itemW,
-                    iconButtonSize = iconBtnSize
+                    title = stringResource(R.string.online_sheme),
+                    icon = painterResource(R.drawable.online),
+                    selected = currentRoute == Screen.OnlineSchemes.route,
+                    onClick = { navController.navigate(Screen.OnlineSchemes.route) { launchSingleTop = true } },
+                    activeColor = whiteColor,
+                    inactiveColor = buttonBackground,
+                    activeContainerColor = buttonBackground
                 )
 
-                Spacer(modifier = Modifier.width(centerGap))
+                // Пустое место для центральной кнопки
+                Spacer(Modifier.weight(1f))
 
                 NavItem(
-                    title = stringResource(R.string.nav_downloads),
-                    icon = Icons.Outlined.Done,
-                    selected = false,
-                    onClick = { /* TODO */ },
-                    activeColor = iconActive,
-                    inactiveColor = icon,
-                    width = itemW,
-                    iconButtonSize = iconBtnSize
+                    title = stringResource(R.string.download_sheme),
+                    icon = painterResource(R.drawable.download_sheme),
+                    selected = currentRoute == "downloads_route",
+                    onClick = { /* navController.navigate(...) */ },
+                    activeColor = whiteColor,
+                    inactiveColor = buttonBackground,
+                    activeContainerColor = buttonBackground
                 )
 
                 NavItem(
-                    title = stringResource(R.string.nav_profile),
-                    icon = Icons.Outlined.Person,
-                    selected = selected == BottomItem.Profile,
-                    onClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    activeColor = iconActive,
-                    inactiveColor = icon,
-                    width = itemW,
-                    iconButtonSize = iconBtnSize
+                    title = stringResource(R.string.profile),
+                    icon = painterResource(R.drawable.profile),
+                    selected = currentRoute == Screen.Profile.route,
+                    onClick = { navController.navigate(Screen.Profile.route) { launchSingleTop = true } },
+                    activeColor = whiteColor,
+                    inactiveColor = buttonBackground,
+                    activeContainerColor = buttonBackground
                 )
             }
         }
 
-        FloatingActionButton(
-            onClick = { /* TODO */ },
-            containerColor = fabBg,
-            contentColor = Color.White,
-            shape = CircleShape,
+        // --- ИЗМЕНЕНО: Кнопка "Плюс" теперь выровнена по центру всего Box ---
+        Button(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = -fabLift)
-                .size(fabSize)
+                .align(Alignment.Center) // Просто выравниваем по центру
+                .size(plusSize),
+            shape = RoundedCornerShape(radius),
+            elevation = null,
+            onClick = { /*TODO*/ },
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(R.color.button)
+            )
         ) {
             Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = stringResource(R.string.nav_add)
+                painter = painterResource(R.drawable.plus),
+                contentDescription = null,
+                tint = whiteColor
             )
         }
     }
 }
 
 @Composable
-private fun NavItem(
+private fun RowScope.NavItem(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Painter,
     selected: Boolean,
     onClick: () -> Unit,
     activeColor: Color,
     inactiveColor: Color,
-    width: androidx.compose.ui.unit.Dp,
-    iconButtonSize: androidx.compose.ui.unit.Dp
+    activeContainerColor: Color,
 ) {
-    val tint = if (selected) activeColor else inactiveColor
+    val containerColor = if (selected) activeContainerColor else Color.Transparent
+    val contentColor = if (selected) activeColor else inactiveColor
+    val buttonTextSize = dimensionResource(R.dimen.button_text)
+    // val bottomPadding = dimensionResource(R.dimen.bottom_pading)
+    val radius = dimensionResource(R.dimen.main_radius)
+    // Высота элемента, чтобы все были одинаковыми
+    val itemHeight = dimensionResource(R.dimen.bottom_bar_height)
 
-    val indicatorColor = colorResource(R.color.nav_selected_indicator)
-    val indW = dimensionResource(R.dimen.nav_selected_indicator_width)
-    val indH = dimensionResource(R.dimen.nav_selected_indicator_height)
-    val indR = dimensionResource(R.dimen.nav_selected_indicator_radius)
-    val indGap = dimensionResource(R.dimen.nav_selected_indicator_gap_under_icon)
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
         modifier = Modifier
-            .width(width)
-            .fillMaxHeight()
-            .padding(top = dimensionResource(R.dimen.nav_item_top_padding))
+            .weight(1f)
+            .wrapContentHeight()
+            .padding(
+                top = dimensionResource(R.dimen.top_bar_padding)
+            ),
+
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center // Центрируем контент внутри элемента
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            IconButton(onClick = onClick, modifier = Modifier.size(iconButtonSize)) {
-                Icon(imageVector = icon, contentDescription = null, tint = tint)
-            }
-
-            Spacer(modifier = Modifier.height(indGap + indH))
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(radius),
+            contentPadding = PaddingValues(0.dp),
+            elevation = null,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = contentColor
+            )
+        ) {
+            Icon(
+                painter = icon,
+                contentDescription = title,
+            )
         }
-
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.nav_icon_text_gap)))
-
         Text(
             text = title,
-            color = tint,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 2,
-            textAlign = TextAlign.Center
+            color = inactiveColor,
+            fontSize = buttonTextSize.value.sp,
+            textAlign = TextAlign.Center,
+           // modifier = Modifier.padding(top = 4.dp)
         )
     }
 }

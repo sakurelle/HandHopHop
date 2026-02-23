@@ -3,7 +3,7 @@ package com.example.handhophop.data.remote
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-data class NekoImageDto(fir
+data class NekoImageDto(
     val id: Int,
     val url: String,
     val rating: String,

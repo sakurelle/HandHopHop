@@ -3,6 +3,7 @@ package com.example.handhophop.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
@@ -44,7 +47,17 @@ fun HomeScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             TopBanner(title = stringResource(R.string.home_title_incomplete))
-            CenterContent(navController, selectedUrl)
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(
+                    top =dimensionResource(R.dimen.main_padding),
+                    bottom = dimensionResource(R.dimen.main_padding)
+                )
+            ) {
+                item{CenterContent(navController, selectedUrl)}
+            }
+
             BottomBar(navController = navController, modifier = Modifier.fillMaxWidth())
         }
     }
@@ -67,20 +80,25 @@ fun BackgroundPattern() {
 fun TopBanner(
     title: String
 ) {
-    val h = dimensionResource(R.dimen.top_banner_height)
-    val bottomPad = dimensionResource(R.dimen.top_banner_bottom_padding)
+    val h = dimensionResource(R.dimen.top_bar_height)
+    val bottomPad = dimensionResource(R.dimen.top_bar_padding)
 
-    val radius0 = dimensionResource(R.dimen.radius_0)
+    val radius0 = dimensionResource(R.dimen.main_radius)
     val elevation0 = dimensionResource(R.dimen.block_elevation)
 
     val bannerColor = colorResource(R.color.card_beige)
-    val textColor = colorResource(R.color.text_dark)
+    val textColor = colorResource(R.color.button)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(h),
-        shape = RoundedCornerShape(radius0),
+        shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = radius0,
+            bottomEnd = radius0
+        ),
         colors = CardDefaults.cardColors(containerColor = bannerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation0)
     ) {
@@ -94,7 +112,8 @@ fun TopBanner(
                 text = title,
                 color = textColor,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                fontSize = dimensionResource(R.dimen.top_bar_str).value.sp
             )
         }
     }
