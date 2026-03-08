@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HandHopHop"
 include(":app")
- 
+include(":feature:mash")
