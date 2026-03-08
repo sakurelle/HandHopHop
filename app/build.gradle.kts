@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.handhophop"
+    namespace = "ru.handhophop"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.handhophop"
+        applicationId = "ru.handhophop"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
