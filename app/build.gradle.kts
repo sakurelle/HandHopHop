@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.handhophop"
+    namespace = "ru.handhophop"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.handhophop"
+        applicationId = "ru.handhophop"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
@@ -80,4 +80,11 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation(project(":core:network"))
+    implementation(project(":core:session"))
+    implementation(project(":feature:mash"))
+    implementation(project(":feature:feed"))
+    implementation(project(":feature:bookmark"))
+    implementation(project(":feature:profile"))
 }
