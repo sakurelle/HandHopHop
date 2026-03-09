@@ -21,4 +21,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "HandHopHop"
 include(":app")
+
+// Include the features
 include(":feature:mash")
+include(":feature:feed")
+include(":feature:bookmark")
+include(":feature:profile")
+
+// Include the core modules
+include(":core:network")
+include(":core:session")

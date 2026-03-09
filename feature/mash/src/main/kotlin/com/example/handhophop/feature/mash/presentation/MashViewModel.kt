@@ -1,5 +1,9 @@
 package com.example.handhophop.feature.mash.presentation
 
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
 internal class MashViewModel: ViewModel() {
 
     private val _uiState = MutableStateFlow<MashUiState>(MashUiState())
@@ -7,10 +11,10 @@ internal class MashViewModel: ViewModel() {
 
     fun handleAction(action: UiAction) {
         when (action) {
-            action is ClickDownloadsAction -> {
+            is ClickDownloadsAction -> {
                 download()
             }
-            action is GenerateShemaAction -> {
+            is GenerateShemaAction -> {
                 //TODO делаем генерацию схемы
             }
         }
