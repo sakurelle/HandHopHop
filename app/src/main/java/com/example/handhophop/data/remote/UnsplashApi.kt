@@ -1,5 +1,4 @@
 package com.example.handhophop.data.remote
-
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -20,7 +19,6 @@ fun provideRetrofit(): Retrofit {
     val okHttp = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor())
         .build()
-
     return Retrofit.Builder()
         .client(okHttp)
         .baseUrl("https://api.unsplash.com/")
