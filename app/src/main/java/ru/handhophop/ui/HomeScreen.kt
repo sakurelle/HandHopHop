@@ -43,9 +43,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(
-                    top =dimensionResource(R.dimen.main_padding),
-                    bottom = dimensionResource(R.dimen.main_padding)
-                )
+                        top =dimensionResource(R.dimen.main_padding),
+                        bottom = dimensionResource(R.dimen.main_padding)
+                    )
             ) {
                 item{CenterContent(navController, selectedUrl)}
             }

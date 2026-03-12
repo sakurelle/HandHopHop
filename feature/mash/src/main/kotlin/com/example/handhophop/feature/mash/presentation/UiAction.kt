@@ -1,6 +1,9 @@
 package com.example.handhophop.feature.mash.presentation
 
-interface UiAction
+internal sealed interface UiAction
 
-class ClickDownloadsAction(): UiAction
-class GenerateShemaAction(): UiAction
+internal data object ClickDownloadsAction : UiAction
+
+internal data class GenerateShemaAction(
+    val imageUrl: String?
+) : UiAction
