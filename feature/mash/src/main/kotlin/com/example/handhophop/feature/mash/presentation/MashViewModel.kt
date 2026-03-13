@@ -12,10 +12,16 @@ internal class MashViewModel: ViewModel() {
     fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> {
-                download()
+                // TODO делаем загрузку схемы
             }
             is GenerateShemaAction -> {
                 //TODO делаем генерацию схемы
+            }
+            is HighlightingColorAction -> {
+                //TODO делаем выделение определенного цвета
+            }
+            is ShadedColorAction -> {
+                //TODO делаем вывод итогового результата по двойному нажатию
             }
         }
     }
