@@ -1,6 +1,6 @@
 ---
 {
   "schema_version": "authorship/3.0.0",
-  "base_commit_sha": "bbf0743d20ea31db3fd8f3b1d1f496d2ad1501cf",
+  "base_commit_sha": "e15bd43870bc72fd09d189e95606b9bf23a5bb06",
   "prompts": {}
 }
