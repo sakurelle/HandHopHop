@@ -1,10 +1,65 @@
 *.iml
-.gradle/
-.idea/
-local.properties
+.gradle
+/local.properties
+/.idea/
 .DS_Store
 build/
-**/build/
-captures/
-.externalNativeBuild/
-.cxx/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+output.json
+
+# Keystore files (DO NOT COMMIT!)
+*.jks
+*.keystore
+*.keystore.properties
+keystore.properties
+
+# Firebase/Google Services
+google-services.json
+google-services.xml
+
+# IDE specific files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/deploymentTargetDropDown.xml
+.idea/deploymentTargetSelector.xml
+.idea/render.experimental.xml
+.idea/migrations.xml
+.idea/shelf/
+.idea/inspectionProfiles/
+.idea/runConfigurations/
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Log/Temp files
+*.log
+*.swp
+*.swo
+*~
+*.orig
+*.tmp
+
+# Heap dumps
+*.hprof
+
+# NDK/CMake
+obj/
+.ninja_deps
+.ninja_log
+compile_commands.json
