@@ -1,6 +1,8 @@
 package com.example.handhophop.feature.mash.presentation
 
 import android.graphics.Paint
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.ceil
 import kotlin.math.floor
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableFloatStateOf
 
 @Composable
 internal fun MashScreen(
@@ -109,8 +110,37 @@ private fun CenterContentMash(
         }
 
         item {
-            uiState.scheme?.let { scheme ->
-                PaletteBar(scheme)
+            if (uiState.visiblePalette.isNotEmpty()) {
+                PaletteBar(colors = uiState.visiblePalette)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaletteBar(colors: List<Color>) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Палитра",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            itemsIndexed(colors) { index, color ->
+                ColorSwatch(
+                    color = color,
+                    number = index + 1
+                )
             }
         }
     }
@@ -175,32 +205,6 @@ private fun DownloadButton(
 }
 
 @Composable
-private fun PaletteBar(scheme: SchemeData) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = "Палитра",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            scheme.palette.take(10).forEachIndexed { index, color ->
-                ColorSwatch(color = color, number = index + 1)
-            }
-        }
-    }
-}
-
-@Composable
 private fun ColorSwatch(
     color: Color,
     number: Int
@@ -226,7 +230,7 @@ private fun ColorSwatch(
 @Composable
 private fun NumberedSchemeCanvas(scheme: SchemeData) {
     var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
-        mutableStateOf(1f)
+        mutableFloatStateOf(1f)
     }
     var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableStateOf(Offset.Zero)
