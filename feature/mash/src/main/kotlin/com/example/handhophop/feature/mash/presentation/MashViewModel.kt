@@ -21,9 +21,9 @@ internal class MashViewModel(
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(MashUiState())
-    internal val uiState: StateFlow<MashUiState> = _uiState
+    val uiState: StateFlow<MashUiState> = _uiState
 
-    internal fun handleAction(action: UiAction) {
+    fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> {
                 download()
