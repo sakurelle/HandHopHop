@@ -4,5 +4,3 @@ interface UiAction
 
 class ClickDownloadsAction(): UiAction
 class GenerateShemaAction(): UiAction
-class HighlightingColorAction(): UiAction
-class ShadedColorAction(): UiAction
