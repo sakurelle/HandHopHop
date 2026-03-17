@@ -63,7 +63,7 @@ internal fun MashScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(imageUrl) {
-        viewModel.handleAction(GenerateShemaAction(imageUrl))
+        viewModel.handleAction(GenerateShemaAction())
     }
 
     Box(
@@ -75,7 +75,7 @@ internal fun MashScreen(
             CenterContentMash(
                 uiState = uiState,
                 onDownloadClick = {
-                    viewModel.handleAction(ClickDownloadsAction)
+                    viewModel.handleAction(ClickDownloadsAction())
                 }
             )
         }
