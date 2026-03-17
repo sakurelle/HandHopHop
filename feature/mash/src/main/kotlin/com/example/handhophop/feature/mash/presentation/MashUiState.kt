@@ -9,7 +9,18 @@ internal data class MashUiState(
     val imageUrl: String? = null,
     val scheme: SchemeData? = null,
     val visiblePalette: List<Color> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val reachedEnd: Boolean = false,
+    val isSquareFilterEnabled: Boolean = false,
+    val items: ImageItem? = null
+)
+
+@Immutable
+internal data class ImageItem(
+    val id: String,
+    val imageUrl: String,
+    val aspectRatio: Float,
+    val author: String = ""
 )
 
 @Immutable

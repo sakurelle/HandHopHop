@@ -2,6 +2,8 @@ package com.example.handhophop.feature.mash.presentation
 
 import android.app.Application
 import android.graphics.Bitmap
+import androidx.core.graphics.get
+import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +12,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import androidx.core.graphics.scale
-import androidx.core.graphics.get
 
 internal class MashViewModel(
     application: Application
@@ -23,12 +23,20 @@ internal class MashViewModel(
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
-            is GenerateShemaAction -> generateScheme(action.imageUrl)
+            is GenerateShemaAction -> generateScheme()
+            is HighlightingColorAction -> {
+                // TODO делаем выделение определенного цвета
+            }
+            is ShadedColorAction -> {
+                // TODO делаем вывод итогового результата по двойному нажатию
+            }
         }
     }
 
-    private fun generateScheme(imageUrl: String?) {
+    private fun generateScheme() {
         viewModelScope.launch {
+            val imageUrl = _uiState.value.imageUrl
+
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 imageUrl = imageUrl,
@@ -78,11 +86,13 @@ internal class MashViewModel(
     }
 
     private fun download() {
-        // TODO скачать схему
+        // TODO скачать схему (Скачаем же, да?)
     }
 }
 
 private fun buildScheme(
+    // Здесь пока ругается, что используется один раз и
+    // константными значениями, но мы это исправим
     source: Bitmap,
     minSideCells: Int,
     paletteSize: Int
