@@ -11,9 +11,23 @@ import retrofit2.Retrofit
 object UnsplashNetwork {
     private const val BASE_URL = "https://api.unsplash.com/"
 
-    fun create(): UnsplashApiService {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(UnsplashApi())
+    private var okHttpClient: OkHttpClient? = null;
+    private var retrofit: Retrofit? = null;
+    private var unsplashApiInterceptor: UnsplashApiInterceptor? = null;
+    private var service: UnsplashApiService? = null;
+
+    fun getApiService(): UnsplashApiService {
+        if (service == null) {
+            createInitialization()
+        }
+        return service!!
+    }
+
+    fun createInitialization() {
+        unsplashApiInterceptor = UnsplashApiInterceptor()
+
+        okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(unsplashApiInterceptor!!)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
@@ -22,12 +36,12 @@ object UnsplashNetwork {
             ignoreUnknownKeys = true
         }
 
-        val retrofit = Retrofit.Builder()
+        retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient)
+            .client(okHttpClient!!)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 
-        return retrofit.create(UnsplashApiService::class.java)
+        service = retrofit!!.create(UnsplashApiService::class.java)
     }
 }

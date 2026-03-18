@@ -7,6 +7,6 @@ import ru.handhophop.core.network.models.UnsplashPhoto
 interface UnsplashApiService {
     @GET("photos/random")
     suspend fun getRandomPhotos(
-        @Query("count") count: Int = 30
+        @Query("count") count: Int = 10
     ): List<UnsplashPhoto>
 }
