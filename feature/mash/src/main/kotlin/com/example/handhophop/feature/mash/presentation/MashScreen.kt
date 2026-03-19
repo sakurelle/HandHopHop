@@ -66,7 +66,7 @@ internal fun MashScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(imageUrl) {
-        viewModel.handleAction(GenerateShemaAction(imageUrl))
+        viewModel.handleAction(GenerateSchemeAction(imageUrl))
     }
 
     Box(
