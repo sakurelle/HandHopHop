@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Отступы экрана -->
+    <dimen name="mash_screen_horizontal_padding">16dp</dimen>
+    <dimen name="mash_screen_vertical_padding">16dp</dimen>
+    <dimen name="mash_content_spacing">16dp</dimen>
+
+    <!-- Блок палитры -->
+    <dimen name="mash_palette_title_spacing">8dp</dimen>
+    <dimen name="mash_palette_row_spacing">12dp</dimen>
+    <dimen name="mash_palette_horizontal_padding">8dp</dimen>
+
+    <!-- Цветные квадратики в палитре -->
+    <dimen name="mash_swatch_size">32dp</dimen>
+    <dimen name="mash_swatch_corner_radius">4dp</dimen>
+    <dimen name="mash_swatch_text_spacing">4dp</dimen>
+    <dimen name="mash_swatch_text_size">10sp</dimen>
+
+    <!-- Сетка -->
+    <dimen name="mash_card_corner_radius">20dp</dimen>
+    <dimen name="mash_card_elevation">4dp</dimen>
+    <dimen name="mash_card_content_padding">16dp</dimen>
+
+    <!-- Кнопка скачать -->
+    <dimen name="mash_button_height">56dp</dimen>
+    <dimen name="mash_button_corner_radius">16dp</dimen>
+    <dimen name="mash_button_elevation">4dp</dimen>
+</resources>

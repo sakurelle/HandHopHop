@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mash_palette_title">Палитра</string>
+    <string name="mash_no_scheme">Нет схемы</string>
+    <string name="mash_download_scheme">Скачать схему</string>
+    <string name="mash_select_scheme_first">Сначала выберите схему</string>
+    <string name="mash_failed_build_scheme">Не удалось построить схему</string>
+</resources>
