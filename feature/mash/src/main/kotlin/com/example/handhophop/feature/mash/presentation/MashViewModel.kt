@@ -33,7 +33,7 @@ internal class MashViewModel(
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
-            is GenerateShemaAction -> generateScheme(action.imageUrl)
+            is GenerateSchemeAction -> generateScheme(action.imageUrl)
             is HighlightingColorAction -> {
                 // TODO делаем выделение определенного цвета
             }
