@@ -1,4 +1,4 @@
-package com.example.handhophop.feature.mash.presentation
+package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap

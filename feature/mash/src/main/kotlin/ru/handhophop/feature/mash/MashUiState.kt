@@ -1,4 +1,4 @@
-package com.example.handhophop.feature.mash.presentation
+package ru.handhophop.feature.mash
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color

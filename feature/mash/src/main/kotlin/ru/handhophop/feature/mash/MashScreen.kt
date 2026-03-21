@@ -1,4 +1,4 @@
-package com.example.handhophop.feature.mash.presentation
+package ru.handhophop.feature.mash
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
