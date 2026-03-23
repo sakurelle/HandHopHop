@@ -5,5 +5,5 @@ internal data class ProfileUiState(
     val nickname: String,
     val email: String,
     val phone: String,
-    val avatarUri: String? = null
+    val avatarUrl: String? = null
 )

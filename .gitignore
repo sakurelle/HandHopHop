@@ -8,6 +8,7 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+.idea/deploymentTargetSelector.xml
 
 # Build outputs
 *.apk
