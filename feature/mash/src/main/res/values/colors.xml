@@ -1,0 +1,12 @@
+<resources>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="bottom_bar">#BD9C89</color>
+    <color name ="main_color">#DBC5B9</color>
+    <color name = "button">#69564B</color>
+    <color name = "plus_button">#211915</color>
+    <color name="button_touched">#A49188</color>
+
+</resources>

@@ -1,0 +1,10 @@
+<resources>
+    <string name ="now_nothing">Пока ничего...</string>
+    <string name="home">Домой</string>
+    <string name="online_sheme">Онлайн\nсхемы</string>
+    <string name="download_sheme">Избранное</string>
+    <string name="profile">Профиль</string>
+    <string name="statistic">Статистика</string>
+    <string name="Start">Начать</string>
+    <string name="Download">Скачать</string>
+</resources>
