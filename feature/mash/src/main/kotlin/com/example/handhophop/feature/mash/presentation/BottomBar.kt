@@ -25,18 +25,27 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.handhophop.feature.mash.R
-import com.example.handhophop.feature.mash.presentation.ScreenState
-
 
 
 @Composable
+@Preview(showSystemUi = true)
+fun BottonBarPreview() {
+    BottomBar(
+        Route.MASH,
+        onRouteSelected = {}
+    )
+}
+
+@Composable
 internal fun BottomBar(
-    onNavigate: (ScreenState) -> Unit,
-    state: ScreenState
-){
+    //screenState: ScreenState
+    currentRoute: Route,
+    onRouteSelected: (Route) -> Unit
+) {
 
     val buttonText = dimensionResource(R.dimen.button_text)
     val bottomPadding = dimensionResource(R.dimen.bottom_pading)
@@ -45,9 +54,6 @@ internal fun BottomBar(
     val bottomBarBackground = colorResource(R.color.bottom_bar)
     val buttonBackground = colorResource(R.color.button)
     val whiteColor = colorResource(R.color.white)
-    val colorButPlus = colorResource(R.color.plus_button)
-
-
 
     Box(
         modifier = Modifier
@@ -62,13 +68,13 @@ internal fun BottomBar(
             ),
         contentAlignment = Alignment.BottomCenter
 
-    ){
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.Center
-        ){
+        ) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -76,23 +82,23 @@ internal fun BottomBar(
                     .padding(
                         bottom = bottomPadding
                     ),
-                horizontalAlignment  = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
                 Button(
                     modifier = Modifier,
                     elevation = null,
                     shape = RoundedCornerShape(radius),
-                    onClick = { onNavigate(ScreenState.HOME) },
+                    onClick = { onRouteSelected(Route.MASH) },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(state == ScreenState.HOME) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.MASH) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.home),
                         contentDescription = null,
-                        tint = if(state == ScreenState.HOME) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.MASH) whiteColor else buttonBackground
                     )
                 }
                 Text(
@@ -111,7 +117,7 @@ internal fun BottomBar(
                     .padding(
                         bottom = bottomPadding
                     ),
-                horizontalAlignment  = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
                 Button(
@@ -119,16 +125,16 @@ internal fun BottomBar(
                     elevation = null,
                     shape = RoundedCornerShape(radius),
                     contentPadding = PaddingValues(0.dp),
-                    onClick = { onNavigate(ScreenState.ONLINE)},
+                    onClick = { onRouteSelected(Route.FEED) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(state == ScreenState.ONLINE) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.FEED) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         modifier = Modifier,
-                        painter = painterResource(R.drawable.online),
+                        painter = painterResource(R.drawable.mash),
                         contentDescription = null,
-                        tint = if(state == ScreenState.ONLINE) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.FEED) whiteColor else buttonBackground
                     )
                 }
                 Text(
@@ -147,23 +153,23 @@ internal fun BottomBar(
                     .padding(
                         bottom = bottomPadding
                     ),
-                horizontalAlignment  = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
                 Button(
                     modifier = Modifier,
                     elevation = null,
                     shape = RoundedCornerShape(radius),
-                    onClick = { onNavigate(ScreenState.DOWNLOAD) },
+                    onClick = { onRouteSelected(Route.BOOKMARK) },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(state == ScreenState.DOWNLOAD) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.BOOKMARK) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.download_sheme),
+                        painter = painterResource(R.drawable.bookmark),
                         contentDescription = null,
-                        tint = if(state == ScreenState.DOWNLOAD) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.BOOKMARK) whiteColor else buttonBackground
                     )
                 }
                 Text(
@@ -182,23 +188,23 @@ internal fun BottomBar(
                     .padding(
                         bottom = bottomPadding
                     ),
-                horizontalAlignment  = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
                 Button(
                     modifier = Modifier,
                     elevation = null,
                     shape = RoundedCornerShape(radius),
-                    onClick = { onNavigate(ScreenState.PROFILE)},
+                    onClick = { onRouteSelected(Route.PROFILE) },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(state == ScreenState.PROFILE) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.PROFILE) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.profile),
                         contentDescription = null,
-                        tint = if(state == ScreenState.PROFILE) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.PROFILE) whiteColor else buttonBackground
                     )
                 }
                 Text(
@@ -210,6 +216,5 @@ internal fun BottomBar(
                 )
             }
         }
-
     }
 }

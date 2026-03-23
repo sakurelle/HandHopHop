@@ -1,3 +1,4 @@
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +6,8 @@ plugins {
 
 android {
     namespace = "ru.handhophop.feature.feed"
+    compileSdk = 35
+
     compileSdk {
         version = release(36)
     }
@@ -30,10 +33,19 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.runtime)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

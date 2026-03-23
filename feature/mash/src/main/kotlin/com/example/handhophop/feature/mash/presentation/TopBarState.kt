@@ -1,6 +1,8 @@
 package com.example.handhophop.feature.mash.presentation
 
+import androidx.compose.runtime.Immutable
 
+@Immutable
 internal data class TopBarState(
-    var title: String
+    val title: String
 )

@@ -11,7 +11,8 @@ import ru.handhophop.feature.mash.R
 
 @Composable
 internal fun BackgroundPattern() {
-    val alpha = runCatching { dimensionResource(R.dimen.bg_pattern_alpha).value }.getOrElse { 0.22f }
+    val alpha =
+        runCatching { dimensionResource(R.dimen.bg_pattern_alpha).value }.getOrElse { 0.22f }
 
     Image(
         painter = painterResource(R.drawable.bg_pattern),

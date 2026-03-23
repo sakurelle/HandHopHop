@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 import ru.handhophop.feature.mash.R
 
 @Composable
-internal fun TopBar(stata: TopBarState){
+internal fun TopBar(state: TopBarState){
     //dimen
     val height = dimensionResource(R.dimen.top_bar_height)
     val radius = dimensionResource(R.dimen.main_radius)
@@ -46,7 +46,7 @@ internal fun TopBar(stata: TopBarState){
                 .padding(
                     bottom = bottomPadding
                 ),
-            text = stata.title,
+            text = state.title,
             color = textColor,
             fontSize = topBarStr
         )
