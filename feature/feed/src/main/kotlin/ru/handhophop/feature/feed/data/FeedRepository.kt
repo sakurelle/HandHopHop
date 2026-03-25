@@ -1,4 +1,4 @@
-package ru.handhophop.feature.feed.presentation
+package ru.handhophop.feature.feed.data
 
 import ru.handhophop.core.network.api.UnsplashApiService
 import ru.handhophop.core.network.models.UnsplashPhoto

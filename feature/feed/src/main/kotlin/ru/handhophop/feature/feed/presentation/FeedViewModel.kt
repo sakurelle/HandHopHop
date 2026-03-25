@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.feature.feed.data.FeedRepository
 
 internal class FeedViewModel(
     private val repository: FeedRepository
@@ -17,6 +18,7 @@ internal class FeedViewModel(
         when (action) {
             is FeedUiAction.LoadPhotos -> loadPhotos()
             is FeedUiAction.Refresh -> loadPhotos()
+            is FeedUiAction.LoadNextPage -> loadNextPage()
             is FeedUiAction.PhotoClicked -> { /*какое-то действие, пока не трогаю*/ }
         }
     }
@@ -31,15 +33,41 @@ internal class FeedViewModel(
                     _uiState.value = FeedUiState.Success(photos=items)
                 },
                 onFailure = { error ->
-                    val feedError = when {
-                        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
-                        error is java.io.IOException -> FeedError.LoadingFailure
-                        else -> FeedError.Default
-                    }
-                    _uiState.value = FeedUiState.Error(reason = feedError, msg = error.message ?: "Unknown error")
+                    _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
                 }
             )
         }
+    }
+
+    private fun loadNextPage() {
+        val currentUiState = _uiState.value as? FeedUiState.Success ?: return //если состояние неуспех, то ниче не возвращаем
+        if (!currentUiState.hasNext || currentUiState.isLoadingMore) return
+
+        viewModelScope.launch {
+            _uiState.value = currentUiState.copy(isLoadingMore = true) //копия состояния с нужными параметрами
+
+            repository.getPhotos(count = 10).fold(
+                onSuccess = { photos ->
+                    val newPhotos = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular) }
+                    _uiState.value = currentUiState.copy(
+                        photos = currentUiState.photos+newPhotos,
+                        hasNext = photos.size >= 10,
+                        isLoadingMore = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value = currentUiState.copy(isLoadingMore = false)
+
+                }
+            )
+
+        }
+    }
+
+    private fun mapError(error: Throwable): FeedError = when {
+        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
+        error is java.io.IOException -> FeedError.LoadingFailure
+        else -> FeedError.Default
     }
 
     class Factory(private val repository: FeedRepository) : ViewModelProvider.Factory {
