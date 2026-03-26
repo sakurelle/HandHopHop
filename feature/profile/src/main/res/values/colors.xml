@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="profile_background">#F8F5EF</color>
+    <color name="profile_card_background">#FFFDF9</color>
+    <color name="profile_primary_text">#2B2B2B</color>
+    <color name="profile_secondary_text">#7A7A7A</color>
+    <color name="profile_hint_text">#9A9A9A</color>
+</resources>

@@ -43,4 +43,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
+    implementation(project(":core:network"))
 }
