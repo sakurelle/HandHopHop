@@ -9,9 +9,19 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.feature.mash.R
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+// Короч если не будем делать динамическое создание схемы, то просто захардкодим здесь)))
+// Размер сетки, размер палитры, порог прозрачности, шаг квантования, fallback-значения
+private const val DEFAULT_MIN_SIDE_CELLS = 128
+private const val DEFAULT_PALETTE_SIZE = 10
+private const val DEFAULT_VISIBLE_PALETTE_SIZE = 10
+private const val DEFAULT_TRANSPARENT_ALPHA_THRESHOLD = 40
+private const val DEFAULT_QUANTIZE_STEP = 32
+private const val DEFAULT_FALLBACK_GRID_SIZE = 128
 
 internal class MashViewModel(
     application: Application
@@ -23,7 +33,7 @@ internal class MashViewModel(
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
-            is GenerateShemaAction -> generateScheme()
+            is GenerateSchemeAction -> generateScheme(action.imageUrl)
             is HighlightingColorAction -> {
                 // TODO делаем выделение определенного цвета
             }
@@ -33,10 +43,8 @@ internal class MashViewModel(
         }
     }
 
-    private fun generateScheme() {
+    private fun generateScheme(imageUrl: String?) {
         viewModelScope.launch {
-            val imageUrl = _uiState.value.imageUrl
-
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 imageUrl = imageUrl,
@@ -49,7 +57,8 @@ internal class MashViewModel(
                     isLoading = false,
                     scheme = null,
                     visiblePalette = emptyList(),
-                    error = "Сначала выберите схему"
+                    error = getApplication<Application>()
+                        .getString(R.string.mash_select_scheme_first)
                 )
                 return@launch
             }
@@ -62,8 +71,8 @@ internal class MashViewModel(
             val scheme = bitmap?.let {
                 buildScheme(
                     source = it,
-                    minSideCells = 128,
-                    paletteSize = 10
+                    minSideCells = DEFAULT_MIN_SIDE_CELLS,
+                    paletteSize = DEFAULT_PALETTE_SIZE
                 )
             }
 
@@ -71,7 +80,7 @@ internal class MashViewModel(
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = scheme,
-                    visiblePalette = scheme.palette.take(10),
+                    visiblePalette = scheme.palette.take(DEFAULT_VISIBLE_PALETTE_SIZE),
                     error = null
                 )
             } else {
@@ -79,7 +88,8 @@ internal class MashViewModel(
                     isLoading = false,
                     scheme = null,
                     visiblePalette = emptyList(),
-                    error = "Не удалось построить схему"
+                    error = getApplication<Application>()
+                        .getString(R.string.mash_failed_build_scheme)
                 )
             }
         }
@@ -103,7 +113,7 @@ private fun buildScheme(
     val palette = extractTopColorsFromSmallBitmap(
         bmp = small,
         topN = paletteSize,
-        step = 32
+        step = DEFAULT_QUANTIZE_STEP
     )
     val paletteInts = palette.map { it.toArgbInt() }
 
@@ -115,7 +125,7 @@ private fun buildScheme(
             val a = (c ushr 24) and 0xFF
 
             indices[y * gw + x] =
-                if (a < 40) {
+                if (a < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
                     nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
                 } else {
                     nearestColorIndex(c, paletteInts)
@@ -137,7 +147,7 @@ private fun calcGridSize(
     minSide: Int
 ): Pair<Int, Int> {
     val minDim = min(w, h)
-    if (minDim <= 0) return 128 to 128
+    if (minDim <= 0) return DEFAULT_FALLBACK_GRID_SIZE to DEFAULT_FALLBACK_GRID_SIZE
 
     val scale = minSide.toFloat() / minDim.toFloat()
     val nw = max(1, (w * scale).roundToInt())

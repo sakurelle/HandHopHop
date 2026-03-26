@@ -1,8 +1,6 @@
 package com.example.handhophop.feature.mash.presentation
 
 import android.graphics.Paint
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -10,18 +8,20 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -47,13 +49,14 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.handhophop.feature.mash.R
 import kotlin.math.ceil
 import kotlin.math.floor
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableFloatStateOf
 
 @Composable
 internal fun MashScreen(
@@ -63,7 +66,7 @@ internal fun MashScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(imageUrl) {
-        viewModel.handleAction(GenerateShemaAction())
+        viewModel.handleAction(GenerateSchemeAction(imageUrl))
     }
 
     Box(
@@ -71,14 +74,12 @@ internal fun MashScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            CenterContentMash(
-                uiState = uiState,
-                onDownloadClick = {
-                    viewModel.handleAction(ClickDownloadsAction())
-                }
-            )
-        }
+        CenterContentMash(
+            uiState = uiState,
+            onDownloadClick = {
+                viewModel.handleAction(ClickDownloadsAction())
+            }
+        )
     }
 }
 
@@ -87,56 +88,59 @@ private fun CenterContentMash(
     uiState: MashUiState,
     onDownloadClick: () -> Unit
 ) {
-    LazyColumn(
+    val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
+    val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
+    val contentSpacing = dimensionResource(R.dimen.mash_content_spacing)
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = horizontalPadding, vertical = verticalPadding),
+        verticalArrangement = Arrangement.spacedBy(contentSpacing)
     ) {
-        item {
-            SchemeCard(
-                loading = uiState.isLoading,
-                scheme = uiState.scheme,
-                error = uiState.error
-            )
-        }
+        SchemeCard(
+            loading = uiState.isLoading,
+            scheme = uiState.scheme,
+            error = uiState.error
+        )
 
-        item {
-            DownloadButton(
-                enabled = uiState.scheme != null && !uiState.isLoading,
-                onClick = onDownloadClick
-            )
-        }
+        DownloadButton(
+            enabled = uiState.scheme != null && !uiState.isLoading,
+            onClick = onDownloadClick
+        )
 
-        item {
-            if (uiState.visiblePalette.isNotEmpty()) {
-                PaletteBar(colors = uiState.visiblePalette)
-            }
+        if (uiState.visiblePalette.isNotEmpty()) {
+            PaletteBar(colors = uiState.visiblePalette)
         }
     }
 }
 
 @Composable
 private fun PaletteBar(colors: List<Color>) {
+    val titleSpacing = dimensionResource(R.dimen.mash_palette_title_spacing)
+    val horizontalPadding = dimensionResource(R.dimen.mash_palette_horizontal_padding)
+    val rowSpacing = dimensionResource(R.dimen.mash_palette_row_spacing)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(titleSpacing)
     ) {
         Text(
-            text = "Палитра",
+            text = stringResource(R.string.mash_palette_title),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )
 
-        LazyRow(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = horizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(rowSpacing)
         ) {
-            itemsIndexed(colors) { index, color ->
+            colors.forEachIndexed { index, color ->
                 ColorSwatch(
                     color = color,
                     number = index + 1
@@ -152,15 +156,19 @@ private fun SchemeCard(
     scheme: SchemeData?,
     error: String?
 ) {
+    val cornerRadius = dimensionResource(R.dimen.mash_card_corner_radius)
+    val elevation = dimensionResource(R.dimen.mash_card_elevation)
+    val contentPadding = dimensionResource(R.dimen.mash_card_content_padding)
+
     val aspect = scheme?.let { it.gridW.toFloat() / it.gridH.toFloat() } ?: 1f
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(cornerRadius),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
         Box(
             modifier = Modifier
@@ -172,9 +180,9 @@ private fun SchemeCard(
                 loading -> CircularProgressIndicator()
                 scheme != null -> NumberedSchemeCanvas(scheme = scheme)
                 else -> Text(
-                    text = error ?: "Нет схемы",
+                    text = error ?: stringResource(R.string.mash_no_scheme),
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
         }
@@ -186,18 +194,27 @@ private fun DownloadButton(
     enabled: Boolean,
     onClick: () -> Unit
 ) {
+    val height = dimensionResource(R.dimen.mash_button_height)
+    val cornerRadius = dimensionResource(R.dimen.mash_button_corner_radius)
+    val elevation = dimensionResource(R.dimen.mash_button_elevation)
+
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            .height(height),
+        shape = RoundedCornerShape(cornerRadius),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = elevation),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorResource(R.color.mash_download_button_container),
+            contentColor = colorResource(R.color.mash_download_button_content),
+            disabledContainerColor = colorResource(R.color.mash_download_button_disabled_container),
+            disabledContentColor = colorResource(R.color.mash_download_button_disabled_content)
+        )
     ) {
         Text(
-            text = "Скачать схему",
-            color = Color.White,
+            text = stringResource(R.string.mash_download_scheme),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium
         )
@@ -209,19 +226,24 @@ private fun ColorSwatch(
     color: Color,
     number: Int
 ) {
+    val swatchTextSpacing = dimensionResource(R.dimen.mash_swatch_text_spacing)
+    val swatchSize = dimensionResource(R.dimen.mash_swatch_size)
+    val swatchCornerRadius = dimensionResource(R.dimen.mash_swatch_corner_radius)
+    val swatchTextSize = dimensionResource(R.dimen.mash_swatch_text_size)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(swatchTextSpacing)
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
-                .background(color, RoundedCornerShape(4.dp))
+                .size(swatchSize)
+                .background(color, RoundedCornerShape(swatchCornerRadius))
         )
 
         Text(
             text = number.toString(),
-            fontSize = 10.sp,
+            fontSize = swatchTextSize.value.sp,
             color = Color.Black.copy(alpha = 0.7f)
         )
     }
@@ -322,7 +344,7 @@ private fun NumberedSchemeCanvas(scheme: SchemeData) {
         ) {
             val w = scheme.gridW
             val h = scheme.gridH
-            val cell = size.width / w.toFloat()
+            val cell = minOf(size.width / w.toFloat(), size.height / h.toFloat())
 
             val left = (-offset.x) / scale
             val top = (-offset.y) / scale
@@ -335,7 +357,8 @@ private fun NumberedSchemeCanvas(scheme: SchemeData) {
             val y1 = ceil(bottom / cell).toInt().coerceIn(0, h - 1)
 
             val effectiveCellPx = cell * scale
-            val drawNumbers = effectiveCellPx >= 18f
+            val drawNumbers = effectiveCellPx >= 24f
+            val drawGrid = effectiveCellPx >= 12f
             val gridStroke = androidx.compose.ui.graphics.drawscope.Stroke(
                 width = (1f / scale).coerceAtLeast(0.5f)
             )
@@ -356,6 +379,15 @@ private fun NumberedSchemeCanvas(scheme: SchemeData) {
                         topLeft = Offset(leftX, topY),
                         size = rectSize
                     )
+
+                    if (drawGrid) {
+                        drawRect(
+                            color = Color.Black.copy(alpha = 0.25f),
+                            topLeft = Offset(leftX, topY),
+                            size = rectSize,
+                            style = gridStroke
+                        )
+                    }
 
                     drawRect(
                         color = Color.Black.copy(alpha = 0.25f),

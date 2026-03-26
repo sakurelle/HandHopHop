@@ -1,8 +1,10 @@
 package com.example.handhophop.feature.mash.presentation
 
-interface UiAction
+internal interface UiAction
 
-class ClickDownloadsAction(): UiAction
-class GenerateShemaAction(): UiAction
-class HighlightingColorAction(): UiAction
-class ShadedColorAction(): UiAction
+internal class ClickDownloadsAction : UiAction
+internal class GenerateSchemeAction(
+    val imageUrl: String?
+) : UiAction
+internal class HighlightingColorAction : UiAction
+internal class ShadedColorAction : UiAction

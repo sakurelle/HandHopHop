@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- На всякий -->
+    <color name="mash_white">#FFFFFFFF</color>
+    <color name="mash_black">#FF000000</color>
+
+    <!-- Для сетки, не трогать!!!! -->
+    <color name="mash_grid_stroke">#40000000</color>
+    <color name="mash_number_text">#BF000000</color>
+    <color name="mash_swatch_text">#B3000000</color>
+
+    <!-- Кнопочки, хуепочки -->
+    <color name="mash_download_button_container">#FF6750A4</color>
+    <color name="mash_download_button_content">#FFFFFFFF</color>
+    <color name="mash_download_button_disabled_container">#FFD3D3D3</color>
+    <color name="mash_download_button_disabled_content">#FF7A7A7A</color>
+
+</resources>
