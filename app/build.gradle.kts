@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 android {
@@ -48,6 +50,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.appcrawler.platform)
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("androidx.activity:activity-compose:1.9.2")
@@ -83,6 +86,7 @@ dependencies {
 
     implementation(project(":core:network"))
     implementation(project(":core:session"))
+    implementation(project(":core:design"))
     implementation(project(":feature:mash"))
     implementation(project(":feature:feed"))
     implementation(project(":feature:bookmark"))

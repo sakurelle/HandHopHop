@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="profile_screen_padding">24dp</dimen>
+    <dimen name="profile_content_spacing">24dp</dimen>
+    <dimen name="profile_avatar_size">120dp</dimen>
+    <dimen name="profile_card_corner_radius">20dp</dimen>
+    <dimen name="profile_card_elevation">4dp</dimen>
+    <dimen name="profile_card_inner_padding">20dp</dimen>
+    <dimen name="profile_info_spacing">20dp</dimen>
+    <dimen name="profile_name_spacing">8dp</dimen>
+    <dimen name="profile_info_title_spacing">4dp</dimen>
+</resources>

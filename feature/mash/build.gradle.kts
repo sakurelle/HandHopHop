@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
 }
 
 android {
@@ -44,8 +43,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
+    implementation(project(":core:network"))
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.foundation)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 
