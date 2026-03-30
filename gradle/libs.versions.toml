@@ -18,12 +18,16 @@ okhttp = "4.12.0"
 kotlinx-serialization = "1.7.3"
 retrofit-serialization-converter = "1.0.0"
 coil = "2.7.0"
-runtimeAnnotation = "1.10.5"
 runtime = "1.10.5"
+foundationLayout = "1.10.5"
+runtimeAnnotation = "1.10.5"
 foundation = "1.10.5"
+foundationVersion = "1.10.6"
+appcrawlerPlatform = "0.0.1-alpha03"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -55,6 +59,9 @@ androidx-compose-runtime-annotation = { group = "androidx.compose.runtime", name
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelKtx" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundation" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
+appcrawler-platform = { group = "com.google.android.appcrawler", name = "appcrawler-platform", version.ref = "appcrawlerPlatform" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

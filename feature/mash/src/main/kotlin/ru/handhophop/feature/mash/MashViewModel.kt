@@ -34,6 +34,7 @@ internal class MashViewModel(
             is HighlightingColorAction -> {
                 // TODO делаем выделение определенного цвета
             }
+
             is ShadedColorAction -> {
                 // TODO делаем вывод итогового результата по двойному нажатию
             }

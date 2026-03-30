@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "ru.handhophop.feature.feed"
+    compileSdk = 35
+
     compileSdk {
         version = release(36)
     }
@@ -54,5 +56,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.runtime)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
