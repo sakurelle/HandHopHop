@@ -3,6 +3,7 @@ package ru.handhophop.feature.mash
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import ru.handhophop.feature.mash.complexity.ComplexityType
 
 @Immutable
 internal data class MashUiState(
@@ -14,7 +15,9 @@ internal data class MashUiState(
     val isPaletteVisible: Boolean = false,
     val reachedEnd: Boolean = false,
     val isSquareFilterEnabled: Boolean = false,
-    val items: ImageItem? = null
+    val items: ImageItem? = null,
+    val selectedComplexity: ComplexityType = ComplexityType.EASY,
+    val sourceImageUrl: String? = null,
 )
 
 @Immutable

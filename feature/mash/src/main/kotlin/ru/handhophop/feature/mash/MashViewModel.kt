@@ -2,6 +2,7 @@ package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
+import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
@@ -9,15 +10,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.feature.mash.complexity.ComplexityData
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 private const val DEFAULT_MIN_SIDE_CELLS = 128
-private const val DEFAULT_PALETTE_SIZE = 10
-private const val DEFAULT_VISIBLE_PALETTE_SIZE = 10
 private const val DEFAULT_TRANSPARENT_ALPHA_THRESHOLD = 40
-private const val DEFAULT_QUANTIZE_STEP = 32
 private const val DEFAULT_FALLBACK_GRID_SIZE = 128
 
 internal class MashViewModel(
@@ -30,10 +29,24 @@ internal class MashViewModel(
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
+
             is GenerateSchemeAction -> generateScheme(action.imageUrl)
+
+            is SelectComplexityAction -> {
+                _uiState.value = _uiState.value.copy(
+                    selectedComplexity = action.complexity
+                )
+
+                val currentImageUrl = _uiState.value.sourceImageUrl
+                if (!currentImageUrl.isNullOrBlank()) {
+                    generateScheme(currentImageUrl)
+                }
+            }
+
             is HighlightingColorAction -> {
                 // TODO делаем выделение определенного цвета
             }
+
             is ShadedColorAction -> {
                 // TODO делаем вывод итогового результата по двойному нажатию
             }
@@ -42,13 +55,18 @@ internal class MashViewModel(
 
     private fun generateScheme(imageUrl: String?) {
         viewModelScope.launch {
+            val selectedPalette = ComplexityData.getColorsByComplexity(
+                _uiState.value.selectedComplexity
+            )
+
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 scheme = null,
                 visiblePalette = emptyList(),
                 errorTextRes = null,
                 isDownloadButtonEnabled = false,
-                isPaletteVisible = false
+                isPaletteVisible = false,
+                sourceImageUrl = imageUrl
             )
 
             if (imageUrl.isNullOrBlank()) {
@@ -72,20 +90,18 @@ internal class MashViewModel(
                 buildScheme(
                     source = it,
                     minSideCells = DEFAULT_MIN_SIDE_CELLS,
-                    paletteSize = DEFAULT_PALETTE_SIZE
+                    palette = selectedPalette
                 )
             }
 
             _uiState.value = if (scheme != null) {
-                val visiblePalette = scheme.palette.take(DEFAULT_VISIBLE_PALETTE_SIZE)
-
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = scheme,
-                    visiblePalette = visiblePalette,
+                    visiblePalette = scheme.palette,
                     errorTextRes = null,
                     isDownloadButtonEnabled = true,
-                    isPaletteVisible = visiblePalette.isNotEmpty()
+                    isPaletteVisible = scheme.palette.isNotEmpty()
                 )
             } else {
                 _uiState.value.copy(
@@ -108,16 +124,11 @@ internal class MashViewModel(
 private fun buildScheme(
     source: Bitmap,
     minSideCells: Int,
-    paletteSize: Int
+    palette: List<Color>
 ): SchemeData {
     val (gw, gh) = calcGridSize(source.width, source.height, minSideCells)
     val small = source.scale(gw, gh, false)
 
-    val palette = extractTopColorsFromSmallBitmap(
-        bmp = small,
-        topN = paletteSize,
-        step = DEFAULT_QUANTIZE_STEP
-    )
     val paletteInts = palette.map { it.toArgbInt() }
 
     val indices = IntArray(gw * gh)

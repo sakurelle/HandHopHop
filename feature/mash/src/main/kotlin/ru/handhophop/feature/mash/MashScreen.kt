@@ -57,6 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.ceil
 import kotlin.math.floor
 
+import ru.handhophop.feature.mash.complexity.ComplexityScreen
+import ru.handhophop.feature.mash.complexity.ComplexityType
+
 @Composable
 internal fun MashScreen(
     viewModel: MashViewModel,
@@ -72,6 +75,9 @@ internal fun MashScreen(
         uiState = uiState,
         onDownloadClick = {
             viewModel.handleAction(ClickDownloadsAction())
+        },
+        onComplexitySelected = { complexity ->
+            viewModel.handleAction(SelectComplexityAction(complexity))
         }
     )
 }
@@ -79,19 +85,31 @@ internal fun MashScreen(
 @Composable
 private fun CenterContentMash(
     uiState: MashUiState,
-    onDownloadClick: () -> Unit
+    onDownloadClick: () -> Unit,
+    onComplexitySelected: (ComplexityType) -> Unit
 ) {
     val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
     val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
     val contentSpacing = dimensionResource(R.dimen.mash_content_spacing)
 
-    // Мы без скролла, надеюсь из-за этого никого не будет корежить))
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(contentSpacing)
     ) {
+        ComplexityScreen(
+            selectedComplexity = uiState.selectedComplexity,
+            onComplexitySelected = onComplexitySelected,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = verticalPadding
+                )
+        )
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -103,11 +121,7 @@ private fun CenterContentMash(
                 errorTextRes = uiState.errorTextRes,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        start = horizontalPadding,
-                        end = horizontalPadding,
-                        top = verticalPadding
-                    )
+                    .padding(horizontal = horizontalPadding)
             )
         }
 
