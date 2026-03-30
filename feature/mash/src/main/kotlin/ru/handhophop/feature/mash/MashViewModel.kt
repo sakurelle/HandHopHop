@@ -1,4 +1,4 @@
-package com.example.handhophop.feature.mash.presentation
+package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
@@ -9,13 +9,10 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import ru.handhophop.feature.mash.R
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// Короч если не будем делать динамическое создание схемы, то просто захардкодим здесь)))
-// Размер сетки, размер палитры, порог прозрачности, шаг квантования, fallback-значения
 private const val DEFAULT_MIN_SIDE_CELLS = 128
 private const val DEFAULT_PALETTE_SIZE = 10
 private const val DEFAULT_VISIBLE_PALETTE_SIZE = 10
@@ -47,9 +44,11 @@ internal class MashViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
-                imageUrl = imageUrl,
                 scheme = null,
-                error = null
+                visiblePalette = emptyList(),
+                errorTextRes = null,
+                isDownloadButtonEnabled = false,
+                isPaletteVisible = false
             )
 
             if (imageUrl.isNullOrBlank()) {
@@ -57,8 +56,9 @@ internal class MashViewModel(
                     isLoading = false,
                     scheme = null,
                     visiblePalette = emptyList(),
-                    error = getApplication<Application>()
-                        .getString(R.string.mash_select_scheme_first)
+                    errorTextRes = R.string.mash_select_scheme_first,
+                    isDownloadButtonEnabled = false,
+                    isPaletteVisible = false
                 )
                 return@launch
             }
@@ -77,32 +77,35 @@ internal class MashViewModel(
             }
 
             _uiState.value = if (scheme != null) {
+                val visiblePalette = scheme.palette.take(DEFAULT_VISIBLE_PALETTE_SIZE)
+
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = scheme,
-                    visiblePalette = scheme.palette.take(DEFAULT_VISIBLE_PALETTE_SIZE),
-                    error = null
+                    visiblePalette = visiblePalette,
+                    errorTextRes = null,
+                    isDownloadButtonEnabled = true,
+                    isPaletteVisible = visiblePalette.isNotEmpty()
                 )
             } else {
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = null,
                     visiblePalette = emptyList(),
-                    error = getApplication<Application>()
-                        .getString(R.string.mash_failed_build_scheme)
+                    errorTextRes = R.string.mash_failed_build_scheme,
+                    isDownloadButtonEnabled = false,
+                    isPaletteVisible = false
                 )
             }
         }
     }
 
     private fun download() {
-        // TODO скачать схему (Скачаем же, да?)
+        // TODO: <Задача Александра с ui компонентами>
     }
 }
 
 private fun buildScheme(
-    // Здесь пока ругается, что используется один раз и
-    // константными значениями, но мы это исправим
     source: Bitmap,
     minSideCells: Int,
     paletteSize: Int

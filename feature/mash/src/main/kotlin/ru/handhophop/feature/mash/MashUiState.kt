@@ -1,15 +1,17 @@
-package com.example.handhophop.feature.mash.presentation
+package ru.handhophop.feature.mash
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 @Immutable
 internal data class MashUiState(
     val isLoading: Boolean = false,
-    val imageUrl: String? = null,
     val scheme: SchemeData? = null,
     val visiblePalette: List<Color> = emptyList(),
-    val error: String? = null,
+    @StringRes val errorTextRes: Int? = null,
+    val isDownloadButtonEnabled: Boolean = false,
+    val isPaletteVisible: Boolean = false,
     val reachedEnd: Boolean = false,
     val isSquareFilterEnabled: Boolean = false,
     val items: ImageItem? = null

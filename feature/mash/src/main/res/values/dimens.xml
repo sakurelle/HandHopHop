@@ -16,7 +16,7 @@
     <dimen name="mash_swatch_text_spacing">4dp</dimen>
     <dimen name="mash_swatch_text_size">10sp</dimen>
 
-    <!-- Сетка -->
+    <!-- Карточка схемы -->
     <dimen name="mash_card_corner_radius">20dp</dimen>
     <dimen name="mash_card_elevation">4dp</dimen>
     <dimen name="mash_card_content_padding">16dp</dimen>
@@ -25,4 +25,8 @@
     <dimen name="mash_button_height">56dp</dimen>
     <dimen name="mash_button_corner_radius">16dp</dimen>
     <dimen name="mash_button_elevation">4dp</dimen>
+
+    <!-- Пределы отображения элементов схемы -->
+    <dimen name="mash_scheme_draw_numbers_threshold">24dp</dimen>
+    <dimen name="mash_scheme_draw_grid_threshold">12dp</dimen>
 </resources>
