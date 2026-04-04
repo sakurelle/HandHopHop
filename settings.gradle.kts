@@ -31,3 +31,4 @@ include(":feature:profile")
 // Include the core modules
 include(":core:network")
 include(":core:session")
+include(":feature:complexity")

@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- На всякий -->
+    <!-- Базовые -->
     <color name="mash_white">#FFFFFFFF</color>
     <color name="mash_black">#FF000000</color>
 
-    <!-- Для сетки, не трогать!!!! -->
-    <color name="mash_grid_stroke">#40000000</color>
-    <color name="mash_number_text">#BF000000</color>
-    <color name="mash_swatch_text">#B3000000</color>
+    <!-- Общая палитра feature mash -->
+    <color name="mash_background">#D8DCEE</color>
+    <color name="mash_surface">#D6C1B5</color>
+    <color name="mash_surface_soft">#E9DDD5</color>
 
-    <!-- Кнопочки, хуепочки -->
-    <color name="mash_download_button_container">#FF6750A4</color>
-    <color name="mash_download_button_content">#FFFFFFFF</color>
-    <color name="mash_download_button_disabled_container">#FFD3D3D3</color>
-    <color name="mash_download_button_disabled_content">#FF7A7A7A</color>
+    <color name="mash_primary">#7B665A</color>
+    <color name="mash_primary_disabled">#BDAEA4</color>
+
+    <color name="mash_text_primary">#2D221D</color>
+    <color name="mash_text_secondary">#72645C</color>
+
+    <color name="mash_outline">#B79F92</color>
+
+    <!-- Отдельные служебные цвета для сетки -->
+    <color name="mash_grid_stroke">#667B665A</color>
+    <color name="mash_number_text">#CC2D221D</color>
+    <color name="mash_swatch_text">#B32D221D</color>
 
 </resources>

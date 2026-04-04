@@ -2,63 +2,47 @@ package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
-import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ru.handhophop.feature.mash.complexity.ComplexityData
+import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
+import ru.handhophop.feature.mash.MashCreate.MashThread
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-private const val DEFAULT_MIN_SIDE_CELLS = 128
 private const val DEFAULT_TRANSPARENT_ALPHA_THRESHOLD = 40
 private const val DEFAULT_FALLBACK_GRID_SIZE = 128
+private const val DEFAULT_MASH_IMAGE_URL =
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDqAZfJ7DSp_ML801Txp-yEJ5zTXIDtbM9AQ&s"
 
 internal class MashViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(MashUiState())
-    val uiState: StateFlow<MashUiState> = _uiState
+    val uiState: StateFlow<MashUiState> = _uiState.asStateFlow()
 
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
-
-            is GenerateSchemeAction -> generateScheme(action.imageUrl)
-
-            is SelectComplexityAction -> {
-                _uiState.value = _uiState.value.copy(
-                    selectedComplexity = action.complexity
-                )
-
-                val currentImageUrl = _uiState.value.sourceImageUrl
-                if (!currentImageUrl.isNullOrBlank()) {
-                    generateScheme(currentImageUrl)
-                }
-            }
-
+            is GenerateSchemeAction -> generateScheme(action.config)
             is HighlightingColorAction -> {
-                // TODO делаем выделение определенного цвета
+                // TODO: выделение определенного цвета
             }
-
             is ShadedColorAction -> {
-                // TODO делаем вывод итогового результата по двойному нажатию
+                // TODO: вывод итогового результата по двойному нажатию
             }
         }
     }
 
-    private fun generateScheme(imageUrl: String?) {
+    private fun generateScheme(config: MashCreateConfig) {
         viewModelScope.launch {
-            val selectedPalette = ComplexityData.getColorsByComplexity(
-                _uiState.value.selectedComplexity
-            )
-
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 scheme = null,
@@ -66,31 +50,27 @@ internal class MashViewModel(
                 errorTextRes = null,
                 isDownloadButtonEnabled = false,
                 isPaletteVisible = false,
-                sourceImageUrl = imageUrl
             )
 
-            if (imageUrl.isNullOrBlank()) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    scheme = null,
-                    visiblePalette = emptyList(),
-                    errorTextRes = R.string.mash_select_scheme_first,
-                    isDownloadButtonEnabled = false,
-                    isPaletteVisible = false
+            val context = getApplication<Application>().applicationContext
+
+            val bitmap = if (!config.imageUrl.isNullOrBlank()) {
+                loadBitmapFromUrl(
+                    context = context,
+                    url = config.imageUrl
                 )
-                return@launch
+            } else {
+                loadBitmapFromUrl(
+                    context = context,
+                    url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
+                )
             }
-
-            val bitmap = loadBitmapFromUrl(
-                context = getApplication<Application>().applicationContext,
-                url = imageUrl
-            )
 
             val scheme = bitmap?.let {
                 buildScheme(
                     source = it,
-                    minSideCells = DEFAULT_MIN_SIDE_CELLS,
-                    palette = selectedPalette
+                    minSideCells = config.difficulty.minSidePx,
+                    palette = config.threads
                 )
             }
 
@@ -117,39 +97,42 @@ internal class MashViewModel(
     }
 
     private fun download() {
-        // TODO: <Задача Александра с ui компонентами>
+        // TODO: скачивание схемы
     }
 }
 
 private fun buildScheme(
     source: Bitmap,
     minSideCells: Int,
-    palette: List<Color>
+    palette: List<MashThread>
 ): SchemeData {
-    val (gw, gh) = calcGridSize(source.width, source.height, minSideCells)
-    val small = source.scale(gw, gh, false)
+    val (gridWidth, gridHeight) = calcGridSize(
+        w = source.width,
+        h = source.height,
+        minSide = minSideCells
+    )
+    val scaledBitmap = source.scale(gridWidth, gridHeight, false)
 
-    val paletteInts = palette.map { it.toArgbInt() }
+    val paletteInts = palette.map { it.color.toArgbInt() }
+    val indices = IntArray(gridWidth * gridHeight)
 
-    val indices = IntArray(gw * gh)
+    for (y in 0 until gridHeight) {
+        for (x in 0 until gridWidth) {
+            val color = scaledBitmap[x, y]
+            val alpha = (color ushr 24) and 0xFF
 
-    for (y in 0 until gh) {
-        for (x in 0 until gw) {
-            val c = small[x, y]
-            val a = (c ushr 24) and 0xFF
-
-            indices[y * gw + x] =
-                if (a < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
+            indices[y * gridWidth + x] =
+                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
                     nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
                 } else {
-                    nearestColorIndex(c, paletteInts)
+                    nearestColorIndex(color, paletteInts)
                 }
         }
     }
 
     return SchemeData(
-        gridW = gw,
-        gridH = gh,
+        gridW = gridWidth,
+        gridH = gridHeight,
         palette = palette,
         indices = indices
     )
@@ -161,11 +144,13 @@ private fun calcGridSize(
     minSide: Int
 ): Pair<Int, Int> {
     val minDim = min(w, h)
-    if (minDim <= 0) return DEFAULT_FALLBACK_GRID_SIZE to DEFAULT_FALLBACK_GRID_SIZE
+    if (minDim <= 0) {
+        return DEFAULT_FALLBACK_GRID_SIZE to DEFAULT_FALLBACK_GRID_SIZE
+    }
 
     val scale = minSide.toFloat() / minDim.toFloat()
-    val nw = max(1, (w * scale).roundToInt())
-    val nh = max(1, (h * scale).roundToInt())
+    val newWidth = max(1, (w * scale).roundToInt())
+    val newHeight = max(1, (h * scale).roundToInt())
 
-    return nw to nh
+    return newWidth to newHeight
 }
