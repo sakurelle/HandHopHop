@@ -8,27 +8,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.BottomBar
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
-import ru.handhophop.ui.BackgroundPattern
 
 
 @Composable
 internal fun ScreenBase(
     screenState: ScreenState,
-    MashScreen: @Composable () -> Unit,
-    ProfileScreen: @Composable () -> Unit,
-    FeedScreen: @Composable () -> Unit,
-    BookmarkScreen: @Composable () -> Unit,
-    topBarState: TopBarState
+    mashScreen: @Composable () -> Unit,
+    profileScreen: @Composable () -> Unit,
+    feedScreen: @Composable () -> Unit,
+    bookmarkScreen: @Composable () -> Unit,
 ) {
-    //val mainPadding = dimensionResource(R.dimen.main_padding)
-    var currentRoute by remember { mutableStateOf(screenState.route) }
+    val state by rememberUpdatedState(screenState)
+    var currentRoute by remember { mutableStateOf(state.currentScreen) }
 
     Box(
         modifier = Modifier
@@ -42,27 +42,27 @@ internal fun ScreenBase(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBar(topBarState)
+            TopBar(state.topBarState)
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                when (screenState.route) {
+                when (currentRoute) {
                     Route.BOOKMARK -> {
-                        BookmarkScreen()
+                        bookmarkScreen()
                     }
 
                     Route.MASH -> {
-                        MashScreen()
+                        mashScreen()
                     }
 
                     Route.FEED -> {
-                        FeedScreen()
+                        feedScreen()
                     }
 
                     Route.PROFILE -> {
-                        ProfileScreen()
+                        profileScreen()
                     }
                 }
             }

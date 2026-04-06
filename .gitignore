@@ -66,3 +66,8 @@ obj/
 compile_commands.json
 
 /.kotlin/
+
+# Ai
+/.claude/
+AGENTS.md
+CLAUDE.md

@@ -50,7 +50,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.appcrawler.platform)
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("androidx.activity:activity-compose:1.9.2")
