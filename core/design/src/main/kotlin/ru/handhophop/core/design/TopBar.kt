@@ -46,7 +46,7 @@ fun TopBar(state: TopBarState){
                 .padding(
                     bottom = bottomPadding
                 ),
-            text = state.title,
+            text = state.topBarTitle,
             color = textColor,
             fontSize = topBarStr
         )

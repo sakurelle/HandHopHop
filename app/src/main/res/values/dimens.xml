@@ -7,9 +7,6 @@
     <dimen name="top_banner_height">96dp</dimen>
     <dimen name="top_banner_bottom_padding">14dp</dimen>
 
-    <!-- Фон-паттерн -->
-    <dimen name="bg_pattern_alpha">1</dimen>
-
     <!-- Центральная колонка из 3 прямоугольников -->
     <dimen name="center_block_width">330dp</dimen>
     <dimen name="center_block_gap">15dp</dimen>

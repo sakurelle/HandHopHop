@@ -1,4 +1,4 @@
-package ru.handhophop.ui.theme
+package ru.handhophop.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
