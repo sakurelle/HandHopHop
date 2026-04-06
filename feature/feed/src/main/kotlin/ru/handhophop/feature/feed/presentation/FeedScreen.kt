@@ -33,8 +33,7 @@ internal fun FeedScreen(viewModel: FeedViewModel) {
         }
         is FeedUiState.Success -> {
             FeedGrid(
-                photos = state.photos,
-                isLoadingMore = state.isLoadingMore,
+                state = state,
                 onPhotoClicked = { id -> viewModel.handleAction(FeedUiAction.PhotoClicked(id))},
                 onLoadMore = {viewModel.handleAction(FeedUiAction.LoadNextPage)}
             )
