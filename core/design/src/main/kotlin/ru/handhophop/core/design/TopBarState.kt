@@ -1,8 +1,12 @@
 package ru.handhophop.core.design
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 
 @Immutable
 data class TopBarState(
-    val title: String
+    @param:StringRes val titleRes: Int?,
+    @param:DrawableRes val leftIconRes: Int?,
+    @param:DrawableRes val rightIconRes: Int?
 )

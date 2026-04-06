@@ -109,6 +109,7 @@
 
     <!-- для screenBase -->
     <dimen name="top_bar_height">50dp</dimen>
+    <dimen name="filter_top_bar_height">451dp</dimen>
     <dimen name = "main_radius">15dp</dimen>
     <dimen name="top_bar_str">30sp</dimen>
     <dimen name="button_text">12sp</dimen>
@@ -125,6 +126,14 @@
     <dimen name="avatar_size">150dp</dimen>
     <dimen name ="nik_size">40sp</dimen>
     <dimen name="text_size">20sp</dimen>
+
+    <!--filter_option -->
+    <dimen name="filter_option_height">42dp</dimen>
+    <dimen name="filter_option_text_size">22sp</dimen>
+    <dimen name="filter_option_radius">8dp</dimen>
+
+    <!--filter_section -->
+    <dimen name="filter_section_padding">8dp</dimen>
 
     <!-- Пределы отображения элементов схемы -->
     <dimen name="mash_scheme_draw_numbers_threshold">24dp</dimen>
