@@ -36,8 +36,10 @@ internal fun FeedGrid(
         }
     }
 
-    LaunchedEffect(needLoadMore.value) {
-        if (needLoadMore.value) onLoadMore()
+    LaunchedEffect(needLoadMore.value, state.isLoadingMore) {
+        if (needLoadMore.value && !state.isLoadingMore){
+            onLoadMore()
+        }
     }
 
     LazyVerticalGrid(

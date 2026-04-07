@@ -5,32 +5,51 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.handhophop.feature.feed.data.FeedRepository
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class FeedViewModel(
-    private val repository: FeedRepository
+    private val repository: FeedRepository,
 ): ViewModel() {
+    private val curPage = AtomicInteger(1)
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
     val uiState: StateFlow<FeedUiState> = _uiState
-
-   fun handleAction(action: FeedUiAction) {
+    fun handleAction(action: FeedUiAction) {
         when (action) {
-            is FeedUiAction.LoadPhotos -> loadPhotos()
-            is FeedUiAction.Refresh -> loadPhotos()
+            is FeedUiAction.LoadPhotos -> loadPhotosIfNeeded()
+            is FeedUiAction.Refresh -> refreshPhotos()
             is FeedUiAction.LoadNextPage -> loadNextPage()
             is FeedUiAction.PhotoClicked -> { /*какое-то действие, пока не трогаю*/ }
         }
     }
 
-    private fun loadPhotos() {
+    private fun refreshPhotos() {
+        repository.clearCache()
+        loadPhotos(refresh = true)
+    }
+
+    private fun loadPhotosIfNeeded() {
+        val current = _uiState.value
+        if (current is FeedUiState.Success && current.photos.isNotEmpty()) return
+
+        loadPhotos(refresh = false)
+    }
+
+    private fun loadPhotos(refresh: Boolean) {
+        if (refresh) {
+            repository.clearCache()
+            curPage.set(1)
+        }
+
         viewModelScope.launch {
             _uiState.value = FeedUiState.Loading
 
             repository.getPhotos().fold(
                 onSuccess = { photos ->
-                    val items = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular) }
-                    _uiState.value = FeedUiState.Success(photos=items, isRecommendedLoading = true)
+                    val items = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://")) }
+                    _uiState.value = FeedUiState.Success(photos=items, isRecommendedLoading = true, hasNext = items.isNotEmpty())
                 },
                 onFailure = { error ->
                     _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
@@ -39,8 +58,9 @@ internal class FeedViewModel(
 
             val current = _uiState.value as? FeedUiState.Success ?: return@launch
             repository.getRecommendedPhotos().fold(
+
                 onSuccess = { photos ->
-                    val items = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular)}
+                    val items = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://"))}
                     _uiState.value = current.copy(
                         recommendedPhotos = items,
                         isRecommendedLoading = false
@@ -54,30 +74,41 @@ internal class FeedViewModel(
 
         }
     }
-
     private fun loadNextPage() {
-        val currentUiState = _uiState.value as? FeedUiState.Success ?: return //если состояние неуспех, то ниче не возвращаем
-        if (!currentUiState.hasNext || currentUiState.isLoadingMore) return
+        var nextPage = -1
+
+        _uiState.update { current ->
+            if (current !is FeedUiState.Success) return@update current
+            if (!current.hasNext || current.isLoadingMore) return@update current
+            nextPage = curPage.updateAndGet { page ->
+                if (page >= 100) 1 else page+1
+            }
+            current.copy(isLoadingMore = true)
+        }
+
+        if (nextPage == -1) return
 
         viewModelScope.launch {
-            _uiState.value = currentUiState.copy(isLoadingMore = true) //копия состояния с нужными параметрами
-
-            repository.getPhotos(count = 10).fold(
+            repository.getPhotos(page = nextPage, count = 10).fold(
                 onSuccess = { photos ->
-                    val newPhotos = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular) }
+                    val newPhotos = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://")) }
 
-                    val actual = _uiState.value as? FeedUiState.Success ?: return@fold
+                    _uiState.update { current ->
+                        if (current !is FeedUiState.Success) return@update current
+                        current.copy(
+                            photos = current.photos + newPhotos,
+                            hasNext = newPhotos.isNotEmpty(),
+                            isLoadingMore = false
+                        )
+                    }
 
-                    _uiState.value = actual.copy(
-                        photos = actual.photos+newPhotos,
-                        hasNext = photos.size >= 10,
-                        isLoadingMore = false
-                    )
+
                 },
                 onFailure = {
-                    val actual = _uiState.value as? FeedUiState.Success ?: return@fold
-                    _uiState.value = actual.copy(isLoadingMore = false)
-
+                    _uiState.update { current ->
+                        if (current !is FeedUiState.Success) return@update current
+                        current.copy(isLoadingMore = false)
+                    }
                 }
             )
 
