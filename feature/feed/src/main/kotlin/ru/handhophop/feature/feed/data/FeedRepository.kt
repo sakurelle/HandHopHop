@@ -14,4 +14,8 @@ internal class FeedRepository(
             Result.failure(e)
         }
     }
+
+    suspend fun getRecommendedPhotos(): Result<List<UnsplashPhoto>> {
+        return getPhotos(count = 5)
+    }
 }

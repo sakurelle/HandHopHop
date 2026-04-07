@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -18,12 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import androidx.compose.material3.CircularProgressIndicator
 
 @Composable
 internal fun FeedGrid(
-    photos: List<FeedPhotoItem>,
-    isLoadingMore: Boolean,
+    state: FeedUiState.Success,
     onPhotoClicked: (String) -> Unit,
     onLoadMore: () -> Unit
 ) {
@@ -45,7 +44,13 @@ internal fun FeedGrid(
         columns = GridCells.Fixed(2),
         state = gridState
     ) {
-        items(items = photos,  key = {it.id}) { photo ->
+        item(span = { GridItemSpan(2)}) {
+            RecommendedRow(
+                state = state
+            )
+        }
+
+        items(items = state.photos,  key = {it.id}) { photo ->
             AsyncImage(
                 model = photo.photoUrl,
                 contentDescription = null,
@@ -56,7 +61,7 @@ internal fun FeedGrid(
             )
 
         }
-        if (isLoadingMore) {
+        if (state.isLoadingMore) {
             item(span = { GridItemSpan(2) }) {
                 Box(
                     modifier = Modifier

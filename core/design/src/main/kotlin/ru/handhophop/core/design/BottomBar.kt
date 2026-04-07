@@ -33,7 +33,7 @@ import ru.handhophop.design.R
 
 @Composable
 @Preview(showSystemUi = true)
-fun BottonBarPreview() {
+fun BottomBarPreview() {
     BottomBar(
         Route.MASH,
         onRouteSelected = {}
