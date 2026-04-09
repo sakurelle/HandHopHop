@@ -30,12 +30,28 @@ internal class FeedViewModel(
             repository.getPhotos().fold(
                 onSuccess = { photos ->
                     val items = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular) }
-                    _uiState.value = FeedUiState.Success(photos=items)
+                    _uiState.value = FeedUiState.Success(photos=items, isRecommendedLoading = true)
                 },
                 onFailure = { error ->
                     _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
                 }
             )
+
+            val current = _uiState.value as? FeedUiState.Success ?: return@launch
+            repository.getRecommendedPhotos().fold(
+                onSuccess = { photos ->
+                    val items = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular)}
+                    _uiState.value = current.copy(
+                        recommendedPhotos = items,
+                        isRecommendedLoading = false
+                    )
+
+                },
+                onFailure = {
+                    _uiState.value = current.copy(isRecommendedLoading = false)
+                }
+            )
+
         }
     }
 
@@ -49,14 +65,18 @@ internal class FeedViewModel(
             repository.getPhotos(count = 10).fold(
                 onSuccess = { photos ->
                     val newPhotos = photos.map { FeedPhotoItem(id = it.id, photoUrl = it.urls.regular) }
-                    _uiState.value = currentUiState.copy(
-                        photos = currentUiState.photos+newPhotos,
+
+                    val actual = _uiState.value as? FeedUiState.Success ?: return@fold
+
+                    _uiState.value = actual.copy(
+                        photos = actual.photos+newPhotos,
                         hasNext = photos.size >= 10,
                         isLoadingMore = false
                     )
                 },
-                onFailure = { error ->
-                    _uiState.value = currentUiState.copy(isLoadingMore = false)
+                onFailure = {
+                    val actual = _uiState.value as? FeedUiState.Success ?: return@fold
+                    _uiState.value = actual.copy(isLoadingMore = false)
 
                 }
             )

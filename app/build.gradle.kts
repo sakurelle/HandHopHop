@@ -85,6 +85,7 @@ dependencies {
 
     implementation(project(":core:network"))
     implementation(project(":core:session"))
+    implementation(project(":core:design"))
     implementation(project(":feature:mash"))
     implementation(project(":feature:feed"))
     implementation(project(":feature:bookmark"))

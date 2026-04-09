@@ -44,4 +44,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
     implementation(project(":core:network"))
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.foundation)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
 }

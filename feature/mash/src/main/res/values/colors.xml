@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Базовые -->
     <color name="mash_white">#FFFFFFFF</color>
     <color name="mash_black">#FF000000</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
 
     <!-- Общая палитра feature mash -->
     <color name="mash_background">#D8DCEE</color>
@@ -22,5 +23,11 @@
     <color name="mash_grid_stroke">#667B665A</color>
     <color name="mash_number_text">#CC2D221D</color>
     <color name="mash_swatch_text">#B32D221D</color>
+
+    <color name="bottom_bar">#BD9C89</color>
+    <color name ="main_color">#DBC5B9</color>
+    <color name = "button">#69564B</color>
+    <color name = "plus_button">#211915</color>
+    <color name="button_touched">#A49188</color>
 
 </resources>

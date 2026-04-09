@@ -64,3 +64,10 @@ obj/
 .ninja_deps
 .ninja_log
 compile_commands.json
+
+/.kotlin/
+
+# Ai
+/.claude/
+AGENTS.md
+CLAUDE.md

@@ -1,7 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Экран готовой схемы -->
+    <string name ="now_nothing">Пока ничего...</string>
+    <string name="home">Главная</string>
+    <string name="online_sheme">Работа</string>
+    <string name="download_sheme">Избранное</string>
+    <string name="profile">Профиль</string>
+    <string name="statistic">Статистика</string>
+    <string name="Start">Начать</string>
+    <string name="Download">Скачать</string>
+    <string name="imageOnline">Image Online</string>
     <string name="mash_palette_title">Палитра</string>
     <string name="mash_no_scheme">Нет схемы</string>
     <string name="mash_download_scheme">Скачать схему</string>

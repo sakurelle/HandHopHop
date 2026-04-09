@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <integer name="fs_title_sp">18</integer>
+    <integer name="fs_body_sp">14</integer>
+    <integer name="fs_label_sp">11</integer>
     <!-- Параметры генерации-->
     <integer name="mash_min_side_cells">128</integer>
     <integer name="mash_palette_size">10</integer>
