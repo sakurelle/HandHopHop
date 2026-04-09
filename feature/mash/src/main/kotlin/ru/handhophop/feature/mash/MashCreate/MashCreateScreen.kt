@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +50,11 @@ internal fun MashCreateScreen(
     suggestedProjectName: String = "",
     onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
+    topBar: @Composable (
+        Boolean,
+        () -> Unit,
+        () -> Unit,
+    ) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -75,6 +78,7 @@ internal fun MashCreateScreen(
         uiState = uiState,
         onAction = viewModel::handleAction,
         onBackClick = onBackClick,
+        topBar = topBar,
     )
 }
 
@@ -83,6 +87,11 @@ private fun MashCreateContent(
     uiState: MashCreateUiState,
     onAction: (MashCreateUiAction) -> Unit,
     onBackClick: () -> Unit,
+    topBar: @Composable (
+        Boolean,
+        () -> Unit,
+        () -> Unit,
+    ) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -91,10 +100,10 @@ private fun MashCreateContent(
             .fillMaxSize()
             .background(colorResource(R.color.mash_background))
     ) {
-        MashCreateTopBar(
-            onBackClick = onBackClick,
-            onDoneClick = { onAction(CreateWorkAction()) },
-            isDoneEnabled = uiState.isCreateButtonEnabled,
+        topBar(
+            uiState.isCreateButtonEnabled,
+            onBackClick,
+            { onAction(CreateWorkAction()) },
         )
 
         Column(
@@ -194,52 +203,6 @@ private fun MashCreateContent(
 }
 
 @Composable
-private fun MashCreateTopBar(
-    onBackClick: () -> Unit,
-    onDoneClick: () -> Unit,
-    isDoneEnabled: Boolean,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colorResource(R.color.mash_surface))
-            .padding(
-                horizontal = dimensionResource(R.dimen.mash_create_top_bar_horizontal_padding),
-                vertical = dimensionResource(R.dimen.mash_create_top_bar_vertical_padding),
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "‹",
-            modifier = Modifier.clickable(onClick = onBackClick),
-            style = MaterialTheme.typography.headlineMedium,
-            color = colorResource(R.color.mash_text_primary),
-        )
-
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.mash_create_top_bar_content_spacing)))
-
-        Text(
-            text = stringResource(R.string.mash_create_screen_title),
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = colorResource(R.color.mash_text_primary),
-        )
-
-        Text(
-            text = "✓",
-            modifier = Modifier.clickable(enabled = isDoneEnabled, onClick = onDoneClick),
-            style = MaterialTheme.typography.headlineSmall,
-            color = if (isDoneEnabled) {
-                colorResource(R.color.mash_text_primary)
-            } else {
-                colorResource(R.color.mash_text_secondary)
-            },
-        )
-    }
-}
-
-@Composable
 private fun MashCreateProjectNameSection(
     value: String,
     onValueChanged: (String) -> Unit,
@@ -263,7 +226,9 @@ private fun MashCreateProjectNameSection(
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             placeholder = {
-                Text(text = stringResource(R.string.mash_create_project_name_placeholder))
+                Text(
+                    text = stringResource(R.string.mash_create_project_name_placeholder)
+                )
             },
             trailingIcon = {
                 if (value.isNotBlank()) {
@@ -407,15 +372,23 @@ private fun MashCreateSchemeToggle(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(dimensionResource(R.dimen.mash_create_toggle_corner_radius)))
+            .clip(
+                RoundedCornerShape(
+                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
+                )
+            )
             .background(background)
             .border(
                 width = dimensionResource(R.dimen.mash_create_toggle_border_width),
                 color = border,
-                shape = RoundedCornerShape(dimensionResource(R.dimen.mash_create_toggle_corner_radius))
+                shape = RoundedCornerShape(
+                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
+                )
             )
             .clickable(onClick = onClick)
-            .padding(vertical = dimensionResource(R.dimen.mash_create_toggle_vertical_padding)),
+            .padding(
+                vertical = dimensionResource(R.dimen.mash_create_toggle_vertical_padding)
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -539,7 +512,8 @@ private fun MashCreateDifficultySection(
         Slider(
             value = difficulty.ordinal.toFloat(),
             onValueChange = { value ->
-                val newDifficulty = MashCreateDifficulty.entries[value.roundToInt().coerceIn(0, 2)]
+                val newDifficulty =
+                    MashCreateDifficulty.entries[value.roundToInt().coerceIn(0, 2)]
                 onDifficultyChanged(newDifficulty)
             },
             valueRange = 0f..2f,
@@ -580,6 +554,7 @@ private fun MashCreateScreenPreview() {
             ),
             onAction = {},
             onBackClick = {},
+            topBar = { _, _, _ -> }
         )
     }
 }
