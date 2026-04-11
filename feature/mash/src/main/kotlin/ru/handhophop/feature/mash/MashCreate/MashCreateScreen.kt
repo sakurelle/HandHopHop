@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.R
 
 @Composable
@@ -95,106 +96,112 @@ private fun MashCreateContent(
 ) {
     val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colorResource(R.color.mash_background))
     ) {
-        topBar(
-            uiState.isCreateButtonEnabled,
-            onBackClick,
-            { onAction(CreateWorkAction()) },
-        )
+        BackgroundPattern()
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(
-                    horizontal = dimensionResource(R.dimen.mash_create_screen_horizontal_padding),
-                    vertical = dimensionResource(R.dimen.mash_create_screen_vertical_padding),
-                ),
-            verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_create_screen_content_spacing)
-            )
+            modifier = Modifier.fillMaxSize()
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(
-                    dimensionResource(R.dimen.mash_create_card_corner_radius)
-                ),
+            topBar(
+                uiState.isCreateButtonEnabled,
+                onBackClick,
+                { onAction(CreateWorkAction()) },
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.mash_create_screen_horizontal_padding),
+                        vertical = dimensionResource(R.dimen.mash_create_screen_vertical_padding),
+                    ),
+                verticalArrangement = Arrangement.spacedBy(
+                    dimensionResource(R.dimen.mash_create_screen_content_spacing)
+                )
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(colorResource(R.color.mash_surface))
-                        .padding(dimensionResource(R.dimen.mash_create_card_padding)),
-                    verticalArrangement = Arrangement.spacedBy(
-                        dimensionResource(R.dimen.mash_create_section_spacing)
-                    )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(
+                        dimensionResource(R.dimen.mash_create_card_corner_radius)
+                    ),
                 ) {
-                    Text(
-                        text = stringResource(R.string.mash_create_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorResource(R.color.mash_text_primary),
-                    )
-
-                    MashCreateProjectNameSection(
-                        value = uiState.projectName,
-                        onValueChanged = {
-                            onAction(ProjectNameChangedAction(it))
-                        },
-                        onClearClick = {
-                            onAction(ClearProjectNameAction())
-                        },
-                    )
-
-                    MashCreateImageSection(imageUrl = uiState.imageUrl)
-
-                    MashCreateSchemeTypeSection(
-                        selectedType = uiState.schemeType,
-                        onTypeSelected = {
-                            onAction(SchemeTypeChangedAction(it))
-                        },
-                    )
-
-                    MashCreateColorsSection(
-                        colorCount = uiState.colorCount,
-                        threads = uiState.threads,
-                        onColorCountChanged = {
-                            onAction(ColorCountChangedAction(it))
-                        },
-                    )
-
-                    MashCreateDifficultySection(
-                        difficulty = uiState.difficulty,
-                        onDifficultyChanged = {
-                            onAction(DifficultyChangedAction(it))
-                        },
-                    )
-
-                    Button(
-                        onClick = { onAction(CreateWorkAction()) },
-                        enabled = uiState.isCreateButtonEnabled,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(dimensionResource(R.dimen.mash_create_button_height)),
-                        shape = RoundedCornerShape(
-                            dimensionResource(R.dimen.mash_create_button_corner_radius)
-                        ),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(R.color.mash_primary),
-                            contentColor = colorResource(R.color.mash_white),
-                            disabledContainerColor = colorResource(R.color.mash_primary_disabled),
-                            disabledContentColor = colorResource(R.color.mash_text_secondary),
+                            .background(colorResource(R.color.mash_surface))
+                            .padding(dimensionResource(R.dimen.mash_create_card_padding)),
+                        verticalArrangement = Arrangement.spacedBy(
+                            dimensionResource(R.dimen.mash_create_section_spacing)
                         )
                     ) {
                         Text(
-                            text = stringResource(R.string.mash_create_button_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
+                            text = stringResource(R.string.mash_create_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorResource(R.color.mash_text_primary),
                         )
+
+                        MashCreateProjectNameSection(
+                            value = uiState.projectName,
+                            onValueChanged = {
+                                onAction(ProjectNameChangedAction(it))
+                            },
+                            onClearClick = {
+                                onAction(ClearProjectNameAction())
+                            },
+                        )
+
+                        MashCreateImageSection(imageUrl = uiState.imageUrl)
+
+                        MashCreateSchemeTypeSection(
+                            selectedType = uiState.schemeType,
+                            onTypeSelected = {
+                                onAction(SchemeTypeChangedAction(it))
+                            },
+                        )
+
+                        MashCreateColorsSection(
+                            colorCount = uiState.colorCount,
+                            threads = uiState.threads,
+                            onColorCountChanged = {
+                                onAction(ColorCountChangedAction(it))
+                            },
+                        )
+
+                        MashCreateDifficultySection(
+                            difficulty = uiState.difficulty,
+                            onDifficultyChanged = {
+                                onAction(DifficultyChangedAction(it))
+                            },
+                        )
+
+                        Button(
+                            onClick = { onAction(CreateWorkAction()) },
+                            enabled = uiState.isCreateButtonEnabled,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(dimensionResource(R.dimen.mash_create_button_height)),
+                            shape = RoundedCornerShape(
+                                dimensionResource(R.dimen.mash_create_button_corner_radius)
+                            ),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.mash_primary),
+                                contentColor = colorResource(R.color.mash_white),
+                                disabledContainerColor = colorResource(R.color.mash_primary_disabled),
+                                disabledContentColor = colorResource(R.color.mash_text_secondary),
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(R.string.mash_create_button_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
                     }
                 }
             }
@@ -540,7 +547,7 @@ private fun MashCreateDifficultySection(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 private fun MashCreateScreenPreview() {
     MaterialTheme {

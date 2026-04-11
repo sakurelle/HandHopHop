@@ -33,6 +33,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+    dependencies {
+        implementation(project(":core:design"))
+    }
 }
 
 dependencies {

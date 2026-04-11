@@ -32,12 +32,24 @@ internal class MashViewModel(
         when (action) {
             is ClickDownloadsAction -> download()
             is GenerateSchemeAction -> generateScheme(action.config)
+
+            is TogglePaletteHighlightAction -> {
+                val currentSelected = _uiState.value.selectedPaletteIndex
+                _uiState.value = _uiState.value.copy(
+                    selectedPaletteIndex = if (currentSelected == action.paletteIndex) {
+                        null
+                    } else {
+                        action.paletteIndex
+                    }
+                )
+            }
+
             is HighlightingColorAction -> {
-                // TODO: выделение определенного цвета
+                // TODO: если понадобится отдельная логика
             }
 
             is ShadedColorAction -> {
-                // TODO: вывод итогового результата по двойному нажатию
+                // TODO: если понадобится отдельная логика
             }
         }
     }
@@ -51,21 +63,15 @@ internal class MashViewModel(
                 errorTextRes = null,
                 isDownloadButtonEnabled = false,
                 isPaletteVisible = false,
+                selectedPaletteIndex = null,
             )
 
             val context = getApplication<Application>().applicationContext
 
-            val bitmap = if (!config.imageUrl.isNullOrBlank()) {
-                loadBitmapFromUrl(
-                    context = context,
-                    url = config.imageUrl
-                )
-            } else {
-                loadBitmapFromUrl(
-                    context = context,
-                    url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
-                )
-            }
+            val bitmap = loadBitmapFromUrl(
+                context = context,
+                url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
+            )
 
             val scheme = bitmap?.let {
                 buildScheme(
@@ -82,7 +88,8 @@ internal class MashViewModel(
                     visiblePalette = scheme.palette,
                     errorTextRes = null,
                     isDownloadButtonEnabled = true,
-                    isPaletteVisible = scheme.palette.isNotEmpty()
+                    isPaletteVisible = scheme.palette.isNotEmpty(),
+                    selectedPaletteIndex = null,
                 )
             } else {
                 _uiState.value.copy(
@@ -91,7 +98,8 @@ internal class MashViewModel(
                     visiblePalette = emptyList(),
                     errorTextRes = R.string.mash_failed_build_scheme,
                     isDownloadButtonEnabled = false,
-                    isPaletteVisible = false
+                    isPaletteVisible = false,
+                    selectedPaletteIndex = null,
                 )
             }
         }
