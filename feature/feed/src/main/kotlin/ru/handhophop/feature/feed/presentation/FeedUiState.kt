@@ -11,7 +11,10 @@ internal sealed interface FeedUiState {
     data class Success(
         val photos: List<FeedPhotoItem> = emptyList(),
         val hasNext: Boolean = true,
-        val isLoadingMore: Boolean = false
+        val isLoadingMore: Boolean = false,
+
+        val recommendedPhotos: List<FeedPhotoItem> = emptyList(),
+        val isRecommendedLoading: Boolean = false
     ) : FeedUiState
 
     @Immutable

@@ -4,7 +4,8 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class ScreenState(
-    val route: Route
+    val currentScreen: Route,
+    val topBarState: TopBarState
 )
 
 enum class Route {

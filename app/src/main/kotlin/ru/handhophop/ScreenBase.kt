@@ -8,12 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import ru.handhophop.core.design.BackgroundPattern
 import androidx.compose.ui.tooling.preview.Preview
 import ru.handhophop.core.design.BottomBar
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
+import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.ui.BackgroundPattern
 
@@ -25,8 +28,10 @@ internal fun ScreenBase(
     ProfileScreen: @Composable () -> Unit,
     FeedScreen: @Composable () -> Unit,
     BookmarkScreen: @Composable () -> Unit,
+    topBarState: TopBarState
 ) {
-    var currentRoute by remember { mutableStateOf(screenState.route) }
+    val state by rememberUpdatedState(screenState)
+    var currentRoute by remember { mutableStateOf(state.route) }
 
     Box(
         modifier = Modifier
@@ -45,7 +50,7 @@ internal fun ScreenBase(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                when (screenState.route) {
+                when (currentRoute) {
                     Route.BOOKMARK -> {
                         BookmarkScreen()
                     }
@@ -69,16 +74,4 @@ internal fun ScreenBase(
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun ScreenBasePreview() {
-    ScreenBase(
-        screenState = ScreenState(Route.MASH),
-        MashScreen = {},
-        ProfileScreen = {},
-        FeedScreen = {},
-        BookmarkScreen = {},
-    )
 }

@@ -1,4 +1,4 @@
-package ru.handhophop.ui.theme
+package ru.handhophop.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
