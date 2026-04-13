@@ -24,6 +24,7 @@ runtimeAnnotation = "1.10.5"
 foundation = "1.10.5"
 foundationVersion = "1.10.6"
 appcrawlerPlatform = "0.0.1-alpha03"
+kotlinx-coroutines = "1.8.1"
 runtimeVersion = "1.10.6"
 
 [libraries]
@@ -63,6 +64,7 @@ androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "l
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundation" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 appcrawler-platform = { group = "com.google.android.appcrawler", name = "appcrawler-platform", version.ref = "appcrawlerPlatform" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
 
 [plugins]
