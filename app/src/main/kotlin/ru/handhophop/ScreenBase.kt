@@ -12,23 +12,26 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import ru.handhophop.core.design.BackgroundPattern
+import androidx.compose.ui.tooling.preview.Preview
 import ru.handhophop.core.design.BottomBar
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.ui.BackgroundPattern
 
 
 @Composable
 internal fun ScreenBase(
     screenState: ScreenState,
-    mashScreen: @Composable () -> Unit,
-    profileScreen: @Composable () -> Unit,
-    feedScreen: @Composable () -> Unit,
-    bookmarkScreen: @Composable () -> Unit,
+    MashScreen: @Composable () -> Unit,
+    ProfileScreen: @Composable () -> Unit,
+    FeedScreen: @Composable () -> Unit,
+    BookmarkScreen: @Composable () -> Unit,
+    topBarState: TopBarState
 ) {
     val state by rememberUpdatedState(screenState)
-    var currentRoute by remember { mutableStateOf(state.currentScreen) }
+    var currentRoute by remember { mutableStateOf(state.route) }
 
     Box(
         modifier = Modifier
@@ -42,7 +45,6 @@ internal fun ScreenBase(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBar(state.topBarState)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -50,19 +52,19 @@ internal fun ScreenBase(
             ) {
                 when (currentRoute) {
                     Route.BOOKMARK -> {
-                        bookmarkScreen()
+                        BookmarkScreen()
                     }
 
                     Route.MASH -> {
-                        mashScreen()
+                        MashScreen()
                     }
 
                     Route.FEED -> {
-                        feedScreen()
+                        FeedScreen()
                     }
 
                     Route.PROFILE -> {
-                        profileScreen()
+                        ProfileScreen()
                     }
                 }
             }
