@@ -28,9 +28,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,14 +41,12 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.R
 
 @Composable
 internal fun MashCreateScreen(
-    viewModel: MashCreateViewModel,
     imageUrl: String?,
     suggestedProjectName: String = "",
     onBackClick: () -> Unit = {},
@@ -57,27 +57,53 @@ internal fun MashCreateScreen(
         () -> Unit,
     ) -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
+        mutableStateOf(suggestedProjectName)
+    }
+    var schemeType by rememberSaveable(imageUrl, suggestedProjectName) {
+        mutableStateOf(MashCreateSchemeType.COLORING)
+    }
+    var colorCount by rememberSaveable(imageUrl, suggestedProjectName) {
+        mutableIntStateOf(MASH_CREATE_DEFAULT_COLORS)
+    }
+    var difficulty by rememberSaveable(imageUrl, suggestedProjectName) {
+        mutableStateOf(MashCreateDifficulty.MEDIUM)
+    }
 
-    LaunchedEffect(imageUrl, suggestedProjectName) {
-        viewModel.handleAction(
-            InitMashCreateAction(
+    val threads = MashCreateData.getThreadsByCount(colorCount)
+    val isCreateButtonEnabled = projectName.isNotBlank()
+
+    fun createWork() {
+        if (!isCreateButtonEnabled) return
+
+        onCreateFinished(
+            MashCreateConfig(
+                projectName = projectName.trim(),
                 imageUrl = imageUrl,
-                suggestedProjectName = suggestedProjectName,
+                schemeType = schemeType,
+                colorCount = colorCount,
+                difficulty = difficulty,
+                threads = threads,
             )
         )
     }
 
-    LaunchedEffect(uiState.createdConfig) {
-        uiState.createdConfig?.let { config ->
-            onCreateFinished(config)
-            viewModel.handleAction(ConsumeCreatedConfigAction())
-        }
-    }
-
     MashCreateContent(
-        uiState = uiState,
-        onAction = viewModel::handleAction,
+        projectName = projectName,
+        imageUrl = imageUrl,
+        schemeType = schemeType,
+        colorCount = colorCount,
+        difficulty = difficulty,
+        threads = threads,
+        isCreateButtonEnabled = isCreateButtonEnabled,
+        onProjectNameChanged = { projectName = it },
+        onClearProjectNameClick = { projectName = "" },
+        onSchemeTypeSelected = { schemeType = it },
+        onColorCountChanged = {
+            colorCount = it.coerceIn(MASH_CREATE_MIN_COLORS, MASH_CREATE_MAX_COLORS)
+        },
+        onDifficultyChanged = { difficulty = it },
+        onCreateClick = ::createWork,
         onBackClick = onBackClick,
         topBar = topBar,
     )
@@ -85,8 +111,19 @@ internal fun MashCreateScreen(
 
 @Composable
 private fun MashCreateContent(
-    uiState: MashCreateUiState,
-    onAction: (MashCreateUiAction) -> Unit,
+    projectName: String,
+    imageUrl: String?,
+    schemeType: MashCreateSchemeType,
+    colorCount: Int,
+    difficulty: MashCreateDifficulty,
+    threads: List<MashThread>,
+    isCreateButtonEnabled: Boolean,
+    onProjectNameChanged: (String) -> Unit,
+    onClearProjectNameClick: () -> Unit,
+    onSchemeTypeSelected: (MashCreateSchemeType) -> Unit,
+    onColorCountChanged: (Int) -> Unit,
+    onDifficultyChanged: (MashCreateDifficulty) -> Unit,
+    onCreateClick: () -> Unit,
     onBackClick: () -> Unit,
     topBar: @Composable (
         Boolean,
@@ -107,9 +144,9 @@ private fun MashCreateContent(
             modifier = Modifier.fillMaxSize()
         ) {
             topBar(
-                uiState.isCreateButtonEnabled,
+                isCreateButtonEnabled,
                 onBackClick,
-                { onAction(CreateWorkAction()) },
+                onCreateClick,
             )
 
             Column(
@@ -147,42 +184,32 @@ private fun MashCreateContent(
                         )
 
                         MashCreateProjectNameSection(
-                            value = uiState.projectName,
-                            onValueChanged = {
-                                onAction(ProjectNameChangedAction(it))
-                            },
-                            onClearClick = {
-                                onAction(ClearProjectNameAction())
-                            },
+                            value = projectName,
+                            onValueChanged = onProjectNameChanged,
+                            onClearClick = onClearProjectNameClick,
                         )
 
-                        MashCreateImageSection(imageUrl = uiState.imageUrl)
+                        MashCreateImageSection(imageUrl = imageUrl)
 
                         MashCreateSchemeTypeSection(
-                            selectedType = uiState.schemeType,
-                            onTypeSelected = {
-                                onAction(SchemeTypeChangedAction(it))
-                            },
+                            selectedType = schemeType,
+                            onTypeSelected = onSchemeTypeSelected,
                         )
 
                         MashCreateColorsSection(
-                            colorCount = uiState.colorCount,
-                            threads = uiState.threads,
-                            onColorCountChanged = {
-                                onAction(ColorCountChangedAction(it))
-                            },
+                            colorCount = colorCount,
+                            threads = threads,
+                            onColorCountChanged = onColorCountChanged,
                         )
 
                         MashCreateDifficultySection(
-                            difficulty = uiState.difficulty,
-                            onDifficultyChanged = {
-                                onAction(DifficultyChangedAction(it))
-                            },
+                            difficulty = difficulty,
+                            onDifficultyChanged = onDifficultyChanged,
                         )
 
                         Button(
-                            onClick = { onAction(CreateWorkAction()) },
-                            enabled = uiState.isCreateButtonEnabled,
+                            onClick = onCreateClick,
+                            enabled = isCreateButtonEnabled,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(dimensionResource(R.dimen.mash_create_button_height)),
@@ -240,7 +267,7 @@ private fun MashCreateProjectNameSection(
             trailingIcon = {
                 if (value.isNotBlank()) {
                     Text(
-                        text = "✕",
+                        text = stringResource(R.string.mash_create_clear_field),
                         modifier = Modifier.clickable(onClick = onClearClick),
                         color = colorResource(R.color.mash_text_primary),
                     )
@@ -501,6 +528,9 @@ private fun MashCreateDifficultySection(
     difficulty: MashCreateDifficulty,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
 ) {
+    val difficultySteps = MashCreateDifficulty.entries.size - 2
+    val difficultyLastIndex = MashCreateDifficulty.entries.lastIndex
+
     Column(
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(R.dimen.mash_create_inner_section_spacing)
@@ -520,11 +550,11 @@ private fun MashCreateDifficultySection(
             value = difficulty.ordinal.toFloat(),
             onValueChange = { value ->
                 val newDifficulty =
-                    MashCreateDifficulty.entries[value.roundToInt().coerceIn(0, 2)]
+                    MashCreateDifficulty.entries[value.roundToInt().coerceIn(0, difficultyLastIndex)]
                 onDifficultyChanged(newDifficulty)
             },
-            valueRange = 0f..2f,
-            steps = 1,
+            valueRange = 0f..difficultyLastIndex.toFloat(),
+            steps = difficultySteps,
             colors = SliderDefaults.colors(
                 thumbColor = colorResource(R.color.mash_primary),
                 activeTrackColor = colorResource(R.color.mash_primary),
@@ -544,24 +574,5 @@ private fun MashCreateDifficultySection(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MashCreateScreenPreview() {
-    MaterialTheme {
-        MashCreateContent(
-            uiState = MashCreateUiState(
-                imageUrl = "preview://image",
-                projectName = "Баночки",
-                schemeType = MashCreateSchemeType.COLORING,
-                colorCount = 22,
-                difficulty = MashCreateDifficulty.MEDIUM,
-            ),
-            onAction = {},
-            onBackClick = {},
-            topBar = { _, _, _ -> }
-        )
     }
 }

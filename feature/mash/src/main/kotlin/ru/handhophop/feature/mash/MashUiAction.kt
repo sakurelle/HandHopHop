@@ -14,6 +14,8 @@ internal class TogglePaletteHighlightAction(
     val paletteIndex: Int
 ) : UiAction
 
-internal class HighlightingColorAction : UiAction
+internal class ClearPaletteHighlightAction : UiAction
 
-internal class ShadedColorAction : UiAction
+internal class TogglePaletteCompletedAction(
+    val paletteIndex: Int
+) : UiAction

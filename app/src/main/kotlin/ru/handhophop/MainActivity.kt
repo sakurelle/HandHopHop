@@ -12,6 +12,7 @@ import ru.handhophop.core.design.FilterTopBarState
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint
+import ru.handhophop.feature.mash.MashEntryPoint
 
 class MainActivity : ComponentActivity() {
 
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
                 ScreenBase(
                     screenState = screenState,
                     feedScreen = { FeedEntryPoint() },
-                    mashScreen = { TODO() },
+                    mashScreen = { MashEntryPoint() },
                     bookmarkScreen = { TODO() },
                     profileScreen = { TODO() }
                 )

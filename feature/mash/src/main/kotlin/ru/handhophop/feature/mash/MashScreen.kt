@@ -3,9 +3,10 @@ package ru.handhophop.feature.mash
 import android.graphics.Paint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
@@ -13,13 +14,14 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,17 +42,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.colorResource
@@ -58,15 +60,18 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
-import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashThread
+
+private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
+private const val SCHEME_SELECTED_FILL_ALPHA = 0.42f
+private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 
 @Composable
 internal fun MashScreen(
@@ -86,7 +91,13 @@ internal fun MashScreen(
         },
         onHighlightColorToggle = { paletteIndex ->
             viewModel.handleAction(TogglePaletteHighlightAction(paletteIndex))
-        }
+        },
+        onCompletedColorToggle = { paletteIndex ->
+            viewModel.handleAction(TogglePaletteCompletedAction(paletteIndex))
+        },
+        onClearSelection = {
+            viewModel.handleAction(ClearPaletteHighlightAction())
+        },
     )
 }
 
@@ -95,6 +106,8 @@ private fun CenterContentMash(
     uiState: MashUiState,
     onDownloadClick: () -> Unit,
     onHighlightColorToggle: (Int) -> Unit,
+    onCompletedColorToggle: (Int) -> Unit,
+    onClearSelection: () -> Unit,
 ) {
     val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
     val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
@@ -121,7 +134,9 @@ private fun CenterContentMash(
                     scheme = uiState.scheme,
                     errorTextRes = uiState.errorTextRes,
                     selectedPaletteIndex = uiState.selectedPaletteIndex,
+                    completedPaletteIndices = uiState.completedPaletteIndices,
                     onCellClick = onHighlightColorToggle,
+                    onBackgroundClick = onClearSelection,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
@@ -144,7 +159,9 @@ private fun CenterContentMash(
                 PaletteBar(
                     threads = uiState.visiblePalette,
                     selectedPaletteIndex = uiState.selectedPaletteIndex,
+                    completedPaletteIndices = uiState.completedPaletteIndices,
                     onPaletteColorClick = onHighlightColorToggle,
+                    onPaletteColorLongClick = onCompletedColorToggle,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -162,38 +179,31 @@ private fun CenterContentMash(
 private fun PaletteBar(
     threads: List<MashThread>,
     selectedPaletteIndex: Int?,
+    completedPaletteIndices: Set<Int>,
     onPaletteColorClick: (Int) -> Unit,
+    onPaletteColorLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val titleSpacing = dimensionResource(R.dimen.mash_palette_title_spacing)
     val rowSpacing = dimensionResource(R.dimen.mash_palette_row_spacing)
+    val horizontalPadding = dimensionResource(R.dimen.mash_palette_horizontal_padding)
 
-    Column(
+    LazyRow(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(titleSpacing)
+        contentPadding = PaddingValues(horizontal = horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(rowSpacing)
     ) {
-        Text(
-            text = stringResource(R.string.mash_palette_title),
-            color = colorResource(R.color.mash_text_primary),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(rowSpacing)
-        ) {
-            itemsIndexed(
-                items = threads,
-                key = { index, thread -> "${thread.article}_$index" }
-            ) { index, thread ->
-                ColorSwatch(
-                    thread = thread,
-                    number = index + 1,
-                    isSelected = selectedPaletteIndex == index,
-                    onClick = { onPaletteColorClick(index) }
-                )
-            }
+        itemsIndexed(
+            items = threads,
+            key = { index, thread -> "${thread.article}_$index" }
+        ) { index, thread ->
+            ColorSwatch(
+                thread = thread,
+                number = index + 1,
+                isSelected = selectedPaletteIndex == index,
+                isCompleted = index in completedPaletteIndices,
+                onClick = { onPaletteColorClick(index) },
+                onLongClick = { onPaletteColorLongClick(index) },
+            )
         }
     }
 }
@@ -204,14 +214,14 @@ private fun SchemeCard(
     scheme: SchemeData?,
     @StringRes errorTextRes: Int?,
     selectedPaletteIndex: Int?,
+    completedPaletteIndices: Set<Int>,
     onCellClick: (Int) -> Unit,
+    onBackgroundClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val cornerRadius = dimensionResource(R.dimen.mash_card_corner_radius)
     val elevation = dimensionResource(R.dimen.mash_card_elevation)
     val contentPadding = dimensionResource(R.dimen.mash_card_content_padding)
-
-    val aspect = scheme?.let { it.gridW.toFloat() / it.gridH.toFloat() } ?: 1f
 
     Card(
         modifier = modifier,
@@ -230,17 +240,13 @@ private fun SchemeCard(
                     color = colorResource(R.color.mash_primary)
                 )
 
-                scheme != null -> Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(aspect)
-                ) {
-                    NumberedSchemeCanvas(
-                        scheme = scheme,
-                        selectedPaletteIndex = selectedPaletteIndex,
-                        onCellClick = onCellClick,
-                    )
-                }
+                scheme != null -> SchemeWorkspace(
+                    scheme = scheme,
+                    selectedPaletteIndex = selectedPaletteIndex,
+                    completedPaletteIndices = completedPaletteIndices,
+                    onCellClick = onCellClick,
+                    onBackgroundClick = onBackgroundClick,
+                )
 
                 errorTextRes != null -> Text(
                     text = stringResource(errorTextRes),
@@ -255,6 +261,42 @@ private fun SchemeCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SchemeWorkspace(
+    scheme: SchemeData,
+    selectedPaletteIndex: Int?,
+    completedPaletteIndices: Set<Int>,
+    onCellClick: (Int) -> Unit,
+    onBackgroundClick: () -> Unit,
+) {
+    val workspaceShape = RoundedCornerShape(
+        dimensionResource(R.dimen.mash_scheme_workspace_corner_radius)
+    )
+    val workspacePadding = dimensionResource(R.dimen.mash_scheme_workspace_padding)
+    val workspaceBorderWidth = dimensionResource(R.dimen.mash_scheme_workspace_border_width)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(workspacePadding)
+            .clip(workspaceShape)
+            .background(colorResource(R.color.mash_white))
+            .border(
+                width = workspaceBorderWidth,
+                color = colorResource(R.color.mash_text_primary),
+                shape = workspaceShape,
+            )
+    ) {
+        NumberedSchemeCanvas(
+            scheme = scheme,
+            selectedPaletteIndex = selectedPaletteIndex,
+            completedPaletteIndices = completedPaletteIndices,
+            onCellClick = onCellClick,
+            onBackgroundClick = onBackgroundClick,
+        )
     }
 }
 
@@ -289,47 +331,81 @@ private fun DownloadButton(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColorSwatch(
     thread: MashThread,
     number: Int,
     isSelected: Boolean,
+    isCompleted: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val swatchTextSpacing = dimensionResource(R.dimen.mash_swatch_text_spacing)
     val swatchSize = dimensionResource(R.dimen.mash_swatch_size)
     val swatchCornerRadius = dimensionResource(R.dimen.mash_swatch_corner_radius)
+    val swatchBorderWidth = dimensionResource(R.dimen.mash_swatch_border_width)
+    val swatchSelectedBorderWidth = dimensionResource(R.dimen.mash_swatch_selected_border_width)
+    val swatchSelectedPadding = dimensionResource(R.dimen.mash_swatch_selected_padding)
+    val swatchTextSize = dimensionResource(R.dimen.mash_swatch_text_size).value.sp
+    val bottomSpacing = dimensionResource(R.dimen.mash_palette_bottom_spacing)
+
+    val innerShape = RoundedCornerShape(swatchCornerRadius)
+    val outerShape = RoundedCornerShape(swatchCornerRadius + swatchSelectedPadding)
+    val selectedBorderColor = colorResource(R.color.mash_primary)
+    val completedBorderColor = colorResource(R.color.mash_text_primary)
+    val articleColor = colorResource(R.color.mash_swatch_text)
+    val numberColor = if (thread.color.luminance() > SWATCH_LIGHT_LUMINANCE_THRESHOLD) {
+        colorResource(R.color.mash_text_primary)
+    } else {
+        colorResource(R.color.mash_white)
+    }
 
     Column(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.widthIn(min = swatchSize),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(swatchTextSpacing)
     ) {
         Box(
             modifier = Modifier
-                .size(swatchSize)
-                .background(thread.color, RoundedCornerShape(swatchCornerRadius))
+                .clip(outerShape)
                 .border(
-                    width = if (isSelected) 2.dp else 1.dp,
-                    color = if (isSelected) {
-                        colorResource(R.color.mash_primary)
-                    } else {
-                        Color.Transparent
-                    },
-                    shape = RoundedCornerShape(swatchCornerRadius)
+                    width = if (isSelected) swatchSelectedBorderWidth else dimensionResource(R.dimen.radius_0),
+                    color = if (isSelected) selectedBorderColor else Color.Transparent,
+                    shape = outerShape,
                 )
-        )
-
-        Text(
-            text = number.toString(),
-            fontSize = 10.sp,
-            color = colorResource(R.color.mash_swatch_text)
-        )
+                .padding(swatchSelectedPadding)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(swatchSize)
+                    .clip(innerShape)
+                    .background(thread.color)
+                    .border(
+                        width = swatchBorderWidth,
+                        color = completedBorderColor,
+                        shape = innerShape,
+                    )
+                    .padding(bottomSpacing),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = number.toString(),
+                    fontSize = swatchTextSize,
+                    fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.SemiBold,
+                    color = numberColor,
+                )
+            }
+        }
 
         Text(
             text = thread.article,
             style = MaterialTheme.typography.labelSmall,
-            color = colorResource(R.color.mash_swatch_text)
+            color = articleColor,
         )
     }
 }
@@ -338,30 +414,16 @@ private fun ColorSwatch(
 private fun NumberedSchemeCanvas(
     scheme: SchemeData,
     selectedPaletteIndex: Int?,
+    completedPaletteIndices: Set<Int>,
     onCellClick: (Int) -> Unit,
+    onBackgroundClick: () -> Unit,
 ) {
-    var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
-        mutableFloatStateOf(1f)
-    }
-    var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
-        mutableStateOf(Offset.Zero)
-    }
-
-    val paletteNumbers = remember(scheme.palette) {
-        List(scheme.palette.size) { index -> (index + 1).toString() }
-    }
-
-    val minScale = integerResource(R.integer.mash_min_scale).toFloat()
     val maxScale = integerResource(R.integer.mash_max_scale).toFloat()
-
+    val tapSlopPx = LocalViewConfiguration.current.touchSlop
+    val tapSlopSquared = tapSlopPx * tapSlopPx
     val drawNumbersThresholdPx = with(LocalDensity.current) {
         dimensionResource(R.dimen.mash_scheme_draw_numbers_threshold).toPx()
     }
-    val drawGridThresholdPx = with(LocalDensity.current) {
-        dimensionResource(R.dimen.mash_scheme_draw_grid_threshold).toPx()
-    }
-    val tapSlopPx = LocalViewConfiguration.current.touchSlop
-    val tapSlopSquared = tapSlopPx * tapSlopPx
 
     val schemeBackgroundColor = colorResource(R.color.mash_white)
     val gridStrokeColor = colorResource(R.color.mash_grid_stroke)
@@ -374,21 +436,60 @@ private fun NumberedSchemeCanvas(
         }
     }
 
+    var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
+        mutableFloatStateOf(1f)
+    }
+    var canvasSize by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
+        mutableStateOf(IntSize.Zero)
+    }
+    var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
+        mutableStateOf<Offset?>(null)
+    }
+
+    val paletteNumbers = remember(scheme.palette) {
+        List(scheme.palette.size) { index -> (index + 1).toString() }
+    }
+
+    fun baseCell(viewWidth: Float, viewHeight: Float): Float {
+        return max(
+            viewWidth / scheme.gridW.toFloat(),
+            viewHeight / scheme.gridH.toFloat()
+        )
+    }
+
+    fun centeredOffset(viewWidth: Float, viewHeight: Float, currentScale: Float): Offset {
+        val cell = baseCell(viewWidth, viewHeight) * currentScale
+        val contentWidth = scheme.gridW * cell
+        val contentHeight = scheme.gridH * cell
+        return Offset(
+            x = (viewWidth - contentWidth) / 2f,
+            y = (viewHeight - contentHeight) / 2f,
+        )
+    }
+
     fun clampOffset(
         viewWidth: Float,
         viewHeight: Float,
         currentScale: Float,
         currentOffset: Offset,
     ): Offset {
-        val scaledWidth = viewWidth * currentScale
-        val scaledHeight = viewHeight * currentScale
-        val minX = kotlin.math.min(0f, viewWidth - scaledWidth)
-        val minY = kotlin.math.min(0f, viewHeight - scaledHeight)
+        val cell = baseCell(viewWidth, viewHeight) * currentScale
+        val contentWidth = scheme.gridW * cell
+        val contentHeight = scheme.gridH * cell
 
-        return Offset(
-            x = currentOffset.x.coerceIn(minX, 0f),
-            y = currentOffset.y.coerceIn(minY, 0f)
-        )
+        val clampedX = if (contentWidth <= viewWidth) {
+            (viewWidth - contentWidth) / 2f
+        } else {
+            currentOffset.x.coerceIn(viewWidth - contentWidth, 0f)
+        }
+
+        val clampedY = if (contentHeight <= viewHeight) {
+            (viewHeight - contentHeight) / 2f
+        } else {
+            currentOffset.y.coerceIn(viewHeight - contentHeight, 0f)
+        }
+
+        return Offset(clampedX, clampedY)
     }
 
     Box(
@@ -396,7 +497,26 @@ private fun NumberedSchemeCanvas(
             .fillMaxSize()
             .clipToBounds()
             .background(schemeBackgroundColor)
-            .pointerInput(scheme.gridW, scheme.gridH, scheme.indices.size, selectedPaletteIndex) {
+            .onSizeChanged { size ->
+                canvasSize = size
+                offset = clampOffset(
+                    viewWidth = size.width.toFloat(),
+                    viewHeight = size.height.toFloat(),
+                    currentScale = scale,
+                    currentOffset = offset ?: centeredOffset(
+                        size.width.toFloat(),
+                        size.height.toFloat(),
+                        scale,
+                    ),
+                )
+            }
+            .pointerInput(
+                scheme.gridW,
+                scheme.gridH,
+                scheme.indices.size,
+                selectedPaletteIndex,
+                completedPaletteIndices,
+            ) {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     var tapCandidate = true
@@ -407,6 +527,7 @@ private fun NumberedSchemeCanvas(
                         val event = awaitPointerEvent()
                         val pressed = event.changes.any { it.pressed }
                         val pressedPointers = event.changes.count { it.pressed }
+                        val currentOffset = offset ?: centeredOffset(size.width.toFloat(), size.height.toFloat(), scale)
 
                         if (pressedPointers > 1) {
                             tapCandidate = false
@@ -431,22 +552,15 @@ private fun NumberedSchemeCanvas(
 
                         if (!pressed) {
                             if (tapCandidate) {
-                                val viewWidth = size.width.toFloat()
-                                val viewHeight = size.height.toFloat()
-                                val cell = minOf(
-                                    viewWidth / scheme.gridW.toFloat(),
-                                    viewHeight / scheme.gridH.toFloat()
-                                )
-
-                                val contentX = (lastPointerPosition.x - offset.x) / scale
-                                val contentY = (lastPointerPosition.y - offset.y) / scale
-
-                                val column = floor(contentX / cell).toInt()
-                                val row = floor(contentY / cell).toInt()
+                                val cell = baseCell(size.width.toFloat(), size.height.toFloat()) * scale
+                                val column = floor((lastPointerPosition.x - currentOffset.x) / cell).toInt()
+                                val row = floor((lastPointerPosition.y - currentOffset.y) / cell).toInt()
 
                                 if (column in 0 until scheme.gridW && row in 0 until scheme.gridH) {
                                     val paletteIndex = scheme.indices[row * scheme.gridW + column]
                                     onCellClick(paletteIndex)
+                                } else {
+                                    onBackgroundClick()
                                 }
                             }
                             break
@@ -462,14 +576,21 @@ private fun NumberedSchemeCanvas(
 
                         val pan = event.calculatePan()
                         val centroid = event.calculateCentroid()
-
                         val viewWidth = size.width.toFloat()
                         val viewHeight = size.height.toFloat()
-
                         val oldScale = scale
-                        val newScale = (oldScale * zoom).coerceIn(minScale, maxScale)
-                        val ratio = newScale / oldScale
-                        val newOffset = (offset - centroid) * ratio + centroid + pan
+                        val newScale = (oldScale * zoom).coerceIn(1f, maxScale)
+
+                        val oldCell = baseCell(viewWidth, viewHeight) * oldScale
+                        val newCell = baseCell(viewWidth, viewHeight) * newScale
+
+                        val contentX = (centroid.x - currentOffset.x) / oldCell
+                        val contentY = (centroid.y - currentOffset.y) / oldCell
+
+                        val newOffset = Offset(
+                            x = centroid.x - (contentX * newCell) + pan.x,
+                            y = centroid.y - (contentY * newCell) + pan.y,
+                        )
 
                         scale = newScale
                         offset = clampOffset(viewWidth, viewHeight, newScale, newOffset)
@@ -484,77 +605,60 @@ private fun NumberedSchemeCanvas(
             }
     ) {
         Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    translationX = offset.x
-                    translationY = offset.y
-                    scaleX = scale
-                    scaleY = scale
-                    transformOrigin = TransformOrigin(0f, 0f)
-                }
+            modifier = Modifier.fillMaxSize()
         ) {
-            val width = scheme.gridW
-            val height = scheme.gridH
-            val cell = minOf(size.width / width.toFloat(), size.height / height.toFloat())
+            val resolvedOffset = offset ?: centeredOffset(size.width, size.height, scale)
+            val cell = baseCell(size.width, size.height) * scale
             val cellSize = Size(cell, cell)
 
-            val left = (-offset.x) / scale
-            val top = (-offset.y) / scale
-            val right = (size.width - offset.x) / scale
-            val bottom = (size.height - offset.y) / scale
+            val left = (-resolvedOffset.x) / cell
+            val top = (-resolvedOffset.y) / cell
+            val right = (size.width - resolvedOffset.x) / cell
+            val bottom = (size.height - resolvedOffset.y) / cell
 
-            val x0 = floor(left / cell).toInt().coerceIn(0, width - 1)
-            val y0 = floor(top / cell).toInt().coerceIn(0, height - 1)
-            val x1 = ceil(right / cell).toInt().coerceIn(0, width - 1)
-            val y1 = ceil(bottom / cell).toInt().coerceIn(0, height - 1)
+            val x0 = floor(left).toInt().coerceIn(0, scheme.gridW - 1)
+            val y0 = floor(top).toInt().coerceIn(0, scheme.gridH - 1)
+            val x1 = ceil(right).toInt().coerceIn(0, scheme.gridW - 1)
+            val y1 = ceil(bottom).toInt().coerceIn(0, scheme.gridH - 1)
 
-            val effectiveCellPx = cell * scale
-            val drawNumbers = effectiveCellPx >= drawNumbersThresholdPx
-            val drawGrid = effectiveCellPx >= drawGridThresholdPx
+            val drawNumbers = cell >= drawNumbersThresholdPx
             val gridStroke = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = (1f / scale).coerceAtLeast(0.5f)
+                width = (0.8f / scale).coerceAtLeast(0.25f)
             )
 
-            val highlightedIndex = selectedPaletteIndex ?: -1
-            val hasHighlight = highlightedIndex >= 0
-
             for (yy in y0..y1) {
-                val topY = yy * cell
-
                 for (xx in x0..x1) {
-                    val index = yy * width + xx
+                    val index = yy * scheme.gridW + xx
                     val paletteIndex = scheme.indices[index]
                     val thread = scheme.palette[paletteIndex]
-                    val isHighlighted = !hasHighlight || paletteIndex == highlightedIndex
+                    val isCompleted = paletteIndex in completedPaletteIndices
+                    val isSelected = selectedPaletteIndex == paletteIndex
 
-                    val leftX = xx * cell
+                    val leftX = resolvedOffset.x + (xx * cell)
+                    val topY = resolvedOffset.y + (yy * cell)
                     val topLeft = Offset(leftX, topY)
 
-                    if (isHighlighted) {
-                        drawRect(
-                            color = thread.color.copy(alpha = if (hasHighlight) 0.42f else 0.18f),
-                            topLeft = topLeft,
-                            size = cellSize
-                        )
-                    } else {
-                        drawRect(
-                            color = schemeBackgroundColor,
-                            topLeft = topLeft,
-                            size = cellSize
-                        )
+                    val fillColor = when {
+                        isCompleted -> thread.color
+                        selectedPaletteIndex == null -> thread.color.copy(alpha = SCHEME_DEFAULT_FILL_ALPHA)
+                        isSelected -> thread.color.copy(alpha = SCHEME_SELECTED_FILL_ALPHA)
+                        else -> schemeBackgroundColor
                     }
 
-                    if (drawGrid) {
-                        drawRect(
-                            color = gridStrokeColor,
-                            topLeft = topLeft,
-                            size = cellSize,
-                            style = gridStroke
-                        )
-                    }
+                    drawRect(
+                        color = fillColor,
+                        topLeft = topLeft,
+                        size = cellSize
+                    )
 
-                    if (drawNumbers && isHighlighted) {
+                    drawRect(
+                        color = gridStrokeColor,
+                        topLeft = topLeft,
+                        size = cellSize,
+                        style = gridStroke
+                    )
+
+                    if ((drawNumbers || isSelected) && !isCompleted && (selectedPaletteIndex == null || isSelected)) {
                         textPaint.color = numberTextColor.toArgb()
                         textPaint.textSize = cell * 0.55f
 
@@ -573,65 +677,4 @@ private fun NumberedSchemeCanvas(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MashScreenPreview() {
-    MaterialTheme {
-        CenterContentMash(
-            uiState = previewMashUiState(),
-            onDownloadClick = {},
-            onHighlightColorToggle = {},
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MashScreenHighlightedPreview() {
-    MaterialTheme {
-        CenterContentMash(
-            uiState = previewMashUiState(selectedPaletteIndex = 2),
-            onDownloadClick = {},
-            onHighlightColorToggle = {},
-        )
-    }
-}
-
-private fun previewMashUiState(
-    selectedPaletteIndex: Int? = null,
-): MashUiState {
-    val threads = MashCreateData.getThreadsByCount(10).take(6)
-    val scheme = previewSchemeData(threads)
-
-    return MashUiState(
-        isLoading = false,
-        scheme = scheme,
-        visiblePalette = threads,
-        errorTextRes = null,
-        isDownloadButtonEnabled = true,
-        isPaletteVisible = true,
-        selectedPaletteIndex = selectedPaletteIndex,
-    )
-}
-
-private fun previewSchemeData(
-    threads: List<MashThread>,
-): SchemeData {
-    val gridWidth = 18
-    val gridHeight = 18
-
-    val indices = IntArray(gridWidth * gridHeight) { index ->
-        val row = index / gridWidth
-        val column = index % gridWidth
-        ((row / 2) + (column / 3)) % threads.size
-    }
-
-    return SchemeData(
-        gridW = gridWidth,
-        gridH = gridHeight,
-        palette = threads,
-        indices = indices,
-    )
 }
