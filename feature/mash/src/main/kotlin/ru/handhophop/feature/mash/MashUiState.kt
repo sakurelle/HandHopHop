@@ -12,6 +12,8 @@ internal data class MashUiState(
     @StringRes val errorTextRes: Int? = null,
     val isDownloadButtonEnabled: Boolean = false,
     val isPaletteVisible: Boolean = false,
+    val selectedPaletteIndex: Int? = null,
+    val completedPaletteIndices: Set<Int> = emptySet(),
 )
 
 @Immutable

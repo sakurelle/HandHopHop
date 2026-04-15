@@ -1,7 +1,6 @@
 <resources>
 
-    <!-- Экран готовой схемы -->
-    <string name ="now_nothing">Пока ничего...</string>
+    <string name="now_nothing">Пока ничего...</string>
     <string name="home">Главная</string>
     <string name="online_sheme">Работа</string>
     <string name="download_sheme">Избранное</string>
@@ -16,29 +15,23 @@
     <string name="mash_select_scheme_first">Сначала выберите схему</string>
     <string name="mash_failed_build_scheme">Не удалось построить схему</string>
 
-    <!-- Экран создания схемы -->
     <string name="mash_create_screen_title">Изображение</string>
     <string name="mash_create_title">Ваш новый проект</string>
-
     <string name="mash_create_project_name_label">Название проекта</string>
     <string name="mash_create_project_name_placeholder">Введите название</string>
-
+    <string name="mash_create_clear_field">x</string>
     <string name="mash_create_image_label">Ваша картинка:</string>
     <string name="mash_create_image_placeholder">Изображение пока не выбрано</string>
     <string name="mash_create_image_selected">Изображение выбрано</string>
-
     <string name="mash_create_scheme_type_label">Тип схемы:</string>
     <string name="mash_create_scheme_coloring">Раскраска</string>
     <string name="mash_create_scheme_embroidery">Вышивка</string>
-
     <string name="mash_create_color_count_title">Количество цветов: %1$d</string>
     <string name="mash_create_color_count_min">10</string>
     <string name="mash_create_color_count_max">30</string>
-
     <string name="mash_create_difficulty_easy">Легкая</string>
     <string name="mash_create_difficulty_medium">Средняя</string>
     <string name="mash_create_difficulty_hard">Сложная</string>
     <string name="mash_create_difficulty_title">Сложность: %1$s • %2$d px</string>
-
     <string name="mash_create_button_title">Создать</string>
 </resources>

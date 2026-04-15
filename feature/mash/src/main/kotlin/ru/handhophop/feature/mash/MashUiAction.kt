@@ -10,6 +10,12 @@ internal class GenerateSchemeAction(
     val config: MashCreateConfig
 ) : UiAction
 
-internal class HighlightingColorAction : UiAction
+internal class TogglePaletteHighlightAction(
+    val paletteIndex: Int
+) : UiAction
 
-internal class ShadedColorAction : UiAction
+internal class ClearPaletteHighlightAction : UiAction
+
+internal class TogglePaletteCompletedAction(
+    val paletteIndex: Int
+) : UiAction

@@ -32,12 +32,46 @@ internal class MashViewModel(
         when (action) {
             is ClickDownloadsAction -> download()
             is GenerateSchemeAction -> generateScheme(action.config)
-            is HighlightingColorAction -> {
-                // TODO: выделение определенного цвета
+
+            is TogglePaletteHighlightAction -> {
+                val currentState = _uiState.value
+                if (action.paletteIndex in currentState.completedPaletteIndices) {
+                    return
+                }
+
+                val currentSelected = currentState.selectedPaletteIndex
+                _uiState.value = _uiState.value.copy(
+                    selectedPaletteIndex = if (currentSelected == action.paletteIndex) {
+                        null
+                    } else {
+                        action.paletteIndex
+                    }
+                )
             }
 
-            is ShadedColorAction -> {
-                // TODO: вывод итогового результата по двойному нажатию
+            is ClearPaletteHighlightAction -> {
+                _uiState.value = _uiState.value.copy(
+                    selectedPaletteIndex = null
+                )
+            }
+
+            is TogglePaletteCompletedAction -> {
+                val completed = _uiState.value.completedPaletteIndices.toMutableSet()
+                val isCompleted = completed.add(action.paletteIndex)
+                if (!isCompleted) {
+                    completed.remove(action.paletteIndex)
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    completedPaletteIndices = completed,
+                    selectedPaletteIndex = if (isCompleted &&
+                        _uiState.value.selectedPaletteIndex == action.paletteIndex
+                    ) {
+                        null
+                    } else {
+                        _uiState.value.selectedPaletteIndex
+                    }
+                )
             }
         }
     }
@@ -51,21 +85,16 @@ internal class MashViewModel(
                 errorTextRes = null,
                 isDownloadButtonEnabled = false,
                 isPaletteVisible = false,
+                selectedPaletteIndex = null,
+                completedPaletteIndices = emptySet(),
             )
 
             val context = getApplication<Application>().applicationContext
 
-            val bitmap = if (!config.imageUrl.isNullOrBlank()) {
-                loadBitmapFromUrl(
-                    context = context,
-                    url = config.imageUrl
-                )
-            } else {
-                loadBitmapFromUrl(
-                    context = context,
-                    url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
-                )
-            }
+            val bitmap = loadBitmapFromUrl(
+                context = context,
+                url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
+            )
 
             val scheme = bitmap?.let {
                 buildScheme(
@@ -82,7 +111,9 @@ internal class MashViewModel(
                     visiblePalette = scheme.palette,
                     errorTextRes = null,
                     isDownloadButtonEnabled = true,
-                    isPaletteVisible = scheme.palette.isNotEmpty()
+                    isPaletteVisible = scheme.palette.isNotEmpty(),
+                    selectedPaletteIndex = null,
+                    completedPaletteIndices = emptySet(),
                 )
             } else {
                 _uiState.value.copy(
@@ -91,7 +122,9 @@ internal class MashViewModel(
                     visiblePalette = emptyList(),
                     errorTextRes = R.string.mash_failed_build_scheme,
                     isDownloadButtonEnabled = false,
-                    isPaletteVisible = false
+                    isPaletteVisible = false,
+                    selectedPaletteIndex = null,
+                    completedPaletteIndices = emptySet(),
                 )
             }
         }

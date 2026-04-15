@@ -50,10 +50,7 @@ internal data class MashCreateConfig(
 
 internal object MashCreateData {
 
-    /**
-     * Ориентируемся на DMC как на стандарт палитры ниток.
-     * Цвета ниже — экранные приближения для UI.
-     */
+    // Ориентируемся на DMC как на стандарт палитры ниток.
     val allThreads: List<MashThread> = listOf(
         MashThread("DMC B5200", "Snow White", Color(0xFFFFFCFA)),
         MashThread("DMC Blanc", "White", Color(0xFFF7F4EF)),
