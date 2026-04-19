@@ -33,8 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +64,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
-import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
@@ -75,29 +72,18 @@ private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 
 @Composable
 internal fun MashScreen(
-    viewModel: MashViewModel,
-    config: MashCreateConfig,
+    uiState: MashUiState,
+    onDownloadClick: () -> Unit,
+    onHighlightColorToggle: (Int) -> Unit,
+    onCompletedColorToggle: (Int) -> Unit,
+    onClearSelection: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(config) {
-        viewModel.handleAction(GenerateSchemeAction(config))
-    }
-
     CenterContentMash(
         uiState = uiState,
-        onDownloadClick = {
-            viewModel.handleAction(ClickDownloadsAction())
-        },
-        onHighlightColorToggle = { paletteIndex ->
-            viewModel.handleAction(TogglePaletteHighlightAction(paletteIndex))
-        },
-        onCompletedColorToggle = { paletteIndex ->
-            viewModel.handleAction(TogglePaletteCompletedAction(paletteIndex))
-        },
-        onClearSelection = {
-            viewModel.handleAction(ClearPaletteHighlightAction())
-        },
+        onDownloadClick = onDownloadClick,
+        onHighlightColorToggle = onHighlightColorToggle,
+        onCompletedColorToggle = onCompletedColorToggle,
+        onClearSelection = onClearSelection,
     )
 }
 
