@@ -49,7 +49,6 @@ internal fun MashStatisticsScreen(
     val metrics = uiState.toProjectMetrics()
     val contentPadding = dimensionResource(R.dimen.mash_module_content_padding)
     val contentSpacing = dimensionResource(R.dimen.mash_module_section_spacing)
-    val canOpenProject = projectConfig != null && metrics.isReady && !metrics.isCompleted
 
     Box(
         modifier = Modifier
@@ -323,7 +322,7 @@ private fun MashStatisticsProgressCard(
             }
 
             metrics.paletteUsage.take(4).forEach { usage ->
-                MashPaletteUsageRow(usage = usage, totalCells = metrics.totalCells)
+                MashPaletteUsageRow(usage = usage)
             }
         }
     }
@@ -353,7 +352,11 @@ private fun MashCompletionRing(
 
             var startAngle = -90f
             metrics.paletteUsage.forEach { usage ->
-                val sweep = 360f * usage.cells.toFloat() / metrics.totalCells.toFloat()
+                if (usage.completedCells <= 0) {
+                    return@forEach
+                }
+
+                val sweep = 360f * usage.completedCells.toFloat() / metrics.totalCells.toFloat()
                 drawArc(
                     color = usage.thread.color,
                     startAngle = startAngle,
@@ -384,7 +387,6 @@ private fun MashCompletionRing(
 @Composable
 private fun MashPaletteUsageRow(
     usage: MashPaletteUsage,
-    totalCells: Int,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -416,7 +418,11 @@ private fun MashPaletteUsageRow(
             }
 
             Text(
-                text = stringResource(R.string.mash_statistics_palette_cells, usage.cells),
+                text = stringResource(
+                    R.string.mash_statistics_progress_subtitle,
+                    usage.completedCells,
+                    usage.cells
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = colorResource(R.color.mash_text_secondary),
             )
@@ -431,7 +437,13 @@ private fun MashPaletteUsageRow(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(usage.cells.toFloat() / totalCells.toFloat())
+                    .fillMaxWidth(
+                        if (usage.cells == 0) {
+                            0f
+                        } else {
+                            usage.completedCells.toFloat() / usage.cells.toFloat()
+                        }
+                    )
                     .height(dimensionResource(R.dimen.mash_statistics_palette_bar_height))
                     .clip(RoundedCornerShape(percent = 50))
                     .background(usage.thread.color)

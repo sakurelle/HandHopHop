@@ -56,10 +56,13 @@ fun MashEntryPoint() {
                 onDownloadClick = {
                     viewModel.handleAction(ClickDownloadsAction())
                 },
+                onSchemeCellClick = { cellIndex ->
+                    viewModel.handleAction(ClickSchemeCellAction(cellIndex))
+                },
                 onHighlightColorToggle = { paletteIndex ->
                     viewModel.handleAction(TogglePaletteHighlightAction(paletteIndex))
                 },
-                onCompletedColorToggle = { paletteIndex ->
+                onPaletteCompletionToggle = { paletteIndex ->
                     viewModel.handleAction(TogglePaletteCompletedAction(paletteIndex))
                 },
                 onClearSelection = {

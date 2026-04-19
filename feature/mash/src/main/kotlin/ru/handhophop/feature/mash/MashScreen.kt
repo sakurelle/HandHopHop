@@ -65,6 +65,8 @@ import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.MashCreate.MashThread
+import ru.handhophop.feature.mash.Statistics.MashPaletteProgress
+import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
 private const val SCHEME_SELECTED_FILL_ALPHA = 0.42f
@@ -74,15 +76,17 @@ private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 internal fun MashScreen(
     uiState: MashUiState,
     onDownloadClick: () -> Unit,
+    onSchemeCellClick: (Int) -> Unit,
     onHighlightColorToggle: (Int) -> Unit,
-    onCompletedColorToggle: (Int) -> Unit,
+    onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
 ) {
     CenterContentMash(
         uiState = uiState,
         onDownloadClick = onDownloadClick,
+        onSchemeCellClick = onSchemeCellClick,
         onHighlightColorToggle = onHighlightColorToggle,
-        onCompletedColorToggle = onCompletedColorToggle,
+        onPaletteCompletionToggle = onPaletteCompletionToggle,
         onClearSelection = onClearSelection,
     )
 }
@@ -91,13 +95,17 @@ internal fun MashScreen(
 private fun CenterContentMash(
     uiState: MashUiState,
     onDownloadClick: () -> Unit,
+    onSchemeCellClick: (Int) -> Unit,
     onHighlightColorToggle: (Int) -> Unit,
-    onCompletedColorToggle: (Int) -> Unit,
+    onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
 ) {
     val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
     val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
     val contentSpacing = dimensionResource(R.dimen.mash_content_spacing)
+    val paletteProgress = remember(uiState.scheme, uiState.completedCellIndices) {
+        uiState.scheme?.buildPaletteProgress(uiState.completedCellIndices).orEmpty()
+    }
 
     Box(
         modifier = Modifier
@@ -120,8 +128,8 @@ private fun CenterContentMash(
                     scheme = uiState.scheme,
                     errorTextRes = uiState.errorTextRes,
                     selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    completedPaletteIndices = uiState.completedPaletteIndices,
-                    onCellClick = onHighlightColorToggle,
+                    completedCellIndices = uiState.completedCellIndices,
+                    onCellClick = onSchemeCellClick,
                     onBackgroundClick = onClearSelection,
                     modifier = Modifier
                         .fillMaxSize()
@@ -145,9 +153,9 @@ private fun CenterContentMash(
                 PaletteBar(
                     threads = uiState.visiblePalette,
                     selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    completedPaletteIndices = uiState.completedPaletteIndices,
+                    paletteProgress = paletteProgress,
                     onPaletteColorClick = onHighlightColorToggle,
-                    onPaletteColorLongClick = onCompletedColorToggle,
+                    onPaletteColorLongClick = onPaletteCompletionToggle,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -165,7 +173,7 @@ private fun CenterContentMash(
 private fun PaletteBar(
     threads: List<MashThread>,
     selectedPaletteIndex: Int?,
-    completedPaletteIndices: Set<Int>,
+    paletteProgress: List<MashPaletteProgress>,
     onPaletteColorClick: (Int) -> Unit,
     onPaletteColorLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -186,7 +194,7 @@ private fun PaletteBar(
                 thread = thread,
                 number = index + 1,
                 isSelected = selectedPaletteIndex == index,
-                isCompleted = index in completedPaletteIndices,
+                isCompleted = paletteProgress.getOrNull(index)?.isCompleted == true,
                 onClick = { onPaletteColorClick(index) },
                 onLongClick = { onPaletteColorLongClick(index) },
             )
@@ -200,7 +208,7 @@ private fun SchemeCard(
     scheme: SchemeData?,
     @StringRes errorTextRes: Int?,
     selectedPaletteIndex: Int?,
-    completedPaletteIndices: Set<Int>,
+    completedCellIndices: Set<Int>,
     onCellClick: (Int) -> Unit,
     onBackgroundClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -229,7 +237,7 @@ private fun SchemeCard(
                 scheme != null -> SchemeWorkspace(
                     scheme = scheme,
                     selectedPaletteIndex = selectedPaletteIndex,
-                    completedPaletteIndices = completedPaletteIndices,
+                    completedCellIndices = completedCellIndices,
                     onCellClick = onCellClick,
                     onBackgroundClick = onBackgroundClick,
                 )
@@ -254,7 +262,7 @@ private fun SchemeCard(
 private fun SchemeWorkspace(
     scheme: SchemeData,
     selectedPaletteIndex: Int?,
-    completedPaletteIndices: Set<Int>,
+    completedCellIndices: Set<Int>,
     onCellClick: (Int) -> Unit,
     onBackgroundClick: () -> Unit,
 ) {
@@ -279,7 +287,7 @@ private fun SchemeWorkspace(
         NumberedSchemeCanvas(
             scheme = scheme,
             selectedPaletteIndex = selectedPaletteIndex,
-            completedPaletteIndices = completedPaletteIndices,
+            completedCellIndices = completedCellIndices,
             onCellClick = onCellClick,
             onBackgroundClick = onBackgroundClick,
         )
@@ -400,7 +408,7 @@ private fun ColorSwatch(
 private fun NumberedSchemeCanvas(
     scheme: SchemeData,
     selectedPaletteIndex: Int?,
-    completedPaletteIndices: Set<Int>,
+    completedCellIndices: Set<Int>,
     onCellClick: (Int) -> Unit,
     onBackgroundClick: () -> Unit,
 ) {
@@ -501,7 +509,7 @@ private fun NumberedSchemeCanvas(
                 scheme.gridH,
                 scheme.indices.size,
                 selectedPaletteIndex,
-                completedPaletteIndices,
+                completedCellIndices,
             ) {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
@@ -543,8 +551,8 @@ private fun NumberedSchemeCanvas(
                                 val row = floor((lastPointerPosition.y - currentOffset.y) / cell).toInt()
 
                                 if (column in 0 until scheme.gridW && row in 0 until scheme.gridH) {
-                                    val paletteIndex = scheme.indices[row * scheme.gridW + column]
-                                    onCellClick(paletteIndex)
+                                    val cellIndex = row * scheme.gridW + column
+                                    onCellClick(cellIndex)
                                 } else {
                                     onBackgroundClick()
                                 }
@@ -617,7 +625,7 @@ private fun NumberedSchemeCanvas(
                     val index = yy * scheme.gridW + xx
                     val paletteIndex = scheme.indices[index]
                     val thread = scheme.palette[paletteIndex]
-                    val isCompleted = paletteIndex in completedPaletteIndices
+                    val isCompleted = index in completedCellIndices
                     val isSelected = selectedPaletteIndex == paletteIndex
 
                     val leftX = resolvedOffset.x + (xx * cell)

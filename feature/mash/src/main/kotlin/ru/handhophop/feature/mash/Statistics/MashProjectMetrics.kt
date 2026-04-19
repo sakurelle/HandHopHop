@@ -9,8 +9,11 @@ internal data class MashPaletteUsage(
     val paletteIndex: Int,
     val thread: MashThread,
     val cells: Int,
-    val isCompleted: Boolean,
-)
+    val completedCells: Int,
+) {
+    val isCompleted: Boolean
+        get() = cells > 0 && completedCells >= cells
+}
 
 internal data class MashProjectMetrics(
     val totalCells: Int = 0,
@@ -38,34 +41,25 @@ internal fun MashUiState.toProjectMetrics(): MashProjectMetrics {
         return MashProjectMetrics()
     }
 
-    val usage = IntArray(currentScheme.palette.size)
-    currentScheme.indices.forEach { paletteIndex ->
-        if (paletteIndex in usage.indices) {
-            usage[paletteIndex]++
-        }
-    }
+    val paletteProgress = currentScheme.buildPaletteProgress(completedCellIndices)
 
     val paletteUsage = currentScheme.palette.mapIndexedNotNull { index, thread ->
-        val cells = usage[index]
-        if (cells == 0) {
+        val progress = paletteProgress[index]
+        if (!progress.isUsed) {
             null
         } else {
             MashPaletteUsage(
                 paletteIndex = index,
                 thread = thread,
-                cells = cells,
-                isCompleted = index in completedPaletteIndices,
+                cells = progress.totalCells,
+                completedCells = progress.completedCells,
             )
         }
     }.sortedByDescending { it.cells }
 
-    val completedCells = paletteUsage
-        .filter(MashPaletteUsage::isCompleted)
-        .sumOf(MashPaletteUsage::cells)
-
     return MashProjectMetrics(
         totalCells = currentScheme.indices.size,
-        completedCells = completedCells,
+        completedCells = paletteUsage.sumOf(MashPaletteUsage::completedCells),
         totalUsedColors = paletteUsage.size,
         completedUsedColors = paletteUsage.count(MashPaletteUsage::isCompleted),
         paletteUsage = paletteUsage,

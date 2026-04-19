@@ -32,14 +32,10 @@ internal class MashViewModel(
         when (action) {
             is ClickDownloadsAction -> download()
             is GenerateSchemeAction -> generateScheme(action.config)
+            is ClickSchemeCellAction -> handleSchemeCellClick(action.cellIndex)
 
             is TogglePaletteHighlightAction -> {
-                val currentState = _uiState.value
-                if (action.paletteIndex in currentState.completedPaletteIndices) {
-                    return
-                }
-
-                val currentSelected = currentState.selectedPaletteIndex
+                val currentSelected = _uiState.value.selectedPaletteIndex
                 _uiState.value = _uiState.value.copy(
                     selectedPaletteIndex = if (currentSelected == action.paletteIndex) {
                         null
@@ -56,24 +52,59 @@ internal class MashViewModel(
             }
 
             is TogglePaletteCompletedAction -> {
-                val completed = _uiState.value.completedPaletteIndices.toMutableSet()
-                val isCompleted = completed.add(action.paletteIndex)
-                if (!isCompleted) {
-                    completed.remove(action.paletteIndex)
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    completedPaletteIndices = completed,
-                    selectedPaletteIndex = if (isCompleted &&
-                        _uiState.value.selectedPaletteIndex == action.paletteIndex
-                    ) {
-                        null
-                    } else {
-                        _uiState.value.selectedPaletteIndex
-                    }
-                )
+                togglePaletteCells(action.paletteIndex)
             }
         }
+    }
+
+    private fun handleSchemeCellClick(cellIndex: Int) {
+        val currentState = _uiState.value
+        val currentScheme = currentState.scheme ?: return
+        if (cellIndex !in currentScheme.indices.indices) {
+            return
+        }
+
+        val paletteIndex = currentScheme.indices[cellIndex]
+        if (currentState.selectedPaletteIndex != paletteIndex) {
+            _uiState.value = currentState.copy(selectedPaletteIndex = paletteIndex)
+            return
+        }
+
+        val completedCells = currentState.completedCellIndices.toMutableSet()
+        val isCompleted = completedCells.add(cellIndex)
+        if (!isCompleted) {
+            completedCells.remove(cellIndex)
+        }
+
+        _uiState.value = currentState.copy(
+            completedCellIndices = completedCells
+        )
+    }
+
+    private fun togglePaletteCells(paletteIndex: Int) {
+        val currentState = _uiState.value
+        val currentScheme = currentState.scheme ?: return
+
+        val cellIndices = currentScheme.indices.indices
+            .filter { currentScheme.indices[it] == paletteIndex }
+        if (cellIndices.isEmpty()) {
+            return
+        }
+
+        val completedCells = currentState.completedCellIndices.toMutableSet()
+        val shouldMarkCompleted = cellIndices.any { it !in completedCells }
+
+        cellIndices.forEach { cellIndex ->
+            if (shouldMarkCompleted) {
+                completedCells.add(cellIndex)
+            } else {
+                completedCells.remove(cellIndex)
+            }
+        }
+
+        _uiState.value = currentState.copy(
+            completedCellIndices = completedCells
+        )
     }
 
     private fun generateScheme(config: MashCreateConfig) {
@@ -86,7 +117,7 @@ internal class MashViewModel(
                 isDownloadButtonEnabled = false,
                 isPaletteVisible = false,
                 selectedPaletteIndex = null,
-                completedPaletteIndices = emptySet(),
+                completedCellIndices = emptySet(),
             )
 
             val context = getApplication<Application>().applicationContext
@@ -113,7 +144,7 @@ internal class MashViewModel(
                     isDownloadButtonEnabled = true,
                     isPaletteVisible = scheme.palette.isNotEmpty(),
                     selectedPaletteIndex = null,
-                    completedPaletteIndices = emptySet(),
+                    completedCellIndices = emptySet(),
                 )
             } else {
                 _uiState.value.copy(
@@ -124,7 +155,7 @@ internal class MashViewModel(
                     isDownloadButtonEnabled = false,
                     isPaletteVisible = false,
                     selectedPaletteIndex = null,
-                    completedPaletteIndices = emptySet(),
+                    completedCellIndices = emptySet(),
                 )
             }
         }
