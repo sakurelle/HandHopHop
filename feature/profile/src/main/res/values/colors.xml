@@ -5,4 +5,7 @@
     <color name="profile_primary_text">#2B2B2B</color>
     <color name="profile_secondary_text">#7A7A7A</color>
     <color name="profile_hint_text">#9A9A9A</color>
+    <color name="bottom_bar">#BD9C89</color>
+    <color name ="main_color">#DBC5B9</color>
+    <color name = "button">#69564B</color>
 </resources>
