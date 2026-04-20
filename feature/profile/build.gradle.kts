@@ -44,4 +44,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
     implementation(libs.coil.compose)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
