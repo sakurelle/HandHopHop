@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "ru.handhophop.feature.profile"
+    namespace = "ru.handhophop.feature.settings"
     compileSdk {
         version = release(36)
     }

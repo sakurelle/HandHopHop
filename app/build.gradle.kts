@@ -89,5 +89,5 @@ dependencies {
     implementation(project(":feature:mash"))
     implementation(project(":feature:feed"))
     implementation(project(":feature:bookmark"))
-    implementation(project(":feature:profile"))
+    implementation(project(":feature:settings"))
 }

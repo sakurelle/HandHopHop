@@ -1,6 +1,6 @@
-package ru.handhophop.feature.profile
+package ru.handhophop.feature.settings
 
-internal data class ProfileUiState(
+internal data class SettingsUiState(
     val name: String,
     val nickname: String,
     val email: String,

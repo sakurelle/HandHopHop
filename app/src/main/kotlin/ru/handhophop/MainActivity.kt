@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     feedScreen = { FeedEntryPoint() },
                     mashScreen = { MashEntryPoint() },
                     bookmarkScreen = { TODO() },
-                    profileScreen = { TODO() }
+                    settingsScreen = { TODO() }
                 )
             }
         }

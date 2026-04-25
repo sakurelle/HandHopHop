@@ -197,22 +197,22 @@ fun BottomBar(
                     modifier = Modifier,
                     elevation = null,
                     shape = RoundedCornerShape(radius),
-                    onClick = { onRouteSelected(Route.PROFILE) },
+                    onClick = { onRouteSelected(Route.SETTINGS) },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentRoute == Route.PROFILE) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.SETTINGS) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.profile),
                         contentDescription = null,
-                        tint = if (currentRoute == Route.PROFILE) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.SETTINGS) whiteColor else buttonBackground
                     )
                 }
                 Text(
                     modifier = Modifier,
                     textAlign = TextAlign.Center,
-                    text = stringResource(R.string.profile),
+                    text = stringResource(R.string.settings),
                     color = buttonBackground,
                     fontSize = buttonText.value.sp
                 )

@@ -1,4 +1,4 @@
-package ru.handhophop.feature.profile
+package ru.handhophop.feature.settings
 
 import android.widget.ToggleButton
 import androidx.compose.foundation.background
@@ -150,4 +150,3 @@ fun SettingScreen(
     }
 
 }
-
