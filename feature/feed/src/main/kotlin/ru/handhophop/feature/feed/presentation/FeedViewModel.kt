@@ -1,5 +1,6 @@
 package ru.handhophop.feature.feed.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,9 +14,14 @@ import java.util.concurrent.atomic.AtomicInteger
 internal class FeedViewModel(
     private val repository: FeedRepository,
 ): ViewModel() {
+    private companion object {
+        const val TAG = "FeedViewModel"
+    }
+
     private val curPage = AtomicInteger(1)
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
     val uiState: StateFlow<FeedUiState> = _uiState
+
     fun handleAction(action: FeedUiAction) {
         when (action) {
             is FeedUiAction.LoadPhotos -> loadPhotosIfNeeded()
@@ -43,36 +49,53 @@ internal class FeedViewModel(
         }
 
         viewModelScope.launch {
+            Log.d(TAG, "Loading photos. refresh=$refresh")
             _uiState.value = FeedUiState.Loading
 
             repository.getPhotos().fold(
                 onSuccess = { photos ->
-                    val items = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://")) }
-                    _uiState.value = FeedUiState.Success(photos=items, isRecommendedLoading = true, hasNext = items.isNotEmpty())
+                    Log.d(TAG, "Main feed loaded successfully. count=${photos.size}")
+                    val items = photos.map {
+                        FeedPhotoItem(
+                            id = it.id.toString(),
+                            photoUrl = it.image.source.url.replace("http://", "https://")
+                        )
+                    }
+                    _uiState.value = FeedUiState.Success(
+                        photos = items,
+                        isRecommendedLoading = true,
+                        hasNext = items.isNotEmpty()
+                    )
                 },
                 onFailure = { error ->
+                    Log.e(TAG, "Main feed load failed", error)
                     _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
                 }
             )
 
             val current = _uiState.value as? FeedUiState.Success ?: return@launch
             repository.getRecommendedPhotos().fold(
-
                 onSuccess = { photos ->
-                    val items = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://"))}
+                    Log.d(TAG, "Recommended photos loaded successfully. count=${photos.size}")
+                    val items = photos.map {
+                        FeedPhotoItem(
+                            id = it.id.toString(),
+                            photoUrl = it.image.source.url.replace("http://", "https://")
+                        )
+                    }
                     _uiState.value = current.copy(
                         recommendedPhotos = items,
                         isRecommendedLoading = false
                     )
-
                 },
-                onFailure = {
+                onFailure = { error ->
+                    Log.e(TAG, "Recommended photos load failed", error)
                     _uiState.value = current.copy(isRecommendedLoading = false)
                 }
             )
-
         }
     }
+
     private fun loadNextPage() {
         var nextPage = -1
 
@@ -80,7 +103,7 @@ internal class FeedViewModel(
             if (current !is FeedUiState.Success) return@update current
             if (!current.hasNext || current.isLoadingMore) return@update current
             nextPage = curPage.updateAndGet { page ->
-                if (page >= 100) 1 else page+1
+                if (page >= 100) 1 else page + 1
             }
             current.copy(isLoadingMore = true)
         }
@@ -88,9 +111,16 @@ internal class FeedViewModel(
         if (nextPage == -1) return
 
         viewModelScope.launch {
+            Log.d(TAG, "Loading next page: page=$nextPage")
             repository.getPhotos(page = nextPage, count = 10).fold(
                 onSuccess = { photos ->
-                    val newPhotos = photos.map { FeedPhotoItem(id = it.id.toString(), photoUrl = it.image.source.url.replace("http://", "https://")) }
+                    Log.d(TAG, "Next page loaded successfully. page=$nextPage, count=${photos.size}")
+                    val newPhotos = photos.map {
+                        FeedPhotoItem(
+                            id = it.id.toString(),
+                            photoUrl = it.image.source.url.replace("http://", "https://")
+                        )
+                    }
 
                     _uiState.update { current ->
                         if (current !is FeedUiState.Success) return@update current
@@ -103,14 +133,14 @@ internal class FeedViewModel(
 
 
                 },
-                onFailure = {
+                onFailure = { error ->
+                    Log.e(TAG, "Next page load failed. page=$nextPage", error)
                     _uiState.update { current ->
                         if (current !is FeedUiState.Success) return@update current
                         current.copy(isLoadingMore = false)
                     }
                 }
             )
-
         }
     }
 
