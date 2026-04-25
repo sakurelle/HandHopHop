@@ -12,7 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-internal fun FeedScreen(viewModel: FeedViewModel) {
+internal fun FeedScreen(
+    viewModel: FeedViewModel,
+    onPhotoSelected: (String) -> Unit,
+) {
     LaunchedEffect(viewModel) {
         viewModel.handleAction(FeedUiAction.LoadPhotos)
     }
@@ -38,7 +41,7 @@ internal fun FeedScreen(viewModel: FeedViewModel) {
         is FeedUiState.Success -> {
             FeedGrid(
                 state = state,
-                onPhotoClicked = { id -> viewModel.handleAction(FeedUiAction.PhotoClicked(id))},
+                onPhotoClicked = onPhotoSelected,
                 onLoadMore = {viewModel.handleAction(FeedUiAction.LoadNextPage)}
             )
         }

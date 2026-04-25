@@ -59,7 +59,7 @@ internal fun FeedGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clickable { onPhotoClicked(photo.id)}
+                    .clickable { onPhotoClicked(photo.photoUrl) }
             )
 
         }
@@ -77,5 +77,4 @@ internal fun FeedGrid(
         }
     }
 }
-
 

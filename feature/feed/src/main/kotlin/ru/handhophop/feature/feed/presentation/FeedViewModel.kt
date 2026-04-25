@@ -21,7 +21,6 @@ internal class FeedViewModel(
             is FeedUiAction.LoadPhotos -> loadPhotosIfNeeded()
             is FeedUiAction.Refresh -> refreshPhotos()
             is FeedUiAction.LoadNextPage -> loadNextPage()
-            is FeedUiAction.PhotoClicked -> { /*какое-то действие, пока не трогаю*/ }
         }
     }
 
