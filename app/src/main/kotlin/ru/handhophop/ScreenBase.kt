@@ -16,22 +16,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import ru.handhophop.core.design.BottomBar
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
+import ru.handhophop.core.design.SimpleTopBar
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
-import ru.handhophop.ui.BackgroundPattern
 
 
 @Composable
 internal fun ScreenBase(
     screenState: ScreenState,
-    MashScreen: @Composable () -> Unit,
-    ProfileScreen: @Composable () -> Unit,
-    FeedScreen: @Composable () -> Unit,
-    BookmarkScreen: @Composable () -> Unit,
-    topBarState: TopBarState
+    mashScreen: @Composable () -> Unit,
+    profileScreen: @Composable () -> Unit,
+    feedScreen: @Composable () -> Unit,
+    bookmarkScreen: @Composable () -> Unit,
 ) {
     val state by rememberUpdatedState(screenState)
-    var currentRoute by remember { mutableStateOf(state.route) }
+    var currentRoute by remember { mutableStateOf(state.currentScreen) }
 
     Box(
         modifier = Modifier
@@ -52,19 +51,19 @@ internal fun ScreenBase(
             ) {
                 when (currentRoute) {
                     Route.BOOKMARK -> {
-                        BookmarkScreen()
+                        bookmarkScreen()
                     }
 
                     Route.MASH -> {
-                        MashScreen()
+                        mashScreen()
                     }
 
                     Route.FEED -> {
-                        FeedScreen()
+                        feedScreen()
                     }
 
                     Route.PROFILE -> {
-                        ProfileScreen()
+                        profileScreen()
                     }
                 }
             }

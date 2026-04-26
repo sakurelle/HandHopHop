@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import ru.handhophop.core.design.FilterTopBarState
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint
@@ -26,14 +25,14 @@ class MainActivity : ComponentActivity() {
                 val screenState = remember {
                     ScreenState(
                         Route.FEED,
-                        FilterTopBarState(false, "Главная")//TODO в ресурсы
+                        //FilterTopBarState(false, "Главная")//TODO в ресурсы
                     )
                 }
 
                 ScreenBase(
                     screenState = screenState,
-                    feedScreen = { FeedEntryPoint() },
-                    mashScreen = { MashEntryPoint() },
+                    feedScreen = {FeedEntryPoint() },
+                    mashScreen = {MashEntryPoint() },
                     bookmarkScreen = { TODO() },
                     profileScreen = { TODO() }
                 )

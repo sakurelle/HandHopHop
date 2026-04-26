@@ -1,30 +1,4 @@
 <resources>
-    <color name="bg_beige">#F2E9E2</color>
-    <color name="card_beige">#D9C7BB</color>
-    <color name="card_beige_2">#E3D2C6</color>
 
-    <color name="text_dark">#3A2D26</color>
-    <color name="text_muted">#6B5A52</color>
-
-    <color name="primary_brown">#5B463B</color>
-    <color name="primary_brown_pressed">#4D3B32</color>
-
-    <color name="nav_bg">#E6D6CC</color>
-    <color name="nav_icon">#6B5A52</color>
-    <color name="nav_icon_active">#3A2D26</color>
-    <color name="fab_bg">#5B463B</color>
-
-    <color name="bar">#BD9C89</color>
-
-    <color name="nav_selected_indicator">#3A2A1B</color>
-
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-
-    <color name="bottom_bar">#BD9C89</color>
-    <color name ="main_color">#DBC5B9</color>
-    <color name = "button">#69564B</color>
-    <color name = "plus_button">#211915</color>
-    <color name="button_touched">#A49188</color>
 
 </resources>

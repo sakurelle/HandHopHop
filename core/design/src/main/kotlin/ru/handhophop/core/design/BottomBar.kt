@@ -33,7 +33,7 @@ import ru.handhophop.design.R
 
 
 @Composable
-@Preview(showSystemUi = true)
+//@Preview(showSystemUi = true)
 fun BottomBarPreview() {
     BottomBar(
         Route.MASH,
@@ -43,7 +43,6 @@ fun BottomBarPreview() {
 
 @Composable
 fun BottomBar(
-    //screenState: ScreenState
     currentRoute: Route,
     onRouteSelected: (Route) -> Unit
 ) {
@@ -52,7 +51,7 @@ fun BottomBar(
     val bottomPadding = dimensionResource(R.dimen.bottom_pading)
     val radius = dimensionResource(R.dimen.main_radius)
 
-    val bottomBarBackground = colorResource(R.color.bottom_bar)
+    val bottomBarBackground = colorResource(R.color.main_color)
     val buttonBackground = colorResource(R.color.button)
     val whiteColor = colorResource(R.color.white)
 
@@ -91,16 +90,16 @@ fun BottomBar(
                     modifier = Modifier,
                     elevation = null,
                     shape = RoundedCornerShape(radius),
-                    onClick = { onRouteSelected(Route.MASH) },
+                    onClick = { onRouteSelected(Route.FEED) },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentRoute == Route.MASH) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.FEED) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.home),
                         contentDescription = null,
-                        tint = if (currentRoute == Route.MASH) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.FEED) whiteColor else buttonBackground
                     )
                 }
                 Text(
@@ -127,16 +126,16 @@ fun BottomBar(
                     elevation = null,
                     shape = RoundedCornerShape(radius),
                     contentPadding = PaddingValues(0.dp),
-                    onClick = { onRouteSelected(Route.FEED) },
+                    onClick = { onRouteSelected(Route.MASH) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (currentRoute == Route.FEED) buttonBackground else Color.Transparent
+                        containerColor = if (currentRoute == Route.MASH) buttonBackground else Color.Transparent
                     )
                 ) {
                     Icon(
                         modifier = Modifier,
                         painter = painterResource(R.drawable.mash),
                         contentDescription = null,
-                        tint = if (currentRoute == Route.FEED) whiteColor else buttonBackground
+                        tint = if (currentRoute == Route.MASH) whiteColor else buttonBackground
                     )
                 }
                 Text(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -37,45 +38,40 @@ fun ExposableTopBar(
 ) {
     val height = dimensionResource(R.dimen.filter_top_bar_height)
     val radius = dimensionResource(R.dimen.main_radius)
+    val padding = dimensionResource(R.dimen.top_bar_padding)
 
     val topBarBackground = colorResource(R.color.main_color)
 
     var isExposed by remember { mutableStateOf(false) }
 
-
-    Box(
-        modifier = Modifier
-            .height(height)
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .background(
-                topBarBackground,
-                shape = RoundedCornerShape(
-                    bottomEnd = radius,
-                    bottomStart = radius
-                )
-            ),
-        contentAlignment = Alignment.BottomCenter
+    Column(
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            SimpleTopBar(
-                state = state,
-                onClickRight = {
-                    isExposed = !isExposed
-                    onChanged(isExposed)
-                               },
-                onClickLeft = {Unit}
-            )
-        }
-        if (isExposed) {
-            content()
-        }
+        SimpleTopBar(
+            state = state,
+            onClickRight = {
+                isExposed = !isExposed
+                onChanged(isExposed)
+            },
+            onClickLeft = { Unit }
+        )
     }
+    if (isExposed) {
+        content()
+    }
+
 }
 
-
+@Composable
+@Preview(showSystemUi = true)
+fun ExposableTopBar11(
+) {
+    ExposableTopBar(
+        TopBarState(R.string.Download, null, null),
+        onChanged = {},
+        content = {}
+    )
+}
 
 
