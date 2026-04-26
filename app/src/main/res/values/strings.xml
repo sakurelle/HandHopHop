@@ -39,4 +39,6 @@
     <string name="online_sheme">Онлайн\nсхемы</string>
     <string name="download_sheme">Скачанные\nсхемы</string>
     <string name="profile">Профиль</string>
+
+    <string name="main_screen_title">Главная</string>
 </resources>

@@ -1,4 +1,4 @@
-package ru.handhophop.feature.profile
+package ru.handhophop.feature.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 
 @Composable
-internal fun ProfileScreen(
-    viewModel: ProfileViewModel
+internal fun SettingsScreen(
+    viewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -100,11 +100,11 @@ internal fun ProfileScreen(
                         .padding(cardInnerPadding),
                     verticalArrangement = Arrangement.spacedBy(infoSpacing)
                 ) {
-                    ProfileInfoItem(
+                    SettingsInfoItem(
                         title = stringResource(R.string.profile_email_label),
                         value = uiState.email
                     )
-                    ProfileInfoItem(
+                    SettingsInfoItem(
                         title = stringResource(R.string.profile_phone_label),
                         value = uiState.phone
                     )
@@ -115,7 +115,7 @@ internal fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileInfoItem(
+private fun SettingsInfoItem(
     title: String,
     value: String
 ) {

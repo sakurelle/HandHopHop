@@ -8,14 +8,9 @@ import ru.handhophop.core.network.FreepikNetwork
 import ru.handhophop.feature.feed.data.FeedRepository
 
 @Composable
-fun FeedEntryPoint() {
-//    val source = FallbackPhotoSource(
-//        sources = listOf(
-//            UnsplashPhotoSource(),
-//            FreepikPhotoSource()
-//        )
-//    )
-
+fun FeedEntryPoint(
+    onPhotoSelected: (String) -> Unit = {},
+) {
     val repository = remember {
         FeedRepository(
             FreepikNetwork.getApiService()
@@ -25,7 +20,10 @@ fun FeedEntryPoint() {
     val viewModel: FeedViewModel = viewModel(
         factory = FeedViewModel.Factory(repository)
     )
-    FeedScreen(viewModel = viewModel)
+    FeedScreen(
+        viewModel = viewModel,
+        onPhotoSelected = onPhotoSelected,
+    )
 }
 
 @Preview(showBackground = true)
