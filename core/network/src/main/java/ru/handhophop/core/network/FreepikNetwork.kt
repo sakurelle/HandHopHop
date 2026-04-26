@@ -4,19 +4,21 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import ru.handhophop.core.network.api.UnsplashApiService
-import java.util.concurrent.TimeUnit
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import ru.handhophop.core.network.api.FreepikApiService
+import java.util.concurrent.TimeUnit
 
-object UnsplashNetwork {
-    private const val BASE_URL = "https://api.unsplash.com/"
+object FreepikNetwork {
+    private const val BASE_URL = "https://api.freepik.com/"
+    private const val NETWORK_LOG_TAG = "FreepikNetwork"
 
     private var okHttpClient: OkHttpClient? = null
     private var retrofit: Retrofit? = null
-    private var unsplashApiInterceptor: UnsplashApiInterceptor? = null
-    private var service: UnsplashApiService? = null
+    private var freepikApiInterceptor: FreepikApiInterceptor? = null
+    private var service: FreepikApiService? = null
 
-    fun getApiService(): UnsplashApiService {
+    fun getApiService(): FreepikApiService {
         if (service == null) {
             createInitialization()
         }
@@ -24,10 +26,16 @@ object UnsplashNetwork {
     }
 
     fun createInitialization() {
-        unsplashApiInterceptor = UnsplashApiInterceptor()
+        freepikApiInterceptor = FreepikApiInterceptor()
+        val loggingInterceptor = HttpLoggingInterceptor { message ->
+            println("$NETWORK_LOG_TAG: $message")
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
 
         okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(unsplashApiInterceptor!!)
+            .addInterceptor(freepikApiInterceptor!!)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
@@ -42,6 +50,6 @@ object UnsplashNetwork {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 
-        service = retrofit!!.create(UnsplashApiService::class.java)
+        service = retrofit!!.create(FreepikApiService::class.java)
     }
 }

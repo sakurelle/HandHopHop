@@ -21,7 +21,9 @@ private enum class MashDestination {
 }
 
 @Composable
-fun MashEntryPoint() {
+fun MashEntryPoint(
+    initialImageUrl: String? = null,
+) {
     val viewModel: MashViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
     var createdConfig by remember { mutableStateOf<MashCreateConfig?>(null) }
@@ -40,7 +42,7 @@ fun MashEntryPoint() {
     when (destination) {
         MashDestination.CREATE -> {
             MashCreateScreen(
-                imageUrl = null,
+                imageUrl = initialImageUrl,
                 onCreateFinished = { newConfig ->
                     createdConfig = newConfig
                     destination = MashDestination.WORKSPACE

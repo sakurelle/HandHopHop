@@ -12,7 +12,6 @@ internal sealed interface FeedUiState {
         val photos: List<FeedPhotoItem> = emptyList(),
         val hasNext: Boolean = true,
         val isLoadingMore: Boolean = false,
-
         val recommendedPhotos: List<FeedPhotoItem> = emptyList(),
         val isRecommendedLoading: Boolean = false
     ) : FeedUiState

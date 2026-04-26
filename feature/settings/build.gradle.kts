@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "ru.handhophop.feature.profile"
+    namespace = "ru.handhophop.feature.settings"
     compileSdk {
         version = release(36)
     }
@@ -44,4 +44,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
     implementation(libs.coil.compose)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

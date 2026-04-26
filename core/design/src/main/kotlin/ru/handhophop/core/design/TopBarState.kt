@@ -1,15 +1,12 @@
 package ru.handhophop.core.design
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 
 @Immutable
-open class TopBarState(
-    val topBarTitle: String
+data class TopBarState(
+    @param:StringRes val titleRes: Int?,
+    @param:DrawableRes val leftIconRes: Int?,
+    @param:DrawableRes val rightIconRes: Int?
 )
-
-@Immutable
-data class FilterTopBarState(
-    val isFilterActive: Boolean,
-    //TODO тут должны быть все нужные поля для стейта топ бара с фильтрацией
-    val title: String
-): TopBarState(title)
