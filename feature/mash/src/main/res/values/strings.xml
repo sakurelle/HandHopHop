@@ -26,6 +26,8 @@
     <string name="mash_create_scheme_type_label">Тип схемы:</string>
     <string name="mash_create_scheme_coloring">Раскраска</string>
     <string name="mash_create_scheme_embroidery">Вышивка</string>
+    <string name="mash_create_scheme_locked">Вышивка</string>
+    <string name="mash_create_scheme_locked_hint">Раскраска появится позже, а пока схема создается в формате вышивки.</string>
     <string name="mash_create_color_count_title">Количество цветов: %1$d</string>
     <string name="mash_create_color_count_min">10</string>
     <string name="mash_create_color_count_max">30</string>
@@ -60,8 +62,8 @@
     <string name="mash_home_open_statistics">Статистика</string>
     <string name="mash_statistics_screen_title">Статистика проекта</string>
     <string name="mash_statistics_open_scheme">Схема</string>
-    <string name="mash_statistics_empty_title">Пока нечего анализировать</string>
-    <string name="mash_statistics_empty_description">Статистика появится после того, как вы создадите проект.</string>
+    <string name="mash_statistics_empty_title">Проект еще не создан</string>
+    <string name="mash_statistics_empty_description">Когда вы создадите схему, здесь появится прогресс, цвета и ритм работы над вышивкой.</string>
     <string name="mash_statistics_unavailable_title">Статистика временно недоступна</string>
     <string name="mash_statistics_waiting_title">Сначала подготовьте схему</string>
     <string name="mash_statistics_waiting_description">Откройте рабочий экран один раз, чтобы приложение собрало сетку и палитру проекта.</string>

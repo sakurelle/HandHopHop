@@ -22,4 +22,13 @@ interface WorkSessionDao {
 
     @Query("DELETE FROM work_session WHERE work_id = :workId")
     suspend fun deleteByWorkId(workId: Long)
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(ended_at - started_at), 0)
+        FROM work_session
+        WHERE work_id = :workId
+        """
+    )
+    suspend fun getSpendedTimeByWorkId(workId: Long): Long
 }

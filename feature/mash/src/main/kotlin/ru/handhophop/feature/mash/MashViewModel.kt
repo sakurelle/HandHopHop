@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
 import kotlin.math.max
@@ -131,7 +132,8 @@ internal class MashViewModel(
                 buildScheme(
                     source = it,
                     minSideCells = config.difficulty.minSidePx,
-                    palette = config.threads
+                    availablePalette = MashCreateData.allThreads,
+                    maxColors = config.colorCount,
                 )
             }
 
@@ -169,7 +171,8 @@ internal class MashViewModel(
 private fun buildScheme(
     source: Bitmap,
     minSideCells: Int,
-    palette: List<MashThread>
+    availablePalette: List<MashThread>,
+    maxColors: Int,
 ): SchemeData {
     val (gridWidth, gridHeight) = calcGridSize(
         w = source.width,
@@ -178,7 +181,42 @@ private fun buildScheme(
     )
     val scaledBitmap = source.scale(gridWidth, gridHeight, false)
 
-    val paletteInts = palette.map { it.color.toArgbInt() }
+    val paletteInts = availablePalette.map { it.color.toArgbInt() }
+    val paletteUsage = IntArray(availablePalette.size)
+
+    for (y in 0 until gridHeight) {
+        for (x in 0 until gridWidth) {
+            val color = scaledBitmap[x, y]
+            val alpha = (color ushr 24) and 0xFF
+
+            val nearestIndex =
+                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
+                    nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
+                } else {
+                    nearestColorIndex(color, paletteInts)
+                }
+            paletteUsage[nearestIndex]++
+        }
+    }
+
+    val normalizedMaxColors = maxColors.coerceIn(1, availablePalette.size)
+    val selectedPaletteSourceIndices = paletteUsage.indices
+        .filter { paletteUsage[it] > 0 }
+        .sortedWith(
+            compareByDescending<Int> { paletteUsage[it] }
+                .thenBy { it }
+        )
+        .take(normalizedMaxColors)
+        .sorted()
+
+    val effectiveSourceIndices = if (selectedPaletteSourceIndices.isNotEmpty()) {
+        selectedPaletteSourceIndices
+    } else {
+        availablePalette.indices.take(normalizedMaxColors)
+    }
+
+    val selectedPalette = effectiveSourceIndices.map(availablePalette::get)
+    val selectedPaletteInts = selectedPalette.map { it.color.toArgbInt() }
     val indices = IntArray(gridWidth * gridHeight)
 
     for (y in 0 until gridHeight) {
@@ -188,9 +226,9 @@ private fun buildScheme(
 
             indices[y * gridWidth + x] =
                 if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
-                    nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
+                    nearestColorIndex(0xFFFFFFFF.toInt(), selectedPaletteInts)
                 } else {
-                    nearestColorIndex(color, paletteInts)
+                    nearestColorIndex(color, selectedPaletteInts)
                 }
         }
     }
@@ -198,7 +236,7 @@ private fun buildScheme(
     return SchemeData(
         gridW = gridWidth,
         gridH = gridHeight,
-        palette = palette,
+        palette = selectedPalette,
         indices = indices
     )
 }

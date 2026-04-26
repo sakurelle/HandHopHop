@@ -9,7 +9,9 @@ data class WorkEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     @ColumnInfo(name = "url")
-    val url: String,
+    val url: String?,
+    @ColumnInfo(name = "image")
+    val image: ByteArray? = null,
     @ColumnInfo(name = "grid_width")
     val gridWidth: Int,
     @ColumnInfo(name = "grid_height")
@@ -18,4 +20,6 @@ data class WorkEntity(
     val gridRle: String,
     @ColumnInfo(name = "percentage")
     val percentage: Int,
+    @ColumnInfo(name = "spended_time")
+    val spendedTime: Long = 0,
 )

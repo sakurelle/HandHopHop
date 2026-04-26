@@ -41,12 +41,10 @@ fun MashEntryPoint() {
         MashDestination.CREATE -> {
             MashCreateScreen(
                 imageUrl = null,
-                onBackClick = { destination = MashDestination.STATISTICS },
                 onCreateFinished = { newConfig ->
                     createdConfig = newConfig
                     destination = MashDestination.WORKSPACE
-                },
-                topBar = { _, _, _ -> }
+                }
             )
         }
 

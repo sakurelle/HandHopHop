@@ -104,7 +104,7 @@
     <dimen name="nik_size">40sp</dimen>
     <dimen name="text_size">20sp</dimen>
 
-    <dimen name="mash_scheme_draw_numbers_threshold">24dp</dimen>
+    <dimen name="mash_scheme_draw_numbers_threshold">10dp</dimen>
     <dimen name="mash_scheme_draw_grid_threshold">12dp</dimen>
 
     <dimen name="mash_create_screen_horizontal_padding">16dp</dimen>

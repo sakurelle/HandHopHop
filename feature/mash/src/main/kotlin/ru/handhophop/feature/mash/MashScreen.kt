@@ -71,6 +71,8 @@ import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
 private const val SCHEME_SELECTED_FILL_ALPHA = 0.42f
 private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
+private const val SCHEME_NUMBER_DARK_TEXT_THRESHOLD = 0.6f
+private const val SCHEME_MAJOR_GRID_STEP = 10
 
 @Composable
 internal fun MashScreen(
@@ -421,6 +423,7 @@ private fun NumberedSchemeCanvas(
 
     val schemeBackgroundColor = colorResource(R.color.mash_white)
     val gridStrokeColor = colorResource(R.color.mash_grid_stroke)
+    val majorGridStrokeColor = colorResource(R.color.mash_grid_major_stroke)
     val numberTextColor = colorResource(R.color.mash_number_text)
 
     val textPaint = remember {
@@ -619,6 +622,9 @@ private fun NumberedSchemeCanvas(
             val gridStroke = androidx.compose.ui.graphics.drawscope.Stroke(
                 width = (0.8f / scale).coerceAtLeast(0.25f)
             )
+            val majorGridStroke = androidx.compose.ui.graphics.drawscope.Stroke(
+                width = (1.8f / scale).coerceAtLeast(0.5f)
+            )
 
             for (yy in y0..y1) {
                 for (xx in x0..x1) {
@@ -652,9 +658,21 @@ private fun NumberedSchemeCanvas(
                         style = gridStroke
                     )
 
-                    if ((drawNumbers || isSelected) && !isCompleted && (selectedPaletteIndex == null || isSelected)) {
-                        textPaint.color = numberTextColor.toArgb()
-                        textPaint.textSize = cell * 0.55f
+                    val shouldDrawNumber = !isCompleted && (drawNumbers || isSelected)
+
+                    if (shouldDrawNumber) {
+                        val cellNumberColor = when {
+                            isSelected -> if (thread.color.luminance() > SCHEME_NUMBER_DARK_TEXT_THRESHOLD) {
+                                numberTextColor
+                            } else {
+                                schemeBackgroundColor
+                            }
+
+                            else -> numberTextColor
+                        }
+
+                        textPaint.color = cellNumberColor.toArgb()
+                        textPaint.textSize = cell * 0.5f
 
                         val cx = leftX + cell / 2f
                         val cy = topY + cell / 2f -
@@ -668,6 +686,34 @@ private fun NumberedSchemeCanvas(
                         )
                     }
                 }
+            }
+
+            val verticalStart = (x0 / SCHEME_MAJOR_GRID_STEP) * SCHEME_MAJOR_GRID_STEP
+            val verticalEnd = minOf(scheme.gridW, x1 + 1)
+            var majorX = verticalStart
+            while (majorX <= verticalEnd) {
+                val lineX = resolvedOffset.x + (majorX * cell)
+                drawLine(
+                    color = majorGridStrokeColor,
+                    start = Offset(lineX, resolvedOffset.y + (y0 * cell)),
+                    end = Offset(lineX, resolvedOffset.y + ((y1 + 1) * cell)),
+                    strokeWidth = majorGridStroke.width,
+                )
+                majorX += SCHEME_MAJOR_GRID_STEP
+            }
+
+            val horizontalStart = (y0 / SCHEME_MAJOR_GRID_STEP) * SCHEME_MAJOR_GRID_STEP
+            val horizontalEnd = minOf(scheme.gridH, y1 + 1)
+            var majorY = horizontalStart
+            while (majorY <= horizontalEnd) {
+                val lineY = resolvedOffset.y + (majorY * cell)
+                drawLine(
+                    color = majorGridStrokeColor,
+                    start = Offset(resolvedOffset.x + (x0 * cell), lineY),
+                    end = Offset(resolvedOffset.x + ((x1 + 1) * cell), lineY),
+                    strokeWidth = majorGridStroke.width,
+                )
+                majorY += SCHEME_MAJOR_GRID_STEP
             }
         }
     }

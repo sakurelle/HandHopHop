@@ -25,18 +25,15 @@ abstract class HandHopHopDatabase : RoomDatabase() {
 }
 
 object HandHopHopDatabaseProvider {
-    @Volatile
     private var instance: HandHopHopDatabase? = null
 
     fun get(context: Context): HandHopHopDatabase {
-        return instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(
+        instance = instance ?: Room.databaseBuilder(
                 context = context.applicationContext,
                 klass = HandHopHopDatabase::class.java,
                 name = "hand_hop_hop.db",
-            ).build().also { database ->
-                instance = database
-            }
-        }
+            ).build()
+
+        return checkNotNull(instance)
     }
 }

@@ -57,62 +57,85 @@ internal fun MashStatisticsScreen(
     ) {
         BackgroundPattern()
 
-        Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             when {
                 projectConfig == null -> {
-                    MashStatisticsStateCard(
-                        title = stringResource(R.string.mash_statistics_empty_title),
-                        description = stringResource(R.string.mash_statistics_empty_description),
-                        buttonText = stringResource(R.string.mash_home_create_project),
-                        onButtonClick = onCreateProjectClick,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = contentPadding),
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MashStatisticsStateCard(
+                            title = stringResource(R.string.mash_statistics_empty_title),
+                            description = stringResource(R.string.mash_statistics_empty_description),
+                            buttonText = stringResource(R.string.mash_home_create_project),
+                            onButtonClick = onCreateProjectClick,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
                 uiState.isLoading && !metrics.isReady -> {
-                    MashStatisticsLoadingCard(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = contentPadding),
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MashStatisticsLoadingCard(modifier = Modifier.fillMaxWidth())
+                    }
                 }
 
                 uiState.errorTextRes != null && !metrics.isReady -> {
-                    MashStatisticsStateCard(
-                        title = stringResource(R.string.mash_statistics_unavailable_title),
-                        description = stringResource(uiState.errorTextRes),
-                        buttonText = stringResource(R.string.mash_home_new_project),
-                        onButtonClick = onCreateProjectClick,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = contentPadding),
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MashStatisticsStateCard(
+                            title = stringResource(R.string.mash_statistics_unavailable_title),
+                            description = stringResource(uiState.errorTextRes),
+                            buttonText = stringResource(R.string.mash_home_new_project),
+                            onButtonClick = onCreateProjectClick,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
                 metrics.isCompleted -> {
-                    MashStatisticsStateCard(
-                        title = stringResource(R.string.mash_statistics_completed_title),
-                        description = stringResource(R.string.mash_statistics_completed_description),
-                        buttonText = stringResource(R.string.mash_home_new_project),
-                        onButtonClick = onCreateProjectClick,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = contentPadding),
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MashStatisticsStateCard(
+                            title = stringResource(R.string.mash_statistics_completed_title),
+                            description = stringResource(R.string.mash_statistics_completed_description),
+                            buttonText = stringResource(R.string.mash_home_new_project),
+                            onButtonClick = onCreateProjectClick,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
                 !metrics.isReady -> {
-                    MashStatisticsStateCard(
-                        title = stringResource(R.string.mash_statistics_waiting_title),
-                        description = stringResource(R.string.mash_statistics_waiting_description),
-                        buttonText = stringResource(R.string.mash_home_open_project),
-                        onButtonClick = onOpenProjectClick,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = contentPadding),
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MashStatisticsStateCard(
+                            title = stringResource(R.string.mash_statistics_waiting_title),
+                            description = stringResource(R.string.mash_statistics_waiting_description),
+                            buttonText = stringResource(R.string.mash_home_open_project),
+                            onButtonClick = onOpenProjectClick,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
                 else -> {
@@ -544,7 +567,7 @@ private fun MashStatisticsCard(
 
 private fun projectDescription(type: MashCreateSchemeType): Int {
     return when (type) {
-        MashCreateSchemeType.COLORING -> R.string.mash_statistics_project_description_coloring
+        MashCreateSchemeType.COLORING -> R.string.mash_statistics_project_description_embroidery
         MashCreateSchemeType.EMBROIDERY -> R.string.mash_statistics_project_description_embroidery
     }
 }

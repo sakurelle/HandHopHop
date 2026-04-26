@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,19 +50,10 @@ import ru.handhophop.feature.mash.R
 internal fun MashCreateScreen(
     imageUrl: String?,
     suggestedProjectName: String = "",
-    onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
-    topBar: @Composable (
-        Boolean,
-        () -> Unit,
-        () -> Unit,
-    ) -> Unit,
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(suggestedProjectName)
-    }
-    var schemeType by rememberSaveable(imageUrl, suggestedProjectName) {
-        mutableStateOf(MashCreateSchemeType.COLORING)
     }
     var colorCount by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableIntStateOf(MASH_CREATE_DEFAULT_COLORS)
@@ -80,7 +72,7 @@ internal fun MashCreateScreen(
             MashCreateConfig(
                 projectName = projectName.trim(),
                 imageUrl = imageUrl,
-                schemeType = schemeType,
+                schemeType = MashCreateSchemeType.EMBROIDERY,
                 colorCount = colorCount,
                 difficulty = difficulty,
                 threads = threads,
@@ -91,21 +83,17 @@ internal fun MashCreateScreen(
     MashCreateContent(
         projectName = projectName,
         imageUrl = imageUrl,
-        schemeType = schemeType,
         colorCount = colorCount,
         difficulty = difficulty,
         threads = threads,
         isCreateButtonEnabled = isCreateButtonEnabled,
         onProjectNameChanged = { projectName = it },
         onClearProjectNameClick = { projectName = "" },
-        onSchemeTypeSelected = { schemeType = it },
         onColorCountChanged = {
             colorCount = it.coerceIn(MASH_CREATE_MIN_COLORS, MASH_CREATE_MAX_COLORS)
         },
         onDifficultyChanged = { difficulty = it },
         onCreateClick = ::createWork,
-        onBackClick = onBackClick,
-        topBar = topBar,
     )
 }
 
@@ -113,23 +101,15 @@ internal fun MashCreateScreen(
 private fun MashCreateContent(
     projectName: String,
     imageUrl: String?,
-    schemeType: MashCreateSchemeType,
     colorCount: Int,
     difficulty: MashCreateDifficulty,
     threads: List<MashThread>,
     isCreateButtonEnabled: Boolean,
     onProjectNameChanged: (String) -> Unit,
     onClearProjectNameClick: () -> Unit,
-    onSchemeTypeSelected: (MashCreateSchemeType) -> Unit,
     onColorCountChanged: (Int) -> Unit,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
     onCreateClick: () -> Unit,
-    onBackClick: () -> Unit,
-    topBar: @Composable (
-        Boolean,
-        () -> Unit,
-        () -> Unit,
-    ) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -143,12 +123,6 @@ private fun MashCreateContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            topBar(
-                isCreateButtonEnabled,
-                onBackClick,
-                onCreateClick,
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -191,10 +165,7 @@ private fun MashCreateContent(
 
                         MashCreateImageSection(imageUrl = imageUrl)
 
-                        MashCreateSchemeTypeSection(
-                            selectedType = schemeType,
-                            onTypeSelected = onSchemeTypeSelected,
-                        )
+                        MashCreateSchemeTypeSection()
 
                         MashCreateColorsSection(
                             colorCount = colorCount,
@@ -342,8 +313,6 @@ private fun MashCreateImageSection(
 
 @Composable
 private fun MashCreateSchemeTypeSection(
-    selectedType: MashCreateSchemeType,
-    onTypeSelected: (MashCreateSchemeType) -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -357,69 +326,67 @@ private fun MashCreateSchemeTypeSection(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_create_toggle_spacing)
+                dimensionResource(R.dimen.mash_create_threads_spacing)
             )
         ) {
-            MashCreateSchemeToggle(
+            MashCreateSchemeTypeChip(
                 title = stringResource(R.string.mash_create_scheme_coloring),
-                isSelected = selectedType == MashCreateSchemeType.COLORING,
-                onClick = { onTypeSelected(MashCreateSchemeType.COLORING) },
-                modifier = Modifier.weight(1f),
+                isEnabled = false,
+                isSelected = false,
             )
-
-            MashCreateSchemeToggle(
+            MashCreateSchemeTypeChip(
                 title = stringResource(R.string.mash_create_scheme_embroidery),
-                isSelected = selectedType == MashCreateSchemeType.EMBROIDERY,
-                onClick = { onTypeSelected(MashCreateSchemeType.EMBROIDERY) },
-                modifier = Modifier.weight(1f),
+                isEnabled = true,
+                isSelected = true,
             )
         }
+
+        Text(
+            text = stringResource(R.string.mash_create_scheme_locked_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = colorResource(R.color.mash_text_secondary),
+        )
     }
 }
 
 @Composable
-private fun MashCreateSchemeToggle(
+private fun RowScope.MashCreateSchemeTypeChip(
     title: String,
+    isEnabled: Boolean,
     isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val background = if (isSelected) {
-        colorResource(R.color.mash_primary)
-    } else {
-        colorResource(R.color.mash_surface_soft)
+    val shape = RoundedCornerShape(
+        dimensionResource(R.dimen.mash_create_toggle_corner_radius)
+    )
+    val backgroundColor = when {
+        isSelected -> colorResource(R.color.mash_primary)
+        isEnabled -> colorResource(R.color.mash_surface_soft)
+        else -> colorResource(R.color.mash_primary_disabled)
     }
-
-    val border = if (isSelected) {
+    val borderColor = if (isSelected) {
         colorResource(R.color.mash_primary)
     } else {
         colorResource(R.color.mash_outline)
     }
-
     val textColor = if (isSelected) {
         colorResource(R.color.mash_white)
     } else {
-        colorResource(R.color.mash_text_primary)
+        colorResource(R.color.mash_text_secondary)
     }
 
     Box(
-        modifier = modifier
-            .clip(
-                RoundedCornerShape(
-                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
-                )
-            )
-            .background(background)
+        modifier = Modifier
+            .weight(1f)
+            .clip(shape)
+            .background(backgroundColor)
             .border(
                 width = dimensionResource(R.dimen.mash_create_toggle_border_width),
-                color = border,
-                shape = RoundedCornerShape(
-                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
-                )
+                color = borderColor,
+                shape = shape,
             )
-            .clickable(onClick = onClick)
             .padding(
                 vertical = dimensionResource(R.dimen.mash_create_toggle_vertical_padding)
             ),
@@ -428,7 +395,7 @@ private fun MashCreateSchemeToggle(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = FontWeight.Medium,
             color = textColor,
         )
     }
