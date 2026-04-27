@@ -29,6 +29,7 @@ import ru.handhophop.design.R
 
 @Composable
 fun SimpleTopBar(
+    modifier: Modifier = Modifier,
     state: TopBarState,
     onClickRight: () -> Unit,
     onClickLeft: () -> Unit,
@@ -41,66 +42,51 @@ fun SimpleTopBar(
     val topBarBackground = colorResource(R.color.main_color)
     val textColor = colorResource(R.color.black)
 
-    Box(
-        modifier = Modifier
 
-            .fillMaxWidth()
-            .background(
-                topBarBackground,
-                shape = RoundedCornerShape(
-                    bottomEnd = radius,
-                    bottomStart = radius
-                )
-            )
-            .statusBarsPadding()
-            .wrapContentHeight(),
-        contentAlignment = Alignment.BottomCenter
+    Row(
+        modifier = Modifier,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .padding(padding),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            state.leftIconRes?.let {
-                Button(
-                    modifier = Modifier,
-                    onClick = onClickLeft,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = topBarBackground
-                    ),
-                ) {
-                    Icon(
-                        painter = painterResource(state.leftIconRes),
-                        contentDescription = null,
-                        tint = textColor
-                    )
-                }
-            }
-            state.titleRes?.let {
-                Text(
-                    modifier = Modifier
-                        .weight(1f),
-                    text = stringResource(state.titleRes),
-                    color = textColor,
-                    fontSize = topBarStr,
-                    textAlign = TextAlign.Left
+        state.leftIconRes?.let {
+            Button(
+                modifier = Modifier,
+                onClick = onClickLeft,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = topBarBackground
+                ),
+            ) {
+                Icon(
+                    painter = painterResource(state.leftIconRes),
+                    contentDescription = null,
+                    tint = textColor
                 )
             }
-            state.rightIconRes?.let {
-                Button(
-                    modifier = Modifier,
-                    onClick = onClickRight,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = topBarBackground
-                    ),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(state.rightIconRes),
-                        contentDescription = null,
-                        tint = textColor
-                    )
-                }
+        }
+        state.titleRes?.let {
+            Text(
+                modifier = Modifier
+                    .weight(1f),
+                text = stringResource(state.titleRes),
+                color = textColor,
+                fontSize = topBarStr,
+                textAlign = TextAlign.Left
+            )
+        }
+        state.rightIconRes?.let {
+            Button(
+                modifier = Modifier,
+                onClick = onClickRight,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = topBarBackground
+                ),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    painter = painterResource(state.rightIconRes),
+                    contentDescription = null,
+                    tint = textColor
+                )
+
             }
         }
     }
@@ -112,6 +98,7 @@ fun SimpleTopBar(
 fun ExposableTopBar1(
 ) {
     SimpleTopBar(
+        modifier = Modifier,
         TopBarState(R.string.Download, null, R.drawable.filter),
         {},
         {}
