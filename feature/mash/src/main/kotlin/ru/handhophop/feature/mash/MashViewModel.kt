@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
+import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -58,6 +59,10 @@ internal class MashViewModel(
         }
     }
 
+    internal fun restoreCachedWork(cachedState: MashUiState) {
+        _uiState.value = cachedState.withDerivedPaletteState()
+    }
+
     private fun handleSchemeCellClick(cellIndex: Int) {
         val currentState = _uiState.value
         val currentScheme = currentState.scheme ?: return
@@ -79,7 +84,7 @@ internal class MashViewModel(
 
         _uiState.value = currentState.copy(
             completedCellIndices = completedCells
-        )
+        ).withDerivedPaletteState()
     }
 
     private fun togglePaletteCells(paletteIndex: Int) {
@@ -105,7 +110,7 @@ internal class MashViewModel(
 
         _uiState.value = currentState.copy(
             completedCellIndices = completedCells
-        )
+        ).withDerivedPaletteState()
     }
 
     private fun generateScheme(config: MashCreateConfig) {
@@ -114,6 +119,7 @@ internal class MashViewModel(
                 isLoading = true,
                 scheme = null,
                 visiblePalette = emptyList(),
+                paletteProgress = emptyList(),
                 errorTextRes = null,
                 isDownloadButtonEnabled = false,
                 isPaletteVisible = false,
@@ -141,18 +147,16 @@ internal class MashViewModel(
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = scheme,
-                    visiblePalette = scheme.palette,
                     errorTextRes = null,
-                    isDownloadButtonEnabled = true,
-                    isPaletteVisible = scheme.palette.isNotEmpty(),
                     selectedPaletteIndex = null,
                     completedCellIndices = emptySet(),
-                )
+                ).withDerivedPaletteState()
             } else {
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = null,
                     visiblePalette = emptyList(),
+                    paletteProgress = emptyList(),
                     errorTextRes = R.string.mash_failed_build_scheme,
                     isDownloadButtonEnabled = false,
                     isPaletteVisible = false,
@@ -161,6 +165,29 @@ internal class MashViewModel(
                 )
             }
         }
+    }
+
+    private fun MashUiState.withDerivedPaletteState(): MashUiState {
+        val currentScheme = scheme ?: return copy(
+            visiblePalette = emptyList(),
+            paletteProgress = emptyList(),
+            isPaletteVisible = false,
+            isDownloadButtonEnabled = false,
+        )
+
+        val currentPaletteProgress = currentScheme.buildPaletteProgress(completedCellIndices)
+        val paletteWithCompletion = currentScheme.palette.mapIndexed { index, thread ->
+            thread.copy(
+                isCompleted = currentPaletteProgress.getOrNull(index)?.isCompleted == true,
+            )
+        }
+
+        return copy(
+            visiblePalette = paletteWithCompletion,
+            paletteProgress = currentPaletteProgress,
+            isPaletteVisible = paletteWithCompletion.isNotEmpty(),
+            isDownloadButtonEnabled = true,
+        )
     }
 
     private fun download() {
@@ -174,13 +201,55 @@ private fun buildScheme(
     availablePalette: List<MashThread>,
     maxColors: Int,
 ): SchemeData {
+    val selectedPalette = selectPaletteForImage(
+        source = source,
+        minSideCells = minSideCells,
+        availablePalette = availablePalette,
+        maxColors = maxColors,
+    )
     val (gridWidth, gridHeight) = calcGridSize(
         w = source.width,
         h = source.height,
         minSide = minSideCells
     )
     val scaledBitmap = source.scale(gridWidth, gridHeight, false)
+    val selectedPaletteInts = selectedPalette.map { it.color.toArgbInt() }
+    val indices = IntArray(gridWidth * gridHeight)
 
+    for (y in 0 until gridHeight) {
+        for (x in 0 until gridWidth) {
+            val color = scaledBitmap[x, y]
+            val alpha = (color ushr 24) and 0xFF
+
+            indices[y * gridWidth + x] =
+                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
+                    nearestColorIndex(0xFFFFFFFF.toInt(), selectedPaletteInts)
+                } else {
+                    nearestColorIndex(color, selectedPaletteInts)
+                }
+        }
+    }
+
+    return SchemeData(
+        gridW = gridWidth,
+        gridH = gridHeight,
+        palette = selectedPalette,
+        indices = indices
+    )
+}
+
+internal fun selectPaletteForImage(
+    source: Bitmap,
+    minSideCells: Int,
+    availablePalette: List<MashThread>,
+    maxColors: Int,
+): List<MashThread> {
+    val (gridWidth, gridHeight) = calcGridSize(
+        w = source.width,
+        h = source.height,
+        minSide = minSideCells
+    )
+    val scaledBitmap = source.scale(gridWidth, gridHeight, false)
     val paletteInts = availablePalette.map { it.color.toArgbInt() }
     val paletteUsage = IntArray(availablePalette.size)
 
@@ -215,30 +284,7 @@ private fun buildScheme(
         availablePalette.indices.take(normalizedMaxColors)
     }
 
-    val selectedPalette = effectiveSourceIndices.map(availablePalette::get)
-    val selectedPaletteInts = selectedPalette.map { it.color.toArgbInt() }
-    val indices = IntArray(gridWidth * gridHeight)
-
-    for (y in 0 until gridHeight) {
-        for (x in 0 until gridWidth) {
-            val color = scaledBitmap[x, y]
-            val alpha = (color ushr 24) and 0xFF
-
-            indices[y * gridWidth + x] =
-                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
-                    nearestColorIndex(0xFFFFFFFF.toInt(), selectedPaletteInts)
-                } else {
-                    nearestColorIndex(color, selectedPaletteInts)
-                }
-        }
-    }
-
-    return SchemeData(
-        gridW = gridWidth,
-        gridH = gridHeight,
-        palette = selectedPalette,
-        indices = indices
-    )
+    return effectiveSourceIndices.map(availablePalette::get)
 }
 
 private fun calcGridSize(

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
+import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.MashUiState
 import ru.handhophop.feature.mash.R
 
@@ -43,6 +44,7 @@ import ru.handhophop.feature.mash.R
 internal fun MashStatisticsScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
+    onBackClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
 ) {
@@ -57,104 +59,108 @@ internal fun MashStatisticsScreen(
     ) {
         BackgroundPattern()
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            when {
-                projectConfig == null -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = contentPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        MashStatisticsStateCard(
-                            title = stringResource(R.string.mash_statistics_empty_title),
-                            description = stringResource(R.string.mash_statistics_empty_description),
-                            buttonText = stringResource(R.string.mash_home_create_project),
-                            onButtonClick = onCreateProjectClick,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(contentSpacing),
+        ) {
+            MashModuleTopBar(
+                title = stringResource(R.string.mash_statistics_screen_title),
+                onBackClick = onBackClick,
+            )
 
-                uiState.isLoading && !metrics.isReady -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = contentPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        MashStatisticsLoadingCard(modifier = Modifier.fillMaxWidth())
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = contentPadding)
+            ) {
+                when {
+                    projectConfig == null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            MashStatisticsStateCard(
+                                title = stringResource(R.string.mash_statistics_empty_title),
+                                description = stringResource(R.string.mash_statistics_empty_description),
+                                buttonText = stringResource(R.string.mash_home_create_project),
+                                onButtonClick = onCreateProjectClick,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
-                }
 
-                uiState.errorTextRes != null && !metrics.isReady -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = contentPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        MashStatisticsStateCard(
-                            title = stringResource(R.string.mash_statistics_unavailable_title),
-                            description = stringResource(uiState.errorTextRes),
-                            buttonText = stringResource(R.string.mash_home_new_project),
-                            onButtonClick = onCreateProjectClick,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    uiState.isLoading && !metrics.isReady -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            MashStatisticsLoadingCard(modifier = Modifier.fillMaxWidth())
+                        }
                     }
-                }
 
-                metrics.isCompleted -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = contentPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        MashStatisticsStateCard(
-                            title = stringResource(R.string.mash_statistics_completed_title),
-                            description = stringResource(R.string.mash_statistics_completed_description),
-                            buttonText = stringResource(R.string.mash_home_new_project),
-                            onButtonClick = onCreateProjectClick,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    uiState.errorTextRes != null && !metrics.isReady -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            MashStatisticsStateCard(
+                                title = stringResource(R.string.mash_statistics_unavailable_title),
+                                description = stringResource(uiState.errorTextRes),
+                                buttonText = stringResource(R.string.mash_home_new_project),
+                                onButtonClick = onCreateProjectClick,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
-                }
 
-                !metrics.isReady -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = contentPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        MashStatisticsStateCard(
-                            title = stringResource(R.string.mash_statistics_waiting_title),
-                            description = stringResource(R.string.mash_statistics_waiting_description),
-                            buttonText = stringResource(R.string.mash_home_open_project),
-                            onButtonClick = onOpenProjectClick,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    metrics.isCompleted -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            MashStatisticsStateCard(
+                                title = stringResource(R.string.mash_statistics_completed_title),
+                                description = stringResource(R.string.mash_statistics_completed_description),
+                                buttonText = stringResource(R.string.mash_home_new_project),
+                                onButtonClick = onCreateProjectClick,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
-                }
 
-                else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = contentPadding),
-                        verticalArrangement = Arrangement.spacedBy(contentSpacing)
-                    ) {
-                        MashStatisticsProjectCard(
-                            projectConfig = projectConfig,
-                            metrics = metrics,
-                            onOpenProjectClick = onOpenProjectClick,
-                        )
-                        MashStatisticsActivityCard(
-                            values = metrics.buildWeeklyActivity(projectConfig.difficulty),
-                        )
-                        MashStatisticsProgressCard(metrics = metrics)
+                    !metrics.isReady -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            MashStatisticsStateCard(
+                                title = stringResource(R.string.mash_statistics_waiting_title),
+                                description = stringResource(R.string.mash_statistics_waiting_description),
+                                buttonText = stringResource(R.string.mash_home_open_project),
+                                onButtonClick = onOpenProjectClick,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(bottom = contentPadding),
+                            verticalArrangement = Arrangement.spacedBy(contentSpacing)
+                        ) {
+                            MashStatisticsProjectCard(
+                                projectConfig = projectConfig,
+                                metrics = metrics,
+                                onOpenProjectClick = onOpenProjectClick,
+                            )
+                            MashStatisticsActivityCard(
+                                values = metrics.buildWeeklyActivity(projectConfig.difficulty),
+                            )
+                            MashStatisticsProgressCard(metrics = metrics)
+                        }
                     }
                 }
             }

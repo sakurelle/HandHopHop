@@ -13,13 +13,13 @@ data class WorkEntity(
     @ColumnInfo(name = "image")
     val image: ByteArray? = null,
     @ColumnInfo(name = "grid_width")
-    val gridWidth: Int,
+    val gridWidth: Int? = null,
     @ColumnInfo(name = "grid_height")
-    val gridHeight: Int,
+    val gridHeight: Int? = null,
     @ColumnInfo(name = "grid_rle")
-    val gridRle: String,
+    val gridRle: String? = null,
     @ColumnInfo(name = "percentage")
-    val percentage: Int,
+    val percentage: Int? = null,
     @ColumnInfo(name = "spended_time")
-    val spendedTime: Long = 0,
+    val spendedTime: Long? = null,
 )

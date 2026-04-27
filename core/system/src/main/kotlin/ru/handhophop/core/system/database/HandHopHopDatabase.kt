@@ -6,13 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import ru.handhophop.core.system.database.work.WorkDao
 import ru.handhophop.core.system.database.work.WorkEntity
-import ru.handhophop.core.system.database.work.WorkSessionDao
-import ru.handhophop.core.system.database.work.WorkSessionEntity
 
 @Database(
     entities = [
         WorkEntity::class,
-        WorkSessionEntity::class,
     ],
     version = 1,
     exportSchema = false,
@@ -20,8 +17,6 @@ import ru.handhophop.core.system.database.work.WorkSessionEntity
 abstract class HandHopHopDatabase : RoomDatabase() {
 
     abstract fun workDao(): WorkDao
-
-    abstract fun workSessionDao(): WorkSessionDao
 }
 
 object HandHopHopDatabaseProvider {

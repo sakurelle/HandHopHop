@@ -65,8 +65,6 @@ import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.feature.mash.MashCreate.MashThread
-import ru.handhophop.feature.mash.Statistics.MashPaletteProgress
-import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
 private const val SCHEME_SELECTED_FILL_ALPHA = 0.42f
@@ -76,7 +74,9 @@ private const val SCHEME_MAJOR_GRID_STEP = 10
 
 @Composable
 internal fun MashScreen(
+    title: String,
     uiState: MashUiState,
+    onBackClick: () -> Unit,
     onDownloadClick: () -> Unit,
     onSchemeCellClick: (Int) -> Unit,
     onHighlightColorToggle: (Int) -> Unit,
@@ -84,7 +84,9 @@ internal fun MashScreen(
     onClearSelection: () -> Unit,
 ) {
     CenterContentMash(
+        title = title,
         uiState = uiState,
+        onBackClick = onBackClick,
         onDownloadClick = onDownloadClick,
         onSchemeCellClick = onSchemeCellClick,
         onHighlightColorToggle = onHighlightColorToggle,
@@ -95,7 +97,9 @@ internal fun MashScreen(
 
 @Composable
 private fun CenterContentMash(
+    title: String,
     uiState: MashUiState,
+    onBackClick: () -> Unit,
     onDownloadClick: () -> Unit,
     onSchemeCellClick: (Int) -> Unit,
     onHighlightColorToggle: (Int) -> Unit,
@@ -105,9 +109,6 @@ private fun CenterContentMash(
     val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
     val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
     val contentSpacing = dimensionResource(R.dimen.mash_content_spacing)
-    val paletteProgress = remember(uiState.scheme, uiState.completedCellIndices) {
-        uiState.scheme?.buildPaletteProgress(uiState.completedCellIndices).orEmpty()
-    }
 
     Box(
         modifier = Modifier
@@ -120,6 +121,15 @@ private fun CenterContentMash(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
+            MashModuleTopBar(
+                title = if (title.isBlank()) {
+                    stringResource(R.string.mash_workspace_title_fallback)
+                } else {
+                    title
+                },
+                onBackClick = onBackClick,
+            )
+
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -155,7 +165,6 @@ private fun CenterContentMash(
                 PaletteBar(
                     threads = uiState.visiblePalette,
                     selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    paletteProgress = paletteProgress,
                     onPaletteColorClick = onHighlightColorToggle,
                     onPaletteColorLongClick = onPaletteCompletionToggle,
                     modifier = Modifier
@@ -175,7 +184,6 @@ private fun CenterContentMash(
 private fun PaletteBar(
     threads: List<MashThread>,
     selectedPaletteIndex: Int?,
-    paletteProgress: List<MashPaletteProgress>,
     onPaletteColorClick: (Int) -> Unit,
     onPaletteColorLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -196,7 +204,7 @@ private fun PaletteBar(
                 thread = thread,
                 number = index + 1,
                 isSelected = selectedPaletteIndex == index,
-                isCompleted = paletteProgress.getOrNull(index)?.isCompleted == true,
+                isCompleted = thread.isCompleted,
                 onClick = { onPaletteColorClick(index) },
                 onLongClick = { onPaletteColorLongClick(index) },
             )

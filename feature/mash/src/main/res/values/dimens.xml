@@ -182,7 +182,7 @@
     <dimen name="mash_module_card_corner_radius">24dp</dimen>
     <dimen name="mash_module_card_padding">18dp</dimen>
     <dimen name="mash_module_top_bar_horizontal_padding">16dp</dimen>
-    <dimen name="mash_module_top_bar_vertical_padding">12dp</dimen>
+    <dimen name="mash_module_top_bar_vertical_padding">6dp</dimen>
     <dimen name="mash_module_top_bar_side_width">64dp</dimen>
     <dimen name="mash_home_status_spacing">12dp</dimen>
     <dimen name="mash_statistics_chart_height">164dp</dimen>

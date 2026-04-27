@@ -28,7 +28,7 @@
     <string name="mash_create_scheme_embroidery">Вышивка</string>
     <string name="mash_create_scheme_locked">Вышивка</string>
     <string name="mash_create_scheme_locked_hint">Раскраска появится позже, а пока схема создается в формате вышивки.</string>
-    <string name="mash_create_color_count_title">Количество цветов: %1$d</string>
+    <string name="mash_create_color_count_title">Максимум цветов: %1$d</string>
     <string name="mash_create_color_count_min">10</string>
     <string name="mash_create_color_count_max">30</string>
     <string name="mash_create_difficulty_easy">Легкая</string>
@@ -41,6 +41,7 @@
     <string name="mash_home_label_empty">Пока без проекта</string>
     <string name="mash_home_label_active">Активный проект</string>
     <string name="mash_home_label_completed">Проект завершен</string>
+    <string name="mash_home_screen_title">Текущая работа</string>
     <string name="mash_home_no_project_title">Проект пока не выбран</string>
     <string name="mash_home_no_project_description">Создайте схему, чтобы открыть рабочий экран и экран статистики.</string>
     <string name="mash_home_loading_title">Собираем схему проекта</string>
@@ -48,6 +49,7 @@
     <string name="mash_home_error_description">Схему не удалось построить. Попробуйте создать проект заново или выбрать другой референс.</string>
     <string name="mash_home_completed_title">Блестящая работа!</string>
     <string name="mash_home_completed_description">Все участки отмечены как готовые. Можно посмотреть статистику или начать новый проект.</string>
+    <string name="mash_home_not_started_description">Осталось только начать: схема уже подготовлена и ждет первых отмеченных участков.</string>
     <string name="mash_home_in_progress_description">Готово %1$d%%. Осталось закрыть еще %2$d ячеек, и проект будет завершен.</string>
     <string name="mash_home_info_type">Тип</string>
     <string name="mash_home_info_difficulty">Сложность</string>

@@ -1,14 +1,17 @@
 package ru.handhophop.feature.mash.MashCreate
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,24 +35,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.R
+import ru.handhophop.feature.mash.loadBitmapFromUrl
+import ru.handhophop.feature.mash.selectPaletteForImage
 
 @Composable
 internal fun MashCreateScreen(
     imageUrl: String?,
     suggestedProjectName: String = "",
+    onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
@@ -61,8 +71,29 @@ internal fun MashCreateScreen(
     var difficulty by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(MashCreateDifficulty.MEDIUM)
     }
+    val context = LocalContext.current
+    val previewBitmap by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = imageUrl,
+    ) {
+        value = if (imageUrl.isNullOrBlank()) {
+            null
+        } else {
+            loadBitmapFromUrl(
+                context = context,
+                url = imageUrl,
+            )
+        }
+    }
 
-    val threads = MashCreateData.getThreadsByCount(colorCount)
+    val previewThreads = previewBitmap?.let { bitmap ->
+        selectPaletteForImage(
+            source = bitmap,
+            minSideCells = difficulty.minSidePx,
+            availablePalette = MashCreateData.allThreads,
+            maxColors = colorCount,
+        )
+    } ?: MashCreateData.getThreadsByCount(colorCount)
     val isCreateButtonEnabled = projectName.isNotBlank()
 
     fun createWork() {
@@ -75,18 +106,19 @@ internal fun MashCreateScreen(
                 schemeType = MashCreateSchemeType.EMBROIDERY,
                 colorCount = colorCount,
                 difficulty = difficulty,
-                threads = threads,
+                threads = previewThreads,
             )
         )
     }
 
     MashCreateContent(
         projectName = projectName,
-        imageUrl = imageUrl,
+        previewBitmap = previewBitmap,
         colorCount = colorCount,
         difficulty = difficulty,
-        threads = threads,
+        threads = previewThreads,
         isCreateButtonEnabled = isCreateButtonEnabled,
+        onBackClick = onBackClick,
         onProjectNameChanged = { projectName = it },
         onClearProjectNameClick = { projectName = "" },
         onColorCountChanged = {
@@ -100,11 +132,12 @@ internal fun MashCreateScreen(
 @Composable
 private fun MashCreateContent(
     projectName: String,
-    imageUrl: String?,
+    previewBitmap: Bitmap?,
     colorCount: Int,
     difficulty: MashCreateDifficulty,
     threads: List<MashThread>,
     isCreateButtonEnabled: Boolean,
+    onBackClick: () -> Unit,
     onProjectNameChanged: (String) -> Unit,
     onClearProjectNameClick: () -> Unit,
     onColorCountChanged: (Int) -> Unit,
@@ -123,6 +156,11 @@ private fun MashCreateContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            MashModuleTopBar(
+                title = stringResource(R.string.mash_create_screen_title),
+                onBackClick = onBackClick,
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -163,7 +201,7 @@ private fun MashCreateContent(
                             onClearClick = onClearProjectNameClick,
                         )
 
-                        MashCreateImageSection(imageUrl = imageUrl)
+                        MashCreateImageSection(previewBitmap = previewBitmap)
 
                         MashCreateSchemeTypeSection()
 
@@ -266,7 +304,7 @@ private fun MashCreateProjectNameSection(
 
 @Composable
 private fun MashCreateImageSection(
-    imageUrl: String?,
+    previewBitmap: Bitmap?,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -282,7 +320,6 @@ private fun MashCreateImageSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(dimensionResource(R.dimen.mash_create_image_height))
                 .clip(
                     RoundedCornerShape(
                         dimensionResource(R.dimen.mash_create_image_corner_radius)
@@ -298,15 +335,27 @@ private fun MashCreateImageSection(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = if (imageUrl.isNullOrBlank()) {
-                    stringResource(R.string.mash_create_image_placeholder)
-                } else {
-                    stringResource(R.string.mash_create_image_selected)
-                },
-                color = colorResource(R.color.mash_text_secondary),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            if (previewBitmap == null) {
+                Text(
+                    text = stringResource(R.string.mash_create_image_placeholder),
+                    color = colorResource(R.color.mash_text_secondary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(dimensionResource(R.dimen.mash_create_image_height))
+                        .padding(dimensionResource(R.dimen.mash_create_card_padding)),
+                )
+            } else {
+                val aspectRatio = previewBitmap.width.toFloat() / previewBitmap.height.toFloat()
+
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(aspectRatio),
+                )
+            }
         }
     }
 }
@@ -454,7 +503,7 @@ private fun MashCreateColorsSection(
                 dimensionResource(R.dimen.mash_create_threads_spacing)
             )
         ) {
-            threads.take(8).forEach { thread ->
+            threads.forEach { thread ->
                 MashCreateThreadPreview(thread = thread)
             }
         }

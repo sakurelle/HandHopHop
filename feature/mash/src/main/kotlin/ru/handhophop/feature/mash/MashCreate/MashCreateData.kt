@@ -37,6 +37,7 @@ internal data class MashThread(
     val article: String,
     val name: String,
     val color: Color,
+    val isCompleted: Boolean = false,
 )
 
 internal data class MashCreateConfig(

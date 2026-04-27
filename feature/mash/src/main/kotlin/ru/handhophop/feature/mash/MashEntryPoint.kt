@@ -15,6 +15,7 @@ import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
 
 private enum class MashDestination {
+    HOME,
     CREATE,
     WORKSPACE,
     STATISTICS,
@@ -23,26 +24,75 @@ private enum class MashDestination {
 @Composable
 fun MashEntryPoint(
     initialImageUrl: String? = null,
+    onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
 ) {
     val viewModel: MashViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
-    var createdConfig by remember { mutableStateOf<MashCreateConfig?>(null) }
-    var destination by rememberSaveable { mutableStateOf(MashDestination.STATISTICS) }
+    val cachedWork = remember { MashWorkCache.currentWork }
+    var createdConfig by remember { mutableStateOf(cachedWork?.config) }
+    var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
+    var destination by rememberSaveable {
+        mutableStateOf(
+            if (initialImageUrl != null) {
+                MashDestination.CREATE
+            } else {
+                MashDestination.HOME
+            }
+        )
+    }
 
     LaunchedEffect(createdConfig) {
-        createdConfig?.let { config ->
+        val config = createdConfig ?: return@LaunchedEffect
+        if (config != lastGeneratedConfig) {
+            lastGeneratedConfig = config
             viewModel.handleAction(GenerateSchemeAction(config))
         }
     }
 
-    BackHandler(enabled = destination != MashDestination.STATISTICS) {
-        destination = MashDestination.STATISTICS
+    LaunchedEffect(cachedWork) {
+        cachedWork?.let { work ->
+            viewModel.restoreCachedWork(work.uiState)
+        }
+    }
+
+    LaunchedEffect(initialImageUrl) {
+        if (initialImageUrl != null) {
+            destination = MashDestination.CREATE
+        }
+    }
+
+    LaunchedEffect(destination) {
+        onBottomBarVisibilityChanged(destination != MashDestination.CREATE)
+    }
+
+    LaunchedEffect(createdConfig, uiState) {
+        MashWorkCache.currentWork = createdConfig?.let { config ->
+            CachedMashWork(
+                config = config,
+                uiState = uiState,
+            )
+        }
+    }
+
+    BackHandler(enabled = destination != MashDestination.HOME) {
+        destination = MashDestination.HOME
     }
 
     when (destination) {
+        MashDestination.HOME -> {
+            MashHomeScreen(
+                projectConfig = createdConfig,
+                uiState = uiState,
+                onCreateProjectClick = { destination = MashDestination.CREATE },
+                onOpenProjectClick = { destination = MashDestination.WORKSPACE },
+                onOpenStatisticsClick = { destination = MashDestination.STATISTICS },
+            )
+        }
+
         MashDestination.CREATE -> {
             MashCreateScreen(
-                imageUrl = initialImageUrl,
+                imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
+                onBackClick = { destination = MashDestination.HOME },
                 onCreateFinished = { newConfig ->
                     createdConfig = newConfig
                     destination = MashDestination.WORKSPACE
@@ -52,7 +102,9 @@ fun MashEntryPoint(
 
         MashDestination.WORKSPACE -> {
             MashScreen(
+                title = createdConfig?.projectName ?: "",
                 uiState = uiState,
+                onBackClick = { destination = MashDestination.HOME },
                 onDownloadClick = {
                     viewModel.handleAction(ClickDownloadsAction())
                 },
@@ -75,6 +127,7 @@ fun MashEntryPoint(
             MashStatisticsScreen(
                 projectConfig = createdConfig,
                 uiState = uiState,
+                onBackClick = { destination = MashDestination.HOME },
                 onCreateProjectClick = { destination = MashDestination.CREATE },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
             )
