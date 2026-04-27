@@ -105,7 +105,7 @@
     <dimen name="button_border">2dp</dimen>
 
     <!-- для screenBase -->
-    <dimen name="top_bar_height">50dp</dimen>
+    <dimen name="top_bar_height">100dp</dimen>
     <dimen name="filter_top_bar_height">451dp</dimen>
     <dimen name = "main_radius">15dp</dimen>
     <dimen name="top_bar_str">30sp</dimen>
@@ -113,7 +113,7 @@
     <dimen name= "plus_padding">8dp</dimen>
     <dimen name="plus_size">50dp</dimen>
     <dimen name="bottom_pading">15dp</dimen>
-    <dimen name="top_bar_padding">5dp</dimen>
+    <dimen name="top_bar_padding">16dp</dimen>
     <dimen name="main_padding">15dp</dimen>
 
     <dimen name="str_empty">22sp</dimen>

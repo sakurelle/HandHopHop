@@ -1,44 +1,5 @@
 <resources>
     <string name="app_name">HandHopHop</string>
 
-    <string name="home_title_incomplete">Вы не закончили…</string>
-    <string name="home_project_prefix">Проект:</string>
-    <string name="home_project_name">Дерево</string>
-    <string name="home_only_start">Осталось только начать</string>
 
-    <string name="home_statistics">Статистика</string>
-    <string name="home_start">Начать</string>
-
-    <string name="nav_home">Домой</string>
-    <string name="nav_online">Онлайн\nсхемы</string>
-    <string name="nav_downloads">Скачанные\nсхемы</string>
-    <string name="nav_profile">Профиль</string>
-    <string name="nav_add">Добавить</string>
-
-    <string name="download_scheme">Скачать схему</string>
-    <string name="color_palette">Палитра цветов</string>
-
-    <string name="statistics_title">Блестящая работа!</string>
-    <string name="quote">Делать то, что любишь, — основа изобилия в жизни!</string>
-
-    <string name="online_title">Может быть что-то найдете...</string>
-    <string name="online_item_stub">Схема</string>
-
-    <string name="profile_title">Профиль</string>
-    <string name="profile_label_name">Имя</string>
-    <string name="profile_label_login">Логин</string>
-    <string name="profile_label_email">Почта</string>
-    <string name="profile_label_phone">Телефон</string>
-
-    <string name="pick_from_gallery">Выбрать из доступных</string>
-    <string name="back_gallery">Вернуться</string>
-
-    <string name="filter_not_tall">Без вытянутых вверх</string>
-
-    <string name="home">Домой</string>
-    <string name="online_sheme">Онлайн\nсхемы</string>
-    <string name="download_sheme">Скачанные\nсхемы</string>
-    <string name="profile">Профиль</string>
-
-    <string name="main_screen_title">Главная</string>
 </resources>

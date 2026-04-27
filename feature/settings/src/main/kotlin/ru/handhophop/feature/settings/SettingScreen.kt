@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -45,12 +46,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     onChangeTheme: (isActive: Boolean) -> Unit,
-    onClick:()->Unit
+    onClick: () -> Unit
 ) {
     val isChecked = remember { mutableStateOf(false) }
 
@@ -68,84 +71,105 @@ fun SettingScreen(
     val heightButton = dimensionResource(R.dimen.height_button)
 
     val text = stringResource(R.string.dark_theme)
-
-    Column(
+    Box(
         modifier = Modifier
-            .wrapContentHeight()
-    ) {
-        Box(
-            modifier = Modifier
-                .width(width = width)
-                .height(heightBlock)
-                .border(
-                    border,
-                    checkedTrackColor,
-                    shape = RoundedCornerShape(radius)
-                )
-                .background(
-                    color = mainColor,
-                    shape = RoundedCornerShape(
-                        radius
-                    )
-                ),
+            .fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
 
-            ) {
-            Column(
+    ) {
+        Column(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .statusBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TopBar(
+                state= TopBarState(
+                    R.string.setting,
+                    null,
+                    null
+                ),
+                { Unit},
+                {Unit}
+            )
+            Box(
                 modifier = Modifier
-                    .wrapContentHeight()
-                    .padding(
-                        padding
+                     .padding(
+                        top=padding
+                        )
+                    .width(width = width)
+                    .height(heightBlock)
+                    .border(
+                        border,
+                        checkedTrackColor,
+                        shape = RoundedCornerShape(radius)
                     )
+                    .background(
+                        color = mainColor,
+                        shape = RoundedCornerShape(
+                            radius
+                        )
+                    ),
+
+                ) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .padding(
+                            padding
+                        )
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .padding(
+                                bottom = padding
+                            ),
+                        text = text,
+                        fontSize = fontSize
+                    )
+                    Switch(
+                        modifier = Modifier,
+                        checked = isChecked.value,
+                        onCheckedChange = {
+                            !isChecked.value
+                            onChangeTheme(isChecked.value)
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = checkedThumbColor,
+                            checkedTrackColor = checkedTrackColor,
+                            uncheckedThumbColor = checkedThumbColor,
+                            uncheckedTrackColor = checkedTrackColor.copy(0.65f),
+                            uncheckedBorderColor = checkedThumbColor.copy(0f)
+                        )
+                    )
+                }
+            }
+            Button(
+                modifier = Modifier
+                    .padding(
+                        top = padding
+                    )
+                    .border(
+                        border,
+                        checkedTrackColor,
+                        shape = RoundedCornerShape(radius)
+                    )
+                    .height(heightButton)
+
+                    .width(width = width),
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor
+                ),
+                shape = RoundedCornerShape(radius)
             ) {
                 Text(
-                    modifier = Modifier
-                        .padding(
-                            bottom = padding
-                        ),
-                    text = text,
-                    fontSize = fontSize
-                )
-                Switch(
-                    modifier = Modifier,
-                    checked = isChecked.value,
-                    onCheckedChange = {
-                        !isChecked.value
-                        onChangeTheme(isChecked.value)
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = checkedThumbColor,
-                        checkedTrackColor = checkedTrackColor,
-                        uncheckedThumbColor = checkedThumbColor,
-                        uncheckedTrackColor = checkedTrackColor.copy(0.65f),
-                        uncheckedBorderColor = checkedThumbColor.copy(0f)
-                    )
+                    text = "Очистить данные",
+                    fontSize = fontSize,
+                    color = checkedTrackColor
                 )
             }
-        }
-        Button(
-            modifier = Modifier
-                .padding(
-                    top = padding
-                )
-                .border(
-                    border,
-                    checkedTrackColor,
-                    shape = RoundedCornerShape(radius)
-                )
-                .height(heightButton)
-
-                .width(width = width),
-            onClick = onClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonColor
-            ),
-            shape = RoundedCornerShape(radius)
-        ) {
-            Text(
-                text = "Очистить данные",
-                fontSize = fontSize,
-                color = checkedTrackColor
-            )
         }
     }
 
