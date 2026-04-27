@@ -1,36 +1,65 @@
 package ru.handhophop
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import ru.handhophop.core.design.BackgroundPattern
-import androidx.compose.ui.tooling.preview.Preview
 import ru.handhophop.core.design.BottomBar
-import ru.handhophop.core.design.Route
-import ru.handhophop.core.design.ScreenState
-import ru.handhophop.core.design.SimpleTopBar
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.design.R
 
 
 @Composable
 internal fun ScreenBase(
-    screenState: ScreenState,
-    mashScreen: @Composable () -> Unit,
-    profileScreen: @Composable () -> Unit,
-    feedScreen: @Composable () -> Unit,
+    mashScreen: @Composable (String?) -> Unit,
+    settingsScreen: @Composable () -> Unit,
+    feedScreen: @Composable ((String) -> Unit) -> Unit,
     bookmarkScreen: @Composable () -> Unit,
 ) {
-    val state by rememberUpdatedState(screenState)
-    var currentRoute by remember { mutableStateOf(state.currentScreen) }
+    @Suppress("UNCHECKED_CAST")
+    val backStack = rememberNavBackStack(AppRoute.Feed) as NavBackStack<AppRoute>
+    val appEntryProvider = remember(mashScreen, settingsScreen, feedScreen, bookmarkScreen) {
+        entryProvider {
+            entry<AppRoute.Bookmark> { bookmarkScreen() }
+            entry<AppRoute.Feed> {
+                feedScreen { imageUrl ->
+                    backStack.add(AppRoute.Mash(imageUrl = imageUrl))
+                }
+            }
+            entry<AppRoute.Mash> { key ->
+                mashScreen(key.imageUrl)
+            }
+            entry<AppRoute.Settings> { settingsScreen() }
+        }
+    }
+    BackHandler(enabled = backStack.size > 1) {
+        backStack.removeAt(backStack.lastIndex)
+    }
+    val bottomBarBackground = colorResource(R.color.main_color)
+    val currentRoute = (backStack.lastOrNull() as? AppRoute)?.tab ?: AppRoute.Feed.tab
+    val density = LocalDensity.current
+    val navBarHeight = with(density) {
+        WindowInsets.navigationBars.getBottom(density).toDp()
+    }
+
 
     Box(
         modifier = Modifier
@@ -42,34 +71,29 @@ internal fun ScreenBase(
         //основной блок
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                when (currentRoute) {
-                    Route.BOOKMARK -> {
-                        bookmarkScreen()
-                    }
-
-                    Route.MASH -> {
-                        mashScreen()
-                    }
-
-                    Route.FEED -> {
-                        feedScreen()
-                    }
-
-                    Route.PROFILE -> {
-                        profileScreen()
-                    }
-                }
+                NavDisplay(
+                    backStack = backStack,
+                    entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+                    entryProvider = appEntryProvider
+                )
             }
             BottomBar(
                 currentRoute = currentRoute,
-                onRouteSelected = { newRoute -> currentRoute = newRoute }
+                onRouteSelected = { newRoute ->
+                    val destination = AppRoute.from(newRoute)
+                    if (backStack.lastOrNull() != destination) {
+                        backStack.clear()
+                        backStack.add(destination)
+                    }
+                }
             )
         }
     }

@@ -26,7 +26,7 @@ include(":app")
 include(":feature:mash")
 include(":feature:feed")
 include(":feature:bookmark")
-include(":feature:profile")
+include(":feature:settings")
 
 // Include the core modules
 include(":core:network")

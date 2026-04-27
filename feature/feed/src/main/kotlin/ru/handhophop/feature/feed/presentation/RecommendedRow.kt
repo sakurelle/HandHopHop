@@ -26,13 +26,14 @@ import ru.handhophop.feature.feed.R
 
 @Composable
 internal fun RecommendedRow(
-    state: FeedUiState.Success
+    state: FeedUiState.Success,
+    modifier: Modifier = Modifier
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Text(
             text = stringResource(R.string.recommended_row_header),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = Modifier.padding(vertical = 4.dp)
         )
 
         if (state.isRecommendedLoading) {
@@ -44,7 +45,7 @@ internal fun RecommendedRow(
             }
         } else {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items = state.recommendedPhotos, key = {it.id}) { photo ->

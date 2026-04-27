@@ -11,7 +11,9 @@ import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 
 @Composable
-fun MashEntryPoint() {
+fun MashEntryPoint(
+    initialImageUrl: String? = null,
+) {
     val viewModel: MashViewModel = viewModel()
     var createdConfig by remember { mutableStateOf<MashCreateConfig?>(null) }
 
@@ -22,7 +24,7 @@ fun MashEntryPoint() {
     val config = createdConfig
     if (config == null) {
         MashCreateScreen(
-            imageUrl = null,
+            imageUrl = initialImageUrl,
             onCreateFinished = { newConfig ->
                 createdConfig = newConfig
             },
