@@ -45,6 +45,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.coil)
     implementation(libs.androidx.runtime)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.testing)
+    implementation(libs.androidx.foundation.layout)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
