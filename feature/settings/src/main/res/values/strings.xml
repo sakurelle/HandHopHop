@@ -3,4 +3,5 @@
     <string name="profile_avatar_content_description">Аватар пользователя</string>
     <string name="profile_email_label">Email</string>
     <string name="profile_phone_label">Телефон</string>
+    <string name="dark_theme">Темная тема</string>
 </resources>

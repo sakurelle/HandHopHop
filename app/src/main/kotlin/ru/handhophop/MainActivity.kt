@@ -8,10 +8,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import ru.handhophop.feature.bookmark.presentation.BookmarkEntryPoint
 import ru.handhophop.core.design.Route
 import ru.handhophop.core.design.ScreenState
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint
 import ru.handhophop.feature.mash.MashEntryPoint
+import ru.handhophop.feature.settings.SettingsEntryPoint
 
 class MainActivity : ComponentActivity() {
 
@@ -31,10 +33,10 @@ class MainActivity : ComponentActivity() {
 
                 ScreenBase(
                     screenState = screenState,
-                    feedScreen = {FeedEntryPoint() },
-                    mashScreen = {MashEntryPoint() },
-                    bookmarkScreen = { TODO() },
-                    profileScreen = { TODO() }
+                    feedScreen = { onPhotoSelected -> FeedEntryPoint(onPhotoSelected = onPhotoSelected) },
+                    mashScreen = { initialImageUrl -> MashEntryPoint(initialImageUrl = initialImageUrl) },
+                    bookmarkScreen = { BookmarkEntryPoint() },
+                    settingsScreen = { SettingsEntryPoint() }
                 )
             }
         }

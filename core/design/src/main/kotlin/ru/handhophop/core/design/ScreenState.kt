@@ -12,5 +12,5 @@ enum class Route {
     MASH,
     FEED,
     BOOKMARK,
-    PROFILE
+    SETTINGS
 }
