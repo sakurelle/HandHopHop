@@ -1,14 +1,15 @@
 package ru.handhophop.feature.bookmark.presentation
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,10 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -30,133 +28,139 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
+import ru.handhophop.core.system.database.work.WorkLocalRepository
+import ru.handhophop.design.R as DesignR
 import ru.handhophop.feature.bookmark.R
 
-private sealed interface BookmarkUiState {
-    data object Loading : BookmarkUiState
-
-    data class Success(
-        val photos: List<BookmarkPhotoItem>,
-        val highlightedPhotos: List<BookmarkPhotoItem>,
-    ) : BookmarkUiState
-}
-
 @Composable
-fun BookmarkEntryPoint() {
-    val repository = remember { BookmarkRepository() }
-    var uiState by remember { mutableStateOf<BookmarkUiState>(BookmarkUiState.Loading) }
-
-    LaunchedEffect(repository) {
-        val cachedPhotos = repository.getCachedPhotos()
-        uiState = BookmarkUiState.Success(
-            photos = cachedPhotos,
-            highlightedPhotos = cachedPhotos.take(5),
+fun BookmarkEntryPoint(
+    onPhotoSelected: (Long, String) -> Unit = { _, _ -> },
+) {
+    val context = LocalContext.current
+    val repository = remember(context) {
+        WorkLocalRepository(
+            workDao = HandHopHopDatabaseProvider.get(context).workDao(),
         )
     }
+    val viewModel: BookmarkViewModel = viewModel(
+        factory = BookmarkViewModel.Factory(repository),
+    )
 
-    BookmarkScreen(uiState = uiState)
+    LaunchedEffect(viewModel) {
+        viewModel.loadBookmarks()
+    }
+
+    BookmarkScreen(
+        viewModel = viewModel,
+        onPhotoSelected = onPhotoSelected,
+    )
 }
 
 @Composable
 private fun BookmarkScreen(
-    uiState: BookmarkUiState,
+    viewModel: BookmarkViewModel,
+    onPhotoSelected: (Long, String) -> Unit,
 ) {
-    when (val state = uiState) {
-        BookmarkUiState.Loading -> BookmarkLoadingSkeleton()
-        is BookmarkUiState.Success -> {
-            if (state.photos.isEmpty()) {
-                BookmarkEmptyState()
-            } else {
-                BookmarkGrid(state = state)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val contentTopPadding = 88.dp
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        when (val state = uiState) {
+            BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
+                modifier = Modifier.padding(top = contentTopPadding),
+            )
+            is BookmarkUiState.Error -> BookmarkErrorState(
+                message = state.message,
+                modifier = Modifier.padding(top = contentTopPadding),
+            )
+            is BookmarkUiState.Success -> {
+                if (state.photos.isEmpty()) {
+                    BookmarkEmptyState(modifier = Modifier.padding(top = contentTopPadding))
+                } else {
+                    BookmarkGrid(
+                        state = state,
+                        onPhotoSelected = onPhotoSelected,
+                        modifier = Modifier.padding(top = contentTopPadding),
+                    )
+                }
             }
         }
+
+        BookmarkTopBar()
+    }
+}
+
+@Composable
+private fun BookmarkTopBar() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(
+                RoundedCornerShape(
+                    bottomStart = dimensionResource(DesignR.dimen.main_radius),
+                    bottomEnd = dimensionResource(DesignR.dimen.main_radius),
+                )
+            )
+            .background(colorResource(DesignR.color.main_color))
+    ) {
+        Text(
+            text = stringResource(R.string.bookmark_highlight_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = colorResource(DesignR.color.black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 12.dp,
+                ),
+        )
     }
 }
 
 @Composable
 private fun BookmarkGrid(
     state: BookmarkUiState.Success,
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        BookmarkHighlightsRow(
-            photos = state.highlightedPhotos,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalItemSpacing = 8.dp,
-        ) {
-            items(items = state.photos, key = { it.id }) { photo ->
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AsyncImage(
-                        model = photo.photoUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BookmarkHighlightsRow(
-    photos: List<BookmarkPhotoItem>,
+    onPhotoSelected: (Long, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        verticalItemSpacing = 8.dp,
     ) {
-        Text(
-            text = stringResource(R.string.bookmark_highlight_title),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-
-        Text(
-            text = stringResource(R.string.bookmark_highlight_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(items = photos, key = { it.id }) { photo ->
-                AsyncImage(
-                    model = photo.photoUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+        items(items = state.photos, key = { it.id }) { photo ->
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                BookmarkPhoto(
+                    photo = photo,
                     modifier = Modifier
-                        .size(100.dp)
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp)),
+                    onClick = { onPhotoSelected(photo.id, photo.photoUrl) },
                 )
             }
         }
@@ -164,16 +168,17 @@ private fun BookmarkHighlightsRow(
 }
 
 @Composable
-private fun BookmarkEmptyState() {
+private fun BookmarkEmptyState(
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = stringResource(R.string.bookmark_empty_title),
@@ -189,68 +194,84 @@ private fun BookmarkEmptyState() {
 }
 
 @Composable
-private fun BookmarkLoadingSkeleton() {
+private fun BookmarkPhoto(
+    photo: BookmarkPhotoItem,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+) {
+    val bitmap = remember(photo.imageBytes) {
+        photo.imageBytes?.let { imageBytes ->
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        }
+    }
+
+    if (bitmap == null) {
+        AsyncImage(
+            model = photo.photoUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.clickable(onClick = onClick),
+        )
+    } else {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.clickable(onClick = onClick),
+        )
+    }
+}
+
+@Composable
+private fun BookmarkLoadingSkeleton(
+    modifier: Modifier = Modifier,
+) {
     val shimmerBrush = rememberShimmerBrush()
-    val highlightedPlaceholders = List(5) { it }
     val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        verticalItemSpacing = 8.dp,
+        userScrollEnabled = false,
+    ) {
+        items(gridHeights) { itemHeight ->
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .width(180.dp)
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .fillMaxWidth()
+                    .height(itemHeight)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(shimmerBrush),
             )
-
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .width(240.dp)
-                    .height(20.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(shimmerBrush),
-            )
-
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(highlightedPlaceholders.size) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(shimmerBrush),
-                    )
-                }
-            }
         }
+    }
+}
 
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalItemSpacing = 8.dp,
-            userScrollEnabled = false,
+@Composable
+private fun BookmarkErrorState(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            items(gridHeights) { itemHeight ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(itemHeight)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(shimmerBrush),
-                )
-            }
+            Text(
+                text = stringResource(R.string.bookmark_error_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

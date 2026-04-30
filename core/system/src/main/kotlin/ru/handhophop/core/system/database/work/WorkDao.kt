@@ -1,6 +1,7 @@
 package ru.handhophop.core.system.database.work
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -15,8 +16,14 @@ interface WorkDao {
     @Update
     suspend fun update(work: WorkEntity)
 
+    @Delete
+    suspend fun delete(work: WorkEntity)
+
     @Query("SELECT * FROM work WHERE id = :workId")
     suspend fun getById(workId: Long): WorkEntity?
+
+    @Query("SELECT * FROM work WHERE url = :url LIMIT 1")
+    suspend fun getByUrl(url: String): WorkEntity?
 
     @Query("SELECT * FROM work ORDER BY id DESC")
     suspend fun getAll(): List<WorkEntity>
