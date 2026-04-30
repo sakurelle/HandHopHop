@@ -21,6 +21,7 @@
 
     <!-- Отдельные служебные цвета для сетки -->
     <color name="mash_grid_stroke">#667B665A</color>
+    <color name="mash_grid_major_stroke">#B22D221D</color>
     <color name="mash_number_text">#CC2D221D</color>
     <color name="mash_swatch_text">#B32D221D</color>
 

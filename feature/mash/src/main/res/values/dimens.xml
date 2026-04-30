@@ -123,7 +123,7 @@
     <dimen name="plus_padding">8dp</dimen>
     <dimen name="plus_size">50dp</dimen>
     <dimen name="bottom_pading">15dp</dimen>
-    <dimen name="top_bar_padding">5dp</dimen>
+    <dimen name="top_bar_padding">10dp</dimen>
     <dimen name="main_padding">15dp</dimen>
 
     <dimen name="str_empty">22sp</dimen>
@@ -135,7 +135,7 @@
     <dimen name="text_size">20sp</dimen>
 
     <!-- Пороги детализации схемы -->
-    <dimen name="mash_scheme_draw_numbers_threshold">24dp</dimen>
+    <dimen name="mash_scheme_draw_numbers_threshold">10dp</dimen>
     <dimen name="mash_scheme_draw_grid_threshold">12dp</dimen>
 
     <!-- Экран создания схемы -->
@@ -177,5 +177,18 @@
     <!-- Кнопка создания -->
     <dimen name="mash_create_button_height">52dp</dimen>
     <dimen name="mash_create_button_corner_radius">18dp</dimen>
+    <dimen name="mash_module_content_padding">16dp</dimen>
+    <dimen name="mash_module_section_spacing">14dp</dimen>
+    <dimen name="mash_module_card_corner_radius">24dp</dimen>
+    <dimen name="mash_module_card_padding">18dp</dimen>
+    <dimen name="mash_module_top_bar_horizontal_padding">16dp</dimen>
+    <dimen name="mash_module_top_bar_vertical_padding">6dp</dimen>
+    <dimen name="mash_module_top_bar_side_width">64dp</dimen>
+    <dimen name="mash_home_status_spacing">12dp</dimen>
+    <dimen name="mash_statistics_chart_height">164dp</dimen>
+    <dimen name="mash_statistics_bar_width">22dp</dimen>
+    <dimen name="mash_statistics_ring_size">124dp</dimen>
+    <dimen name="mash_statistics_ring_stroke">16dp</dimen>
+    <dimen name="mash_statistics_palette_bar_height">6dp</dimen>
 </resources>
 

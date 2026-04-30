@@ -3,17 +3,19 @@ package ru.handhophop.feature.mash
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import ru.handhophop.feature.mash.MashCreate.MashThread
+import ru.handhophop.feature.mash.Statistics.MashPaletteProgress
 
 @Immutable
 internal data class MashUiState(
     val isLoading: Boolean = false,
     val scheme: SchemeData? = null,
     val visiblePalette: List<MashThread> = emptyList(),
+    val paletteProgress: List<MashPaletteProgress> = emptyList(),
     @StringRes val errorTextRes: Int? = null,
     val isDownloadButtonEnabled: Boolean = false,
     val isPaletteVisible: Boolean = false,
     val selectedPaletteIndex: Int? = null,
-    val completedPaletteIndices: Set<Int> = emptySet(),
+    val completedCellIndices: Set<Int> = emptySet(),
 )
 
 @Immutable

@@ -1,13 +1,17 @@
 package ru.handhophop.feature.mash.MashCreate
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,19 +35,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.R
+import ru.handhophop.feature.mash.loadBitmapFromUrl
+import ru.handhophop.feature.mash.selectPaletteForImage
 
 @Composable
 internal fun MashCreateScreen(
@@ -51,17 +61,9 @@ internal fun MashCreateScreen(
     suggestedProjectName: String = "",
     onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
-    topBar: @Composable (
-        Boolean,
-        () -> Unit,
-        () -> Unit,
-    ) -> Unit,
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(suggestedProjectName)
-    }
-    var schemeType by rememberSaveable(imageUrl, suggestedProjectName) {
-        mutableStateOf(MashCreateSchemeType.COLORING)
     }
     var colorCount by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableIntStateOf(MASH_CREATE_DEFAULT_COLORS)
@@ -69,8 +71,29 @@ internal fun MashCreateScreen(
     var difficulty by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(MashCreateDifficulty.MEDIUM)
     }
+    val context = LocalContext.current
+    val previewBitmap by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = imageUrl,
+    ) {
+        value = if (imageUrl.isNullOrBlank()) {
+            null
+        } else {
+            loadBitmapFromUrl(
+                context = context,
+                url = imageUrl,
+            )
+        }
+    }
 
-    val threads = MashCreateData.getThreadsByCount(colorCount)
+    val previewThreads = previewBitmap?.let { bitmap ->
+        selectPaletteForImage(
+            source = bitmap,
+            minSideCells = difficulty.minSidePx,
+            availablePalette = MashCreateData.allThreads,
+            maxColors = colorCount,
+        )
+    } ?: MashCreateData.getThreadsByCount(colorCount)
     val isCreateButtonEnabled = projectName.isNotBlank()
 
     fun createWork() {
@@ -80,56 +103,46 @@ internal fun MashCreateScreen(
             MashCreateConfig(
                 projectName = projectName.trim(),
                 imageUrl = imageUrl,
-                schemeType = schemeType,
+                schemeType = MashCreateSchemeType.EMBROIDERY,
                 colorCount = colorCount,
                 difficulty = difficulty,
-                threads = threads,
+                threads = previewThreads,
             )
         )
     }
 
     MashCreateContent(
         projectName = projectName,
-        imageUrl = imageUrl,
-        schemeType = schemeType,
+        previewBitmap = previewBitmap,
         colorCount = colorCount,
         difficulty = difficulty,
-        threads = threads,
+        threads = previewThreads,
         isCreateButtonEnabled = isCreateButtonEnabled,
+        onBackClick = onBackClick,
         onProjectNameChanged = { projectName = it },
         onClearProjectNameClick = { projectName = "" },
-        onSchemeTypeSelected = { schemeType = it },
         onColorCountChanged = {
             colorCount = it.coerceIn(MASH_CREATE_MIN_COLORS, MASH_CREATE_MAX_COLORS)
         },
         onDifficultyChanged = { difficulty = it },
         onCreateClick = ::createWork,
-        onBackClick = onBackClick,
-        topBar = topBar,
     )
 }
 
 @Composable
 private fun MashCreateContent(
     projectName: String,
-    imageUrl: String?,
-    schemeType: MashCreateSchemeType,
+    previewBitmap: Bitmap?,
     colorCount: Int,
     difficulty: MashCreateDifficulty,
     threads: List<MashThread>,
     isCreateButtonEnabled: Boolean,
+    onBackClick: () -> Unit,
     onProjectNameChanged: (String) -> Unit,
     onClearProjectNameClick: () -> Unit,
-    onSchemeTypeSelected: (MashCreateSchemeType) -> Unit,
     onColorCountChanged: (Int) -> Unit,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
     onCreateClick: () -> Unit,
-    onBackClick: () -> Unit,
-    topBar: @Composable (
-        Boolean,
-        () -> Unit,
-        () -> Unit,
-    ) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -143,10 +156,9 @@ private fun MashCreateContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            topBar(
-                isCreateButtonEnabled,
-                onBackClick,
-                onCreateClick,
+            MashModuleTopBar(
+                title = stringResource(R.string.mash_create_screen_title),
+                onBackClick = onBackClick,
             )
 
             Column(
@@ -189,12 +201,9 @@ private fun MashCreateContent(
                             onClearClick = onClearProjectNameClick,
                         )
 
-                        MashCreateImageSection(imageUrl = imageUrl)
+                        MashCreateImageSection(previewBitmap = previewBitmap)
 
-                        MashCreateSchemeTypeSection(
-                            selectedType = schemeType,
-                            onTypeSelected = onSchemeTypeSelected,
-                        )
+                        MashCreateSchemeTypeSection()
 
                         MashCreateColorsSection(
                             colorCount = colorCount,
@@ -295,7 +304,7 @@ private fun MashCreateProjectNameSection(
 
 @Composable
 private fun MashCreateImageSection(
-    imageUrl: String?,
+    previewBitmap: Bitmap?,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -311,7 +320,6 @@ private fun MashCreateImageSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(dimensionResource(R.dimen.mash_create_image_height))
                 .clip(
                     RoundedCornerShape(
                         dimensionResource(R.dimen.mash_create_image_corner_radius)
@@ -327,23 +335,33 @@ private fun MashCreateImageSection(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = if (imageUrl.isNullOrBlank()) {
-                    stringResource(R.string.mash_create_image_placeholder)
-                } else {
-                    stringResource(R.string.mash_create_image_selected)
-                },
-                color = colorResource(R.color.mash_text_secondary),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            if (previewBitmap == null) {
+                Text(
+                    text = stringResource(R.string.mash_create_image_placeholder),
+                    color = colorResource(R.color.mash_text_secondary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(dimensionResource(R.dimen.mash_create_image_height))
+                        .padding(dimensionResource(R.dimen.mash_create_card_padding)),
+                )
+            } else {
+                val aspectRatio = previewBitmap.width.toFloat() / previewBitmap.height.toFloat()
+
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(aspectRatio),
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun MashCreateSchemeTypeSection(
-    selectedType: MashCreateSchemeType,
-    onTypeSelected: (MashCreateSchemeType) -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -357,69 +375,67 @@ private fun MashCreateSchemeTypeSection(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_create_toggle_spacing)
+                dimensionResource(R.dimen.mash_create_threads_spacing)
             )
         ) {
-            MashCreateSchemeToggle(
+            MashCreateSchemeTypeChip(
                 title = stringResource(R.string.mash_create_scheme_coloring),
-                isSelected = selectedType == MashCreateSchemeType.COLORING,
-                onClick = { onTypeSelected(MashCreateSchemeType.COLORING) },
-                modifier = Modifier.weight(1f),
+                isEnabled = false,
+                isSelected = false,
             )
-
-            MashCreateSchemeToggle(
+            MashCreateSchemeTypeChip(
                 title = stringResource(R.string.mash_create_scheme_embroidery),
-                isSelected = selectedType == MashCreateSchemeType.EMBROIDERY,
-                onClick = { onTypeSelected(MashCreateSchemeType.EMBROIDERY) },
-                modifier = Modifier.weight(1f),
+                isEnabled = true,
+                isSelected = true,
             )
         }
+
+        Text(
+            text = stringResource(R.string.mash_create_scheme_locked_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = colorResource(R.color.mash_text_secondary),
+        )
     }
 }
 
 @Composable
-private fun MashCreateSchemeToggle(
+private fun RowScope.MashCreateSchemeTypeChip(
     title: String,
+    isEnabled: Boolean,
     isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val background = if (isSelected) {
-        colorResource(R.color.mash_primary)
-    } else {
-        colorResource(R.color.mash_surface_soft)
+    val shape = RoundedCornerShape(
+        dimensionResource(R.dimen.mash_create_toggle_corner_radius)
+    )
+    val backgroundColor = when {
+        isSelected -> colorResource(R.color.mash_primary)
+        isEnabled -> colorResource(R.color.mash_surface_soft)
+        else -> colorResource(R.color.mash_primary_disabled)
     }
-
-    val border = if (isSelected) {
+    val borderColor = if (isSelected) {
         colorResource(R.color.mash_primary)
     } else {
         colorResource(R.color.mash_outline)
     }
-
     val textColor = if (isSelected) {
         colorResource(R.color.mash_white)
     } else {
-        colorResource(R.color.mash_text_primary)
+        colorResource(R.color.mash_text_secondary)
     }
 
     Box(
-        modifier = modifier
-            .clip(
-                RoundedCornerShape(
-                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
-                )
-            )
-            .background(background)
+        modifier = Modifier
+            .weight(1f)
+            .clip(shape)
+            .background(backgroundColor)
             .border(
                 width = dimensionResource(R.dimen.mash_create_toggle_border_width),
-                color = border,
-                shape = RoundedCornerShape(
-                    dimensionResource(R.dimen.mash_create_toggle_corner_radius)
-                )
+                color = borderColor,
+                shape = shape,
             )
-            .clickable(onClick = onClick)
             .padding(
                 vertical = dimensionResource(R.dimen.mash_create_toggle_vertical_padding)
             ),
@@ -428,7 +444,7 @@ private fun MashCreateSchemeToggle(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = FontWeight.Medium,
             color = textColor,
         )
     }
@@ -487,7 +503,7 @@ private fun MashCreateColorsSection(
                 dimensionResource(R.dimen.mash_create_threads_spacing)
             )
         ) {
-            threads.take(8).forEach { thread ->
+            threads.forEach { thread ->
                 MashCreateThreadPreview(thread = thread)
             }
         }
