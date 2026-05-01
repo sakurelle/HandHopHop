@@ -14,6 +14,10 @@ internal class TogglePaletteHighlightAction(
     val paletteIndex: Int
 ) : UiAction
 
+internal class ClickSchemeCellAction(
+    val cellIndex: Int
+) : UiAction
+
 internal class ClearPaletteHighlightAction : UiAction
 
 internal class TogglePaletteCompletedAction(

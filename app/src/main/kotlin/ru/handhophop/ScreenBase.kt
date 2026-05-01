@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -24,20 +28,19 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.BottomBar
-import ru.handhophop.core.design.TopBar
-import ru.handhophop.core.design.TopBarState
-import ru.handhophop.design.R
+import ru.handhophop.core.design.Route
 
 
 @Composable
 internal fun ScreenBase(
-    mashScreen: @Composable (String?) -> Unit,
+    mashScreen: @Composable (String?, (Boolean) -> Unit) -> Unit,
     settingsScreen: @Composable () -> Unit,
     feedScreen: @Composable ((String) -> Unit) -> Unit,
     bookmarkScreen: @Composable () -> Unit,
 ) {
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppRoute.Feed) as NavBackStack<AppRoute>
+    var isBottomBarVisible by remember { mutableStateOf(true) }
     val appEntryProvider = remember(mashScreen, settingsScreen, feedScreen, bookmarkScreen) {
         entryProvider {
             entry<AppRoute.Bookmark> { bookmarkScreen() }
@@ -47,7 +50,9 @@ internal fun ScreenBase(
                 }
             }
             entry<AppRoute.Mash> { key ->
-                mashScreen(key.imageUrl)
+                mashScreen(key.imageUrl) { isVisible ->
+                    isBottomBarVisible = isVisible
+                }
             }
             entry<AppRoute.Settings> { settingsScreen() }
         }
@@ -55,11 +60,12 @@ internal fun ScreenBase(
     BackHandler(enabled = backStack.size > 1) {
         backStack.removeAt(backStack.lastIndex)
     }
-    val bottomBarBackground = colorResource(R.color.main_color)
     val currentRoute = (backStack.lastOrNull() as? AppRoute)?.tab ?: AppRoute.Feed.tab
-    val density = LocalDensity.current
-    val navBarHeight = with(density) {
-        WindowInsets.navigationBars.getBottom(density).toDp()
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != Route.MASH) {
+            isBottomBarVisible = true
+        }
     }
 
 
@@ -87,16 +93,18 @@ internal fun ScreenBase(
                     entryProvider = appEntryProvider
                 )
             }
-            BottomBar(
-                currentRoute = currentRoute,
-                onRouteSelected = { newRoute ->
-                    val destination = AppRoute.from(newRoute)
-                    if (backStack.lastOrNull() != destination) {
-                        backStack.clear()
-                        backStack.add(destination)
+            if (isBottomBarVisible) {
+                BottomBar(
+                    currentRoute = currentRoute,
+                    onRouteSelected = { newRoute ->
+                        val destination = AppRoute.from(newRoute)
+                        if (backStack.lastOrNull() != destination) {
+                            backStack.clear()
+                            backStack.add(destination)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
