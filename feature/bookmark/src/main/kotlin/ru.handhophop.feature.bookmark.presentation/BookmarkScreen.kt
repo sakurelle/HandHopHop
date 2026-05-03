@@ -80,33 +80,32 @@ private fun BookmarkScreen(
     onPhotoSelected: (Long, String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val contentTopPadding = 88.dp
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize(),
     ) {
+        BookmarkTopBar()
+
         when (val state = uiState) {
             BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
-                modifier = Modifier.padding(top = contentTopPadding),
+                modifier = Modifier.weight(1f),
             )
             is BookmarkUiState.Error -> BookmarkErrorState(
                 message = state.message,
-                modifier = Modifier.padding(top = contentTopPadding),
+                modifier = Modifier.weight(1f),
             )
             is BookmarkUiState.Success -> {
                 if (state.photos.isEmpty()) {
-                    BookmarkEmptyState(modifier = Modifier.padding(top = contentTopPadding))
+                    BookmarkEmptyState(modifier = Modifier.weight(1f))
                 } else {
                     BookmarkGrid(
                         state = state,
                         onPhotoSelected = onPhotoSelected,
-                        modifier = Modifier.padding(top = contentTopPadding),
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
         }
-
-        BookmarkTopBar()
     }
 }
 
@@ -146,8 +145,8 @@ private fun BookmarkGrid(
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         verticalItemSpacing = 8.dp,
     ) {
@@ -231,8 +230,8 @@ private fun BookmarkLoadingSkeleton(
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         verticalItemSpacing = 8.dp,
         userScrollEnabled = false,

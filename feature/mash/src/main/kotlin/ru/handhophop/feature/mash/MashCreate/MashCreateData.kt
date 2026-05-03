@@ -24,11 +24,11 @@ internal enum class MashCreateDifficulty(
         titleRes = R.string.mash_create_difficulty_easy,
     ),
     MEDIUM(
-        minSidePx = 128,
+        minSidePx = 96,
         titleRes = R.string.mash_create_difficulty_medium,
     ),
     HARD(
-        minSidePx = 256,
+        minSidePx = 128,
         titleRes = R.string.mash_create_difficulty_hard,
     ),
 }

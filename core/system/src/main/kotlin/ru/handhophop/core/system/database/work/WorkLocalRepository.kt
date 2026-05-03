@@ -31,12 +31,7 @@ class WorkLocalRepository(
     }
 
     suspend fun removeFavorite(url: String) {
-        val current = workDao.getByUrl(url) ?: return
-        if (current.hasStartedWork()) {
-            workDao.update(current.copy(isFavorite = false))
-        } else {
-            workDao.delete(current)
-        }
+        workDao.deleteByUrl(url)
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
@@ -58,28 +53,15 @@ class WorkLocalRepository(
     }
 
     suspend fun removeWork(id: Long) {
-        val current = workDao.getById(id) ?: return
-        if (current.isFavorite) {
-            workDao.update(
-                current.copy(
-                    projectName = null,
-                    schemeType = null,
-                    colorCount = null,
-                    difficulty = null,
-                    gridWidth = null,
-                    gridHeight = null,
-                    gridRle = null,
-                    percentage = null,
-                    spendedTime = null,
-                )
-            )
-        } else {
-            workDao.delete(current)
-        }
+        workDao.deleteById(id)
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
         return workDao.getAll().map(WorkEntity::toLocalItem)
+    }
+
+    suspend fun getFavoriteWorks(): List<WorkLocalItem> {
+        return workDao.getFavorites().map(WorkEntity::toLocalItem)
     }
 
     suspend fun getWorkByUrl(url: String): WorkLocalItem? {
@@ -156,14 +138,3 @@ private fun WorkEntity.toLocalItem(): WorkLocalItem {
     )
 }
 
-private fun WorkEntity.hasStartedWork(): Boolean {
-    return projectName != null ||
-            schemeType != null ||
-            colorCount != null ||
-            difficulty != null ||
-            gridWidth != null ||
-            gridHeight != null ||
-            gridRle != null ||
-            percentage != null ||
-            spendedTime != null
-}

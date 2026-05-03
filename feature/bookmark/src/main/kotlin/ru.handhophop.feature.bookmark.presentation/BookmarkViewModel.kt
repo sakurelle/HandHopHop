@@ -21,9 +21,8 @@ internal class BookmarkViewModel(
             _uiState.value = BookmarkUiState.Loading
 
             runCatching {
-                repository.getAllWorks()
+                repository.getFavoriteWorks()
                     .asSequence()
-                    .filter { it.isFavorite }
                     .map { work ->
                         BookmarkPhotoItem(
                             id = work.id,

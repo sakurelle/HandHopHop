@@ -19,11 +19,20 @@ interface WorkDao {
     @Delete
     suspend fun delete(work: WorkEntity)
 
+    @Query("DELETE FROM work WHERE id = :workId")
+    suspend fun deleteById(workId: Long)
+
+    @Query("DELETE FROM work WHERE url = :url")
+    suspend fun deleteByUrl(url: String)
+
     @Query("SELECT * FROM work WHERE id = :workId")
     suspend fun getById(workId: Long): WorkEntity?
 
-    @Query("SELECT * FROM work WHERE url = :url LIMIT 1")
+    @Query("SELECT * FROM work WHERE url = :url ORDER BY id DESC LIMIT 1")
     suspend fun getByUrl(url: String): WorkEntity?
+
+    @Query("SELECT * FROM work WHERE is_favorite = 1 ORDER BY id DESC")
+    suspend fun getFavorites(): List<WorkEntity>
 
     @Query("SELECT * FROM work ORDER BY id DESC")
     suspend fun getAll(): List<WorkEntity>
