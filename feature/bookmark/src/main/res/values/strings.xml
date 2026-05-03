@@ -1,0 +1,6 @@
+<resources>
+    <string name="bookmark_highlight_title">Избранные схемы</string>
+    <string name="bookmark_empty_title">В избранном пока пусто</string>
+    <string name="bookmark_empty_subtitle">Сохраняйте понравившиеся схемы, и они появятся здесь в удобной подборке.</string>
+    <string name="bookmark_error_title">Не удалось открыть избранное</string>
+</resources>

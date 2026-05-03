@@ -1,7 +1,6 @@
-package ru.handhophop.core.design
+package ru.handhophop.feature.feed.presentation
 
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -11,16 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import ru.handhophop.design.R
-
 
 @Composable
 fun FilterOption(
     filterOptionState: FilterOptionState,
-    filterCondition: (name: String) -> Unit
+    filterCondition: (id: Int) -> Unit
 ) {
     val height = dimensionResource(R.dimen.filter_option_height)
     val fontSize = dimensionResource(R.dimen.filter_option_text_size).value.sp
@@ -42,30 +40,17 @@ fun FilterOption(
             .height(height = height)
             .wrapContentWidth(),
         shape = RoundedCornerShape(radius),
-        onClick = { filterCondition(filterOptionState.text) },
+        onClick = { filterCondition(filterOptionState.id) },
         colors = ButtonDefaults.buttonColors(
             containerColor = color
         )
     ) {
         Text(
             modifier = Modifier,
-            text = filterOptionState.text,
+            text = stringResource(filterOptionState.textRes),
             textAlign = TextAlign.Center,
             color = textColor,
             fontSize = fontSize
         )
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun FilterOptionPreview() {
-    FilterOption(
-        filterOptionState = FilterOptionState(
-            "Любая",
-            id ="111",//todo
-            true,
-        ),
-        filterCondition = {}
-    )
 }

@@ -13,7 +13,10 @@ internal sealed interface FeedUiState {
         val hasNext: Boolean = true,
         val isLoadingMore: Boolean = false,
         val recommendedPhotos: List<FeedPhotoItem> = emptyList(),
-        val isRecommendedLoading: Boolean = false
+        val isRecommendedLoading: Boolean = false,
+        val filterSections: List<FilterSectionState> = emptyList(),
+        val isFilterVisible: Boolean = false,
+        val currentFilter: FeedFilter = FeedFilter()
     ) : FeedUiState
 
     @Immutable

@@ -8,6 +8,16 @@ import androidx.room.PrimaryKey
 data class WorkEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false,
+    @ColumnInfo(name = "project_name")
+    val projectName: String? = null,
+    @ColumnInfo(name = "scheme_type")
+    val schemeType: String? = null,
+    @ColumnInfo(name = "color_count")
+    val colorCount: Int? = null,
+    @ColumnInfo(name = "difficulty")
+    val difficulty: String? = null,
     @ColumnInfo(name = "url")
     val url: String?,
     @ColumnInfo(name = "image")

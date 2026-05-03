@@ -9,6 +9,13 @@ interface FreepikApiService {
     suspend fun getRandomPhotos(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 10,
-        @Query("term") term: String? = null
+        @Query("term") term: String? = null,
+        @Query(value = "filters%5Bcolor%5D", encoded = true) color: String? = null,
+        @Query("filters[orientation][landscape]") landscape: Int? = null,
+        @Query("filters[orientation][portrait]") portrait: Int? = null,
+        @Query("filters[orientation][square]") square: Int? = null,
+        @Query("filters[orientation][panoramic]") panoramic: Int? = null,
+        @Query("filters[ai-generated][only]") aiOnly: Int? = null,
+        @Query("filters[ai-generated][excluded]") aiExcluded: Int? = null,
     ): FreepikResponse
 }

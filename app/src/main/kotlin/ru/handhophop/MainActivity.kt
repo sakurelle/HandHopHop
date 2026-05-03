@@ -37,13 +37,14 @@ class MainActivity : ComponentActivity() {
             ) {
                 ScreenBase(
                     feedScreen = { onPhotoSelected -> FeedEntryPoint(onPhotoSelected = onPhotoSelected) },
-                    mashScreen = { initialImageUrl, onBottomBarVisibilityChanged ->
+                    mashScreen = { initialWorkId, initialImageUrl, onBottomBarVisibilityChanged ->
                         MashEntryPoint(
+                            initialWorkId = initialWorkId,
                             initialImageUrl = initialImageUrl,
                             onBottomBarVisibilityChanged = onBottomBarVisibilityChanged,
                         )
                     },
-                    bookmarkScreen = { BookmarkEntryPoint() },
+                    bookmarkScreen = { onPhotoSelected -> BookmarkEntryPoint(onPhotoSelected = onPhotoSelected) },
                     settingsScreen = { SettingsEntryPoint() }
                 )
             }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,15 +13,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import ru.handhophop.feature.feed.R
 
@@ -29,12 +32,21 @@ internal fun RecommendedRow(
     state: FeedUiState.Success,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    val spacing = dimensionResource(R.dimen.feed_spacing)
+    Column(modifier = modifier.fillMaxWidth().padding(
+        top = dimensionResource(R.dimen.text_spacing)
+    )) {
         Text(
+            modifier = modifier
+                .padding(
+                    start = dimensionResource(R.dimen.feed_spacing)
+                ),
             text = stringResource(R.string.recommended_row_header),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 4.dp)
+            fontWeight = FontWeight.SemiBold,
+            fontSize = dimensionResource(R.dimen.recommended_header).value.sp,
         )
+
+        Spacer(modifier = Modifier.height(spacing))
 
         if (state.isRecommendedLoading) {
             Box(
@@ -44,19 +56,28 @@ internal fun RecommendedRow(
                 CircularProgressIndicator()
             }
         } else {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
             ) {
-                items(items = state.recommendedPhotos, key = {it.id}) { photo ->
-                    AsyncImage(
-                        model = photo.photoUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(
+                        start = spacing,
+                        end = spacing
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.recommended_row_spacing))
+                ) {
+                    items(items = state.recommendedPhotos, key = {it.id}) { photo ->
+                        AsyncImage(
+                            model = photo.photoUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
