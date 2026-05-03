@@ -2,4 +2,54 @@
 
 <resources>
     <string name="recommended_row_header">На основе ваших предпочтений</string>
+
+    <string name="ai_title">Сгенерировано ИИ</string>
+    <string name="orientation_title">Ориентация картинок</string>
+    <string name="color_title">Основной цвет</string>
+
+    <string name="all">all</string>
+    <string name="any">any</string>
+    <string name="black">black</string>
+    <string name="blue">blue</string>
+    <string name="gray">gray</string>
+    <string name="green">green</string>
+    <string name="orange">orange</string>
+    <string name="red">red</string>
+    <string name="white">white</string>
+    <string name="yellow">yellow</string>
+    <string name="purple">purple</string>
+    <string name="cyan">cyan</string>
+    <string name="pink">pink</string>
+
+    <string name="landscape">landscape</string>
+    <string name="portrait">portrait</string>
+    <string name="square">square</string>
+    <string name="panoramic">panoramic</string>
+
+    <string name="ai_only">only</string>
+    <string name="ai_excluded">excluded</string>
+
+    <string name="all_option">Все</string>
+    <string name="any_option">Любая</string>
+    <string name="black_option">Черный</string>
+    <string name="blue_option">Синий</string>
+    <string name="gray_option">Серый</string>
+    <string name="green_option">Зеленый</string>
+    <string name="orange_option">Оранжевый</string>
+    <string name="red_option">Красный</string>
+    <string name="white_option">Белый</string>
+    <string name="yellow_option">Желтый</string>
+    <string name="purple_option">Фиолетовый</string>
+    <string name="cyan_option">Циановый</string>
+    <string name="pink_option">Розовый</string>
+
+    <string name="landscape_option">Горизонтальная</string>
+    <string name="portrait_option">Портретная</string>
+    <string name="square_option">Квадратная</string>
+    <string name="panoramic_option">Панорамная</string>
+
+    <string name="ai_only_option">Только ИИ</string>
+    <string name="ai_excluded_option">Без ИИ</string>
+
+
 </resources>

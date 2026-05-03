@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -33,8 +36,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.handhophop.core.design.ExposableTopBar
+import ru.handhophop.core.design.TopBarState
+import ru.handhophop.design.R
 
 @Composable
 internal fun FeedScreen(
@@ -45,11 +52,11 @@ internal fun FeedScreen(
         viewModel.handleAction(FeedUiAction.LoadPhotos)
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     when (val state = uiState) {
         is FeedUiState.Loading -> {
             FeedLoadingSkeleton()
         }
+
         is FeedUiState.Error -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -58,12 +65,43 @@ internal fun FeedScreen(
                 Text(text = "Error: ${state.msg}")
             }
         }
+
         is FeedUiState.Success -> {
-            FeedGrid(
-                state = state,
-                onPhotoClicked = onPhotoSelected,
-                onLoadMore = {viewModel.handleAction(FeedUiAction.LoadNextPage)}
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                val spacing = dimensionResource(ru.handhophop.feature.feed.R.dimen.feed_spacing)
+                FeedGrid(
+                    state = state,
+                    onPhotoClicked = onPhotoSelected,
+                    onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
+                    contentPadding = PaddingValues(
+                        top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
+                            ru.handhophop.feature.feed.R.dimen.top_spacing),
+                        bottom = spacing
+                    )
+                )
+
+                ExposableTopBar(
+                    state = TopBarState(
+                        titleRes = R.string.feed_title,
+                        leftIconRes = null,
+                        rightIconRes = if (state.isFilterVisible) R.drawable.open_filter else R.drawable.filter
+                    ),
+                    onChanged = { isVisible ->
+                        viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
+                    }
+                ) { onDismiss ->
+                    FeedFilterSheet(
+                        sections = state.filterSections,
+                        onOptionSelected = { sectionId, optionId ->
+                            viewModel.handleAction(
+                                FeedUiAction.ApplyFilter(sectionId, optionId)
+                            )
+                        },
+                        onDismiss = onDismiss
+                    )
+                }
+
+            }
         }
     }
 }
