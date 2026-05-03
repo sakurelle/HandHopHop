@@ -26,17 +26,6 @@
 
     <!-- Elevation (тени нет) -->
     <dimen name="block_elevation">0dp</dimen>
-    <!-- Отступы экрана -->
-    <dimen name="mash_screen_horizontal_padding">16dp</dimen>
-    <dimen name="mash_screen_vertical_padding">16dp</dimen>
-    <dimen name="mash_content_spacing">16dp</dimen>
-
-    <!-- Палитра -->
-    <dimen name="mash_palette_title_spacing">8dp</dimen>
-    <dimen name="mash_palette_row_spacing">12dp</dimen>
-    <dimen name="mash_palette_horizontal_padding">8dp</dimen>
-    <dimen name="mash_palette_bottom_spacing">2dp</dimen>
-
     <dimen name="bottom_bar_height">85dp</dimen>
     <dimen name="bottom_item_width">64dp</dimen>
     <dimen name="center_gap_width">56dp</dimen>
@@ -59,7 +48,6 @@
     <dimen name="mash_card_corner_radius">20dp</dimen>
     <dimen name="mash_card_elevation">4dp</dimen>
     <dimen name="mash_card_content_padding">16dp</dimen>
-    <dimen name="mash_scheme_workspace_padding">8dp</dimen>
     <dimen name="mash_scheme_workspace_corner_radius">18dp</dimen>
     <dimen name="mash_scheme_workspace_border_width">1dp</dimen>
     <dimen name="mash_scheme_frame_corner_radius">14dp</dimen>
@@ -139,20 +127,8 @@
     <dimen name="mash_scheme_draw_grid_threshold">12dp</dimen>
 
     <!-- Экран создания схемы -->
-    <dimen name="mash_create_screen_horizontal_padding">16dp</dimen>
-    <dimen name="mash_create_screen_vertical_padding">12dp</dimen>
-    <dimen name="mash_create_screen_content_spacing">12dp</dimen>
-
-    <!-- Верхняя панель -->
-    <dimen name="mash_create_top_bar_horizontal_padding">16dp</dimen>
-    <dimen name="mash_create_top_bar_vertical_padding">16dp</dimen>
-    <dimen name="mash_create_top_bar_content_spacing">12dp</dimen>
-
     <!-- Карточка контента -->
     <dimen name="mash_create_card_corner_radius">24dp</dimen>
-    <dimen name="mash_create_card_padding">20dp</dimen>
-    <dimen name="mash_create_section_spacing">16dp</dimen>
-    <dimen name="mash_create_inner_section_spacing">8dp</dimen>
 
     <!-- Поле ввода -->
     <dimen name="mash_create_text_field_corner_radius">18dp</dimen>
@@ -169,22 +145,15 @@
     <dimen name="mash_create_toggle_vertical_padding">12dp</dimen>
 
     <!-- Превью ниток -->
-    <dimen name="mash_create_threads_spacing">10dp</dimen>
-    <dimen name="mash_create_thread_item_spacing">6dp</dimen>
     <dimen name="mash_create_thread_circle_size">24dp</dimen>
     <dimen name="mash_create_thread_circle_border_width">1dp</dimen>
 
     <!-- Кнопка создания -->
     <dimen name="mash_create_button_height">52dp</dimen>
     <dimen name="mash_create_button_corner_radius">18dp</dimen>
-    <dimen name="mash_module_content_padding">16dp</dimen>
-    <dimen name="mash_module_section_spacing">14dp</dimen>
     <dimen name="mash_module_card_corner_radius">24dp</dimen>
     <dimen name="mash_module_card_padding">18dp</dimen>
-    <dimen name="mash_module_top_bar_horizontal_padding">16dp</dimen>
-    <dimen name="mash_module_top_bar_vertical_padding">6dp</dimen>
     <dimen name="mash_module_top_bar_side_width">64dp</dimen>
-    <dimen name="mash_home_status_spacing">12dp</dimen>
     <dimen name="mash_statistics_chart_height">164dp</dimen>
     <dimen name="mash_statistics_bar_width">22dp</dimen>
     <dimen name="mash_statistics_ring_size">124dp</dimen>

@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import ru.handhophop.core.design.HandHopHopDesignTheme
 import ru.handhophop.feature.bookmark.presentation.BookmarkEntryPoint
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint
 import ru.handhophop.feature.mash.MashEntryPoint
@@ -30,23 +31,24 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                ScreenBase(
-                    feedScreen = { onPhotoSelected -> FeedEntryPoint(onPhotoSelected = onPhotoSelected) },
-                    mashScreen = { initialWorkId, initialImageUrl, onBottomBarVisibilityChanged ->
-                        MashEntryPoint(
-                            initialWorkId = initialWorkId,
-                            initialImageUrl = initialImageUrl,
-                            onBottomBarVisibilityChanged = onBottomBarVisibilityChanged,
-                        )
-                    },
-                    bookmarkScreen = { onPhotoSelected -> BookmarkEntryPoint(onPhotoSelected = onPhotoSelected) },
-                    settingsScreen = { SettingsEntryPoint() }
-                )
+            HandHopHopDesignTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ScreenBase(
+                        feedScreen = { onPhotoSelected -> FeedEntryPoint(onPhotoSelected = onPhotoSelected) },
+                        mashScreen = { initialWorkId, initialImageUrl, onBottomBarVisibilityChanged ->
+                            MashEntryPoint(
+                                initialWorkId = initialWorkId,
+                                initialImageUrl = initialImageUrl,
+                                onBottomBarVisibilityChanged = onBottomBarVisibilityChanged,
+                            )
+                        },
+                        bookmarkScreen = { onPhotoSelected -> BookmarkEntryPoint(onPhotoSelected = onPhotoSelected) },
+                        settingsScreen = { SettingsEntryPoint() }
+                    )
+                }
             }
         }
     }
