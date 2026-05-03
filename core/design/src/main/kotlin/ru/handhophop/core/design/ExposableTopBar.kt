@@ -39,7 +39,8 @@ import ru.handhophop.design.R
 fun ExposableTopBar(
     state: TopBarState,
     onChanged: (isExposed: Boolean) -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val height = dimensionResource(R.dimen.filter_top_bar_height)
     val radius = dimensionResource(R.dimen.main_radius)
@@ -56,8 +57,6 @@ fun ExposableTopBar(
 
     Box(
         modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
             .background(
                 topBarBackground,
                 shape = RoundedCornerShape(
@@ -65,24 +64,32 @@ fun ExposableTopBar(
                     bottomStart = radius
                 )
             )
-            .padding(padding),
-        contentAlignment = Alignment.BottomCenter
+            .fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(padding)
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            SimpleTopBar(
-                state = state,
-                onClickRight = {
-                    isExposed = !isExposed
-                    onChanged(isExposed)
-                },
-                onClickLeft = { Unit }
-            )
-        }
-        if (isExposed) {
-            content()
+            Column(
+                modifier = Modifier,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SimpleTopBar(
+                    state = state,
+                    onClickRight = {
+                        isExposed = !isExposed
+                        onChanged(isExposed)
+                    },
+                    onClickLeft = { Unit }
+                )
+            }
+            if (isExposed) {
+                content()
+            }
         }
     }
 }
@@ -91,6 +98,7 @@ fun ExposableTopBar(
 @Preview(showSystemUi = true)
 fun ExposableTopBar11(
 ) {
+
     ExposableTopBar(
         TopBarState(R.string.Download, null, null),
         onChanged = {},

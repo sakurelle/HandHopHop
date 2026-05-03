@@ -50,7 +50,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
-import ru.handhophop.feature.mash.MashModuleTopBar
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.R
 import ru.handhophop.feature.mash.loadBitmapFromUrl
 import ru.handhophop.feature.mash.selectPaletteForImage
@@ -156,9 +157,16 @@ private fun MashCreateContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            MashModuleTopBar(
-                title = stringResource(R.string.mash_create_screen_title),
-                onBackClick = onBackClick,
+
+            TopBar(
+                state = TopBarState(
+                    titleRes = R.string.mash_create_screen_title,
+                    leftIconRes = R.drawable.arrow,
+                    null
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = {Unit}
+
             )
 
             Column(

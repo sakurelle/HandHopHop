@@ -23,6 +23,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.handhophop.design.R
@@ -32,6 +33,7 @@ fun TopBar(
     state: TopBarState,
     onClickRight: () -> Unit,
     onClickLeft: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val height = dimensionResource(R.dimen.top_bar_height)
     val radius = dimensionResource(R.dimen.main_radius)
@@ -41,8 +43,6 @@ fun TopBar(
 
     Box(
         modifier = Modifier
-            .height(height)
-            .fillMaxWidth()
             .background(
                 topBarBackground,
                 shape = RoundedCornerShape(
@@ -50,15 +50,33 @@ fun TopBar(
                     bottomStart = radius
                 )
             )
-            .padding(padding)
-            ,
-        contentAlignment = Alignment.Center
+            .fillMaxWidth(),
     ) {
-        SimpleTopBar(
-            modifier = Modifier,
-            state = state,
-            onClickRight = onClickRight,
-            onClickLeft = onClickLeft
-        )
+        Box(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(padding)
+                .height(height)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            SimpleTopBar(
+                modifier = Modifier,
+                state = state,
+                onClickRight = onClickRight,
+                onClickLeft = onClickLeft
+            )
+        }
     }
+}
+
+@Composable
+@Preview(showSystemUi = true)
+fun TopBar1(
+) {
+    TopBar(
+        TopBarState(R.string.Download, R.drawable.filter, null),
+        {},
+        {}
+    )
 }

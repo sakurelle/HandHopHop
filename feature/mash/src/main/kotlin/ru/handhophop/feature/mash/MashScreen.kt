@@ -64,6 +64,8 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
@@ -121,13 +123,17 @@ private fun CenterContentMash(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
-            MashModuleTopBar(
-                title = if (title.isBlank()) {
-                    stringResource(R.string.mash_workspace_title_fallback)
-                } else {
-                    title
-                },
-                onBackClick = onBackClick,
+            TopBar(
+                state = TopBarState(
+                    projectName = title.ifBlank {
+                        stringResource(R.string.mash_workspace_title_fallback)
+                    },
+                    leftIconRes = R.drawable.arrow,
+                    titleRes = null
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = {Unit}
+
             )
 
             Box(

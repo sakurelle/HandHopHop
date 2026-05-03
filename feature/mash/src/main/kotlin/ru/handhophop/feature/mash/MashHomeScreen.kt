@@ -37,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.Statistics.MashProjectMetrics
 import ru.handhophop.feature.mash.Statistics.toProjectMetrics
@@ -64,8 +66,15 @@ internal fun MashHomeScreen(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing),
         ) {
-            MashModuleTopBar(
-                title = projectConfig?.projectName ?: stringResource(R.string.mash_home_screen_title),
+            TopBar(
+                state = TopBarState(
+                    projectName = projectConfig?.projectName ?: stringResource(R.string.mash_home_screen_title),
+                    titleRes = null,
+                    leftIconRes = null,
+                    rightIconRes = null
+                ),
+                {Unit},
+                {Unit}
             )
 
             Box(
@@ -114,70 +123,6 @@ internal fun MashHomeScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-internal fun MashModuleTopBar(
-    title: String,
-    onBackClick: (() -> Unit)? = null,
-) {
-    val horizontalPadding = dimensionResource(R.dimen.mash_module_top_bar_horizontal_padding)
-    val verticalPadding = dimensionResource(R.dimen.mash_module_top_bar_vertical_padding)
-    val sideWidth = dimensionResource(R.dimen.mash_module_top_bar_side_width)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    bottomStart = dimensionResource(R.dimen.main_radius),
-                    bottomEnd = dimensionResource(R.dimen.main_radius),
-                )
-            )
-            .background(colorResource(R.color.main_color))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(
-                    start = horizontalPadding,
-                    end = horizontalPadding,
-                    top = verticalPadding,
-                    bottom = verticalPadding,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Box(
-                modifier = Modifier.size(sideWidth),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                if (onBackClick != null) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow),
-                            contentDescription = stringResource(R.string.mash_navigation_back),
-                            tint = colorResource(R.color.mash_text_primary),
-                            modifier = Modifier.rotate(180f),
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = horizontalPadding),
-            )
-
-            SpacerSlot(sideWidth = sideWidth)
         }
     }
 }

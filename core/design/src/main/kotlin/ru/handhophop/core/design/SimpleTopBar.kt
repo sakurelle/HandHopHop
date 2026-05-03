@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -38,27 +40,36 @@ fun SimpleTopBar(
     val bottomPadding = dimensionResource(R.dimen.top_bar_padding)
     val padding = dimensionResource(R.dimen.top_bar_padding)
     val radius = dimensionResource(R.dimen.main_radius)
+    val buttonWidth = 40.dp
+    val iconSize = 24.dp
 
     val topBarBackground = colorResource(R.color.main_color)
     val textColor = colorResource(R.color.black)
 
 
     Row(
-        modifier = Modifier,
+        modifier = Modifier
+            .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         state.leftIconRes?.let {
             Button(
-                modifier = Modifier,
+                modifier = Modifier
+                    .width(buttonWidth)
+                    .padding(0.dp),
                 onClick = onClickLeft,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = topBarBackground
                 ),
+                contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
+                    modifier = Modifier
+                        .size(iconSize)
+                        .padding(0.dp),
                     painter = painterResource(state.leftIconRes),
                     contentDescription = null,
-                    tint = textColor
+                    tint = textColor,
                 )
             }
         }
@@ -72,9 +83,21 @@ fun SimpleTopBar(
                 textAlign = TextAlign.Left
             )
         }
+        state.projectName?.let {
+            Text(
+                modifier = Modifier
+                    .weight(1f),
+                text = state.projectName,
+                color = textColor,
+                fontSize = topBarStr,
+                textAlign = TextAlign.Left
+            )
+        }
         state.rightIconRes?.let {
             Button(
-                modifier = Modifier,
+                modifier = Modifier
+                    .width(buttonWidth)
+                    .padding(0.dp),
                 onClick = onClickRight,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = topBarBackground
@@ -82,6 +105,8 @@ fun SimpleTopBar(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
+                    modifier = Modifier
+                        .size(iconSize),
                     painter = painterResource(state.rightIconRes),
                     contentDescription = null,
                     tint = textColor
@@ -99,7 +124,7 @@ fun ExposableTopBar1(
 ) {
     SimpleTopBar(
         modifier = Modifier,
-        TopBarState(R.string.Download, null, R.drawable.filter),
+        TopBarState(R.string.Download, R.drawable.arrow, null),
         {},
         {}
     )
