@@ -1,5 +1,6 @@
 package ru.handhophop.feature.feed.presentation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
@@ -13,7 +14,7 @@ fun FeedEntryPoint(
 ) {
     val repository = remember {
         FeedRepository(
-            FreepikNetwork.getApiService()
+            FreepikNetwork.getApiService(),
         )
     }
 
