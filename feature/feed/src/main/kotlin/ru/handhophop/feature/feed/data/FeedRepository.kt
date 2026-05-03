@@ -14,10 +14,47 @@ internal class FeedRepository(
     private val recommendedFilters = listOf("sea", "mountains")
     private val cachedIds = mutableSetOf<String>()
 
-    suspend fun getPhotos(page: Int = 1, count: Int = 10): Result<List<FreepikPhoto>> {
+    suspend fun getPhotos(
+        page: Int = 1,
+        count: Int = 10,
+        orientationId: Int = 0,
+        colorId: Int = 0,
+        aiId: Int = 0
+    ): Result<List<FreepikPhoto>> {
         return runCatching {
-            Log.d(TAG, "Requesting photos: page=$page, count=$count, cachedIds=${cachedIds.size}")
-            val photos = apiService.getRandomPhotos(page = page, limit = count).data
+            val colorParam = when (colorId) {
+                0  -> null
+                1  -> "black"
+                2  -> "blue"
+                3  -> "gray"
+                4  -> "green"
+                5  -> "orange"
+                6  -> "red"
+                7  -> "white"
+                8  -> "yellow"
+                9  -> "purple"
+                10 -> "cyan"
+                11 -> "pink"
+                else -> null
+            }
+            val landscape  = if (orientationId == 1) 1 else null
+            val portrait   = if (orientationId == 2) 1 else null
+            val square     = if (orientationId == 3) 1 else null
+            val panoramic  = if (orientationId == 4) 1 else null
+            val aiOnly     = if (aiId == 1) 1 else null
+            val aiExcluded = if (aiId == 2) 1 else null
+
+            val photos = apiService.getRandomPhotos(
+                page = page,
+                limit = count,
+                color = colorParam,
+                landscape = landscape,
+                portrait = portrait,
+                square = square,
+                panoramic = panoramic,
+                aiOnly = aiOnly,
+                aiExcluded = aiExcluded
+            ).data
             val unique = photos.filter { it.id.toString() !in cachedIds }
             cachedIds.addAll(unique.map { it.id.toString() })
             Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}")

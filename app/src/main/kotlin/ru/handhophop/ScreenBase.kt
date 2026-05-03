@@ -1,7 +1,6 @@
 package ru.handhophop
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,10 +25,10 @@ import ru.handhophop.core.design.Route
 
 @Composable
 internal fun ScreenBase(
-    mashScreen: @Composable (Long?, String?, (Boolean) -> Unit) -> Unit,
+    feedScreen: @Composable (onPhotoSelected: (String) -> Unit) -> Unit,
+    mashScreen: @Composable (String?, (Boolean) -> Unit) -> Unit,
+    bookmarkScreen: @Composable () -> Unit,
     settingsScreen: @Composable () -> Unit,
-    feedScreen: @Composable ((String) -> Unit) -> Unit,
-    bookmarkScreen: @Composable ((Long, String) -> Unit) -> Unit,
 ) {
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppRoute.Feed) as NavBackStack<AppRoute>
