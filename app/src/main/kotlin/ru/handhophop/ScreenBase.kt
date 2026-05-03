@@ -35,14 +35,23 @@ internal fun ScreenBase(
     var isBottomBarVisible by remember { mutableStateOf(true) }
     val appEntryProvider = remember(mashScreen, settingsScreen, feedScreen, bookmarkScreen) {
         entryProvider {
-            entry<AppRoute.Bookmark> { bookmarkScreen() }
+            entry<AppRoute.Bookmark> {
+                bookmarkScreen { workId, imageUrl ->
+                    backStack.add(
+                        AppRoute.Mash(
+                            workId = workId,
+                            imageUrl = imageUrl,
+                        )
+                    )
+                }
+            }
             entry<AppRoute.Feed> {
                 feedScreen { imageUrl ->
                     backStack.add(AppRoute.Mash(imageUrl = imageUrl))
                 }
             }
             entry<AppRoute.Mash> { key ->
-                mashScreen(key.imageUrl) { isVisible ->
+                mashScreen(key.workId, key.imageUrl) { isVisible ->
                     isBottomBarVisible = isVisible
                 }
             }

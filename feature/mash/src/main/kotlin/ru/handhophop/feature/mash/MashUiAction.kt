@@ -7,7 +7,8 @@ internal interface UiAction
 internal class ClickDownloadsAction : UiAction
 
 internal class GenerateSchemeAction(
-    val config: MashCreateConfig
+    val config: MashCreateConfig,
+    val imageBytes: ByteArray? = null,
 ) : UiAction
 
 internal class TogglePaletteHighlightAction(
