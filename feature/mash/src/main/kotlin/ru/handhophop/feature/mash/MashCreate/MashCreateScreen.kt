@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.R
@@ -145,12 +146,14 @@ private fun MashCreateContent(
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
     onCreateClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.mash_background))
+            .background(colors.background)
     ) {
         BackgroundPattern()
 
@@ -174,11 +177,11 @@ private fun MashCreateContent(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(
-                        horizontal = dimensionResource(R.dimen.mash_create_screen_horizontal_padding),
-                        vertical = dimensionResource(R.dimen.mash_create_screen_vertical_padding),
+                        horizontal = dimensions.md,
+                        vertical = dimensions.sm,
                     ),
                 verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.mash_create_screen_content_spacing)
+                    dimensions.sm
                 )
             ) {
                 Card(
@@ -190,17 +193,17 @@ private fun MashCreateContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(colorResource(R.color.mash_surface))
-                            .padding(dimensionResource(R.dimen.mash_create_card_padding)),
+                            .background(colors.surface)
+                            .padding(dimensions.lg),
                         verticalArrangement = Arrangement.spacedBy(
-                            dimensionResource(R.dimen.mash_create_section_spacing)
+                            dimensions.md
                         )
                     ) {
                         Text(
                             text = stringResource(R.string.mash_create_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = colorResource(R.color.mash_text_primary),
+                            color = colors.textPrimary,
                         )
 
                         MashCreateProjectNameSection(
@@ -234,10 +237,10 @@ private fun MashCreateContent(
                                 dimensionResource(R.dimen.mash_create_button_corner_radius)
                             ),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.mash_primary),
-                                contentColor = colorResource(R.color.mash_white),
-                                disabledContainerColor = colorResource(R.color.mash_primary_disabled),
-                                disabledContentColor = colorResource(R.color.mash_text_secondary),
+                                containerColor = colors.primaryAction,
+                                contentColor = colors.onPrimaryAction,
+                                disabledContainerColor = colors.primaryActionDisabled,
+                                disabledContentColor = colors.textSecondary,
                             )
                         ) {
                             Text(
@@ -259,15 +262,17 @@ private fun MashCreateProjectNameSection(
     onValueChanged: (String) -> Unit,
     onClearClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_inner_section_spacing)
+            dimensions.sm
         )
     ) {
         Text(
             text = stringResource(R.string.mash_create_project_name_label),
             style = MaterialTheme.typography.titleMedium,
-            color = colorResource(R.color.mash_text_primary),
+            color = colors.textPrimary,
         )
 
         OutlinedTextField(
@@ -286,7 +291,7 @@ private fun MashCreateProjectNameSection(
                     Text(
                         text = stringResource(R.string.mash_create_clear_field),
                         modifier = Modifier.clickable(onClick = onClearClick),
-                        color = colorResource(R.color.mash_text_primary),
+                        color = colors.textPrimary,
                     )
                 }
             },
@@ -294,17 +299,17 @@ private fun MashCreateProjectNameSection(
                 dimensionResource(R.dimen.mash_create_text_field_corner_radius)
             ),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = colorResource(R.color.mash_surface_soft),
-                unfocusedContainerColor = colorResource(R.color.mash_surface_soft),
-                focusedBorderColor = colorResource(R.color.mash_primary),
-                unfocusedBorderColor = colorResource(R.color.mash_primary),
-                focusedTextColor = colorResource(R.color.mash_text_primary),
-                unfocusedTextColor = colorResource(R.color.mash_text_primary),
-                focusedPlaceholderColor = colorResource(R.color.mash_text_secondary),
-                unfocusedPlaceholderColor = colorResource(R.color.mash_text_secondary),
-                focusedTrailingIconColor = colorResource(R.color.mash_text_primary),
-                unfocusedTrailingIconColor = colorResource(R.color.mash_text_primary),
-                cursorColor = colorResource(R.color.mash_text_primary),
+                focusedContainerColor = colors.surfaceSoft,
+                unfocusedContainerColor = colors.surfaceSoft,
+                focusedBorderColor = colors.primaryAction,
+                unfocusedBorderColor = colors.primaryAction,
+                focusedTextColor = colors.textPrimary,
+                unfocusedTextColor = colors.textPrimary,
+                focusedPlaceholderColor = colors.textSecondary,
+                unfocusedPlaceholderColor = colors.textSecondary,
+                focusedTrailingIconColor = colors.textPrimary,
+                unfocusedTrailingIconColor = colors.textPrimary,
+                cursorColor = colors.textPrimary,
             )
         )
     }
@@ -314,15 +319,17 @@ private fun MashCreateProjectNameSection(
 private fun MashCreateImageSection(
     previewBitmap: Bitmap?,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_inner_section_spacing)
+            dimensions.sm
         )
     ) {
         Text(
             text = stringResource(R.string.mash_create_image_label),
             style = MaterialTheme.typography.titleMedium,
-            color = colorResource(R.color.mash_text_primary),
+            color = colors.textPrimary,
         )
 
         Box(
@@ -333,10 +340,10 @@ private fun MashCreateImageSection(
                         dimensionResource(R.dimen.mash_create_image_corner_radius)
                     )
                 )
-                .background(colorResource(R.color.mash_surface_soft))
+                .background(colors.surfaceSoft)
                 .border(
                     width = dimensionResource(R.dimen.mash_create_image_border_width),
-                    color = colorResource(R.color.mash_outline),
+                    color = colors.outline,
                     shape = RoundedCornerShape(
                         dimensionResource(R.dimen.mash_create_image_corner_radius)
                     )
@@ -346,12 +353,12 @@ private fun MashCreateImageSection(
             if (previewBitmap == null) {
                 Text(
                     text = stringResource(R.string.mash_create_image_placeholder),
-                    color = colorResource(R.color.mash_text_secondary),
+                    color = colors.textSecondary,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(dimensionResource(R.dimen.mash_create_image_height))
-                        .padding(dimensionResource(R.dimen.mash_create_card_padding)),
+                        .padding(dimensions.lg),
                 )
             } else {
                 val aspectRatio = previewBitmap.width.toFloat() / previewBitmap.height.toFloat()
@@ -371,22 +378,24 @@ private fun MashCreateImageSection(
 @Composable
 private fun MashCreateSchemeTypeSection(
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_inner_section_spacing)
+            dimensions.sm
         )
     ) {
         Text(
             text = stringResource(R.string.mash_create_scheme_type_label),
             style = MaterialTheme.typography.titleMedium,
-            color = colorResource(R.color.mash_text_primary),
+            color = colors.textPrimary,
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_create_threads_spacing)
+                dimensions.sm
             )
         ) {
             MashCreateSchemeTypeChip(
@@ -404,7 +413,7 @@ private fun MashCreateSchemeTypeSection(
         Text(
             text = stringResource(R.string.mash_create_scheme_locked_hint),
             style = MaterialTheme.typography.bodySmall,
-            color = colorResource(R.color.mash_text_secondary),
+            color = colors.textSecondary,
         )
     }
 }
@@ -415,23 +424,25 @@ private fun RowScope.MashCreateSchemeTypeChip(
     isEnabled: Boolean,
     isSelected: Boolean,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     val shape = RoundedCornerShape(
         dimensionResource(R.dimen.mash_create_toggle_corner_radius)
     )
     val backgroundColor = when {
-        isSelected -> colorResource(R.color.mash_primary)
-        isEnabled -> colorResource(R.color.mash_surface_soft)
-        else -> colorResource(R.color.mash_primary_disabled)
+        isSelected -> colors.primaryAction
+        isEnabled -> colors.surfaceSoft
+        else -> colors.primaryActionDisabled
     }
     val borderColor = if (isSelected) {
-        colorResource(R.color.mash_primary)
+        colors.primaryAction
     } else {
-        colorResource(R.color.mash_outline)
+        colors.outline
     }
     val textColor = if (isSelected) {
-        colorResource(R.color.mash_white)
+        colors.onPrimaryAction
     } else {
-        colorResource(R.color.mash_text_secondary)
+        colors.textSecondary
     }
 
     Box(
@@ -445,7 +456,7 @@ private fun RowScope.MashCreateSchemeTypeChip(
                 shape = shape,
             )
             .padding(
-                vertical = dimensionResource(R.dimen.mash_create_toggle_vertical_padding)
+                vertical = dimensions.sm
             ),
         contentAlignment = Alignment.Center,
     ) {
@@ -464,15 +475,17 @@ private fun MashCreateColorsSection(
     threads: List<MashThread>,
     onColorCountChanged: (Int) -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_inner_section_spacing)
+            dimensions.sm
         )
     ) {
         Text(
             text = stringResource(R.string.mash_create_color_count_title, colorCount),
             style = MaterialTheme.typography.titleMedium,
-            color = colorResource(R.color.mash_text_primary),
+            color = colors.textPrimary,
         )
 
         Slider(
@@ -483,9 +496,9 @@ private fun MashCreateColorsSection(
             valueRange = MASH_CREATE_MIN_COLORS.toFloat()..MASH_CREATE_MAX_COLORS.toFloat(),
             steps = MASH_CREATE_MAX_COLORS - MASH_CREATE_MIN_COLORS - 1,
             colors = SliderDefaults.colors(
-                thumbColor = colorResource(R.color.mash_primary),
-                activeTrackColor = colorResource(R.color.mash_primary),
-                inactiveTrackColor = colorResource(R.color.mash_surface_soft),
+                thumbColor = colors.primaryAction,
+                activeTrackColor = colors.primaryAction,
+                inactiveTrackColor = colors.surfaceSoft,
             )
         )
 
@@ -495,12 +508,12 @@ private fun MashCreateColorsSection(
         ) {
             Text(
                 text = stringResource(R.string.mash_create_color_count_min),
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
                 style = MaterialTheme.typography.bodySmall,
             )
             Text(
                 text = stringResource(R.string.mash_create_color_count_max),
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -508,7 +521,7 @@ private fun MashCreateColorsSection(
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_create_threads_spacing)
+                dimensions.sm
             )
         ) {
             threads.forEach { thread ->
@@ -522,10 +535,12 @@ private fun MashCreateColorsSection(
 private fun MashCreateThreadPreview(
     thread: MashThread,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_thread_item_spacing)
+            dimensions.xs
         )
     ) {
         Box(
@@ -534,7 +549,7 @@ private fun MashCreateThreadPreview(
                 .background(thread.color, CircleShape)
                 .border(
                     width = dimensionResource(R.dimen.mash_create_thread_circle_border_width),
-                    color = colorResource(R.color.mash_outline),
+                    color = colors.outline,
                     shape = CircleShape
                 )
         )
@@ -542,7 +557,7 @@ private fun MashCreateThreadPreview(
         Text(
             text = thread.article,
             style = MaterialTheme.typography.labelSmall,
-            color = colorResource(R.color.mash_text_secondary),
+            color = colors.textSecondary,
         )
     }
 }
@@ -552,12 +567,14 @@ private fun MashCreateDifficultySection(
     difficulty: MashCreateDifficulty,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     val difficultySteps = MashCreateDifficulty.entries.size - 2
     val difficultyLastIndex = MashCreateDifficulty.entries.lastIndex
 
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_create_inner_section_spacing)
+            dimensions.sm
         )
     ) {
         Text(
@@ -567,7 +584,7 @@ private fun MashCreateDifficultySection(
                 difficulty.minSidePx
             ),
             style = MaterialTheme.typography.titleMedium,
-            color = colorResource(R.color.mash_text_primary),
+            color = colors.textPrimary,
         )
 
         Slider(
@@ -580,9 +597,9 @@ private fun MashCreateDifficultySection(
             valueRange = 0f..difficultyLastIndex.toFloat(),
             steps = difficultySteps,
             colors = SliderDefaults.colors(
-                thumbColor = colorResource(R.color.mash_primary),
-                activeTrackColor = colorResource(R.color.mash_primary),
-                inactiveTrackColor = colorResource(R.color.mash_surface_soft),
+                thumbColor = colors.primaryAction,
+                activeTrackColor = colors.primaryAction,
+                inactiveTrackColor = colors.surfaceSoft,
             )
         )
 
@@ -594,7 +611,7 @@ private fun MashCreateDifficultySection(
                 Text(
                     text = stringResource(level.titleRes),
                     style = MaterialTheme.typography.bodySmall,
-                    color = colorResource(R.color.mash_text_secondary),
+                    color = colors.textSecondary,
                 )
             }
         }

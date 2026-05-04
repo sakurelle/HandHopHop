@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,10 +56,19 @@ import ru.handhophop.core.design.TopBarState
 @Composable
 fun SettingScreen(
     onChangeTheme: (isActive: Boolean) -> Unit,
-    onClick: () -> Unit,
+    viewModel: SettingViewModel,
     modifier: Modifier = Modifier,
 ) {
     val isChecked = remember { mutableStateOf(false) }
+    val showDialog = remember { mutableStateOf(false) }
+
+    val storageText by viewModel.storageText
+    val storageProgress by viewModel.storageProgress
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.updateStorageStats()
+    }
+
 
     val checkedThumbColor = colorResource(R.color.profile_background)
     val checkedTrackColor = colorResource(R.color.button)
@@ -73,6 +84,69 @@ fun SettingScreen(
     val heightButton = dimensionResource(R.dimen.height_button)
 
     val text = stringResource(R.string.dark_theme)
+    val clearData = stringResource(R.string.clear_data)
+    val memory = stringResource(R.string.memory)
+    val dialogTitle = stringResource(R.string.dialog_warning_title)
+    val dialogMessage = stringResource(R.string.dialog_warning_message)
+    val dialogConfirm = stringResource(R.string.dialog_confirm)
+    val dialogDismiss = stringResource(R.string.dialog_dismiss)
+
+
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            modifier = Modifier.border(
+                width = border*2,
+                color = checkedTrackColor,
+                shape = RoundedCornerShape(radius)
+            ),
+            title = {
+                Text(
+                    modifier = Modifier,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                    fontWeight = FontWeight.Bold,
+                    text = dialogTitle
+                )
+            },
+            text = {
+                Text(
+                    modifier = Modifier,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                    text = dialogMessage
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearDatabase()
+                        showDialog.value = false
+                    }
+                ) {
+                    Text(
+                        modifier = Modifier,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                        text=dialogConfirm,
+                        color = Color.Red,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text(
+                        modifier = Modifier,
+                        text=dialogDismiss,
+                        color = checkedTrackColor
+                    )
+                }
+            },
+            containerColor = mainColor,
+            shape = RoundedCornerShape(radius),
+
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -86,19 +160,19 @@ fun SettingScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopBar(
-                state= TopBarState(
+                state = TopBarState(
                     R.string.setting,
                     null,
                     null
                 ),
-                { Unit},
-                {Unit}
+                { Unit },
+                { Unit }
             )
             Box(
                 modifier = Modifier
-                     .padding(
-                        top=padding
-                        )
+                    .padding(
+                        top = padding
+                    )
                     .width(width = width)
                     .height(heightBlock)
                     .border(
@@ -146,6 +220,57 @@ fun SettingScreen(
                     )
                 }
             }
+
+            Box(
+                modifier = Modifier
+                    .padding(
+                        top = padding
+                    )
+                    .width(width = width)
+                    .wrapContentHeight()
+                    .border(
+                        border,
+                        checkedTrackColor,
+                        shape = RoundedCornerShape(radius)
+                    )
+                    .background(
+                        color = mainColor,
+                        shape = RoundedCornerShape(
+                            radius
+                        )
+                    ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .padding(padding)
+                ) {
+                    Text(
+                        text = memory,
+                        fontSize = fontSize,
+                    )
+
+                    Spacer(modifier = Modifier.height(padding))
+
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { storageProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                            .clip(RoundedCornerShape(radius)),
+                        color = checkedTrackColor, // Темная часть
+                        trackColor = Color.White, // Светлая часть
+                    )
+
+                    Spacer(modifier = Modifier.height(padding / 2))
+
+                    Text(
+                        text = storageText,
+                        fontSize = fontSize,
+                    )
+                }
+            }
+
             Button(
                 modifier = Modifier
                     .padding(
@@ -159,14 +284,16 @@ fun SettingScreen(
                     .height(heightButton)
 
                     .width(width = width),
-                onClick = onClick,
+                onClick = {
+                    showDialog.value = true
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = buttonColor
                 ),
                 shape = RoundedCornerShape(radius)
             ) {
                 Text(
-                    text = "Очистить данные",
+                    text = clearData,
                     fontSize = fontSize,
                     color = checkedTrackColor
                 )

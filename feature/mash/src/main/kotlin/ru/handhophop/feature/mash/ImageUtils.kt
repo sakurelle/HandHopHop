@@ -2,6 +2,7 @@ package ru.handhophop.feature.mash
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -11,6 +12,7 @@ import androidx.core.graphics.createBitmap
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.max
@@ -43,6 +45,21 @@ internal suspend fun loadDefaultBitmap(
         ContextCompat.getDrawable(context, drawableRes)?.let(::drawableToBitmap)
     }.getOrNull()
 }
+
+internal fun bitmapToByteArray(
+    bitmap: Bitmap,
+): ByteArray? = runCatching {
+    ByteArrayOutputStream().use { stream ->
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.toByteArray()
+    }
+}.getOrNull()
+
+internal fun byteArrayToBitmap(
+    bytes: ByteArray,
+): Bitmap? = runCatching {
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}.getOrNull()
 
 private fun drawableToBitmap(drawable: Drawable): Bitmap? =
     runCatching {

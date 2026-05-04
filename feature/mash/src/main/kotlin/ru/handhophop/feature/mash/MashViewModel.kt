@@ -33,7 +33,10 @@ internal class MashViewModel(
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> download()
-            is GenerateSchemeAction -> generateScheme(action.config)
+            is GenerateSchemeAction -> generateScheme(
+                config = action.config,
+                imageBytes = action.imageBytes,
+            )
             is ClickSchemeCellAction -> handleSchemeCellClick(action.cellIndex)
 
             is TogglePaletteHighlightAction -> {
@@ -59,8 +62,34 @@ internal class MashViewModel(
         }
     }
 
+    internal fun resetWork() {
+        _uiState.value = MashUiState(
+            isLoading = false,
+            scheme = null,
+            visiblePalette = emptyList(),
+            paletteProgress = emptyList(),
+            errorTextRes = null,
+            isDownloadButtonEnabled = false,
+            isPaletteVisible = false,
+            selectedPaletteIndex = null,
+            completedCellIndices = emptySet()
+        )
+    }
+
+
     internal fun restoreCachedWork(cachedState: MashUiState) {
         _uiState.value = cachedState.withDerivedPaletteState()
+    }
+
+    internal fun restoreCompletedCells(completedCellIndices: Set<Int>) {
+        val currentScheme = _uiState.value.scheme ?: return
+        val sanitizedIndices = completedCellIndices.filterTo(linkedSetOf()) { index ->
+            index in currentScheme.indices.indices
+        }
+
+        _uiState.value = _uiState.value.copy(
+            completedCellIndices = sanitizedIndices,
+        ).withDerivedPaletteState()
     }
 
     private fun handleSchemeCellClick(cellIndex: Int) {
@@ -113,7 +142,10 @@ internal class MashViewModel(
         ).withDerivedPaletteState()
     }
 
-    private fun generateScheme(config: MashCreateConfig) {
+    private fun generateScheme(
+        config: MashCreateConfig,
+        imageBytes: ByteArray? = null,
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
@@ -129,10 +161,12 @@ internal class MashViewModel(
 
             val context = getApplication<Application>().applicationContext
 
-            val bitmap = loadBitmapFromUrl(
-                context = context,
-                url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
-            )
+            val bitmap = imageBytes
+                ?.let(::byteArrayToBitmap)
+                ?: loadBitmapFromUrl(
+                    context = context,
+                    url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
+                )
 
             val scheme = bitmap?.let {
                 buildScheme(

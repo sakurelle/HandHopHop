@@ -1,7 +1,6 @@
 package ru.handhophop
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,26 +32,51 @@ import ru.handhophop.core.design.Route
 
 @Composable
 internal fun ScreenBase(
-    mashScreen: @Composable (String?, (Boolean) -> Unit) -> Unit,
+    feedScreen: @Composable (onPhotoSelected: (String) -> Unit) -> Unit,
+    mashScreen: @Composable (
+        Long?,
+        String?,
+        backgroundContent: @Composable () -> Unit,
+        onBack: () -> Unit,
+        (Boolean) -> Unit
+    ) -> Unit,
+    bookmarkScreen: @Composable ((Long, String) -> Unit) -> Unit,
     settingsScreen: @Composable () -> Unit,
-    feedScreen: @Composable ((String) -> Unit) -> Unit,
-    bookmarkScreen: @Composable () -> Unit,
 ) {
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppRoute.Feed) as NavBackStack<AppRoute>
     var isBottomBarVisible by remember { mutableStateOf(true) }
     val appEntryProvider = remember(mashScreen, settingsScreen, feedScreen, bookmarkScreen) {
         entryProvider {
-            entry<AppRoute.Bookmark> { bookmarkScreen() }
+            entry<AppRoute.Bookmark> {
+                bookmarkScreen { workId, imageUrl ->
+                    backStack.add(
+                        AppRoute.Mash(
+                            workId = workId,
+                            imageUrl = imageUrl,
+                        )
+                    )
+                }
+            }
             entry<AppRoute.Feed> {
                 feedScreen { imageUrl ->
                     backStack.add(AppRoute.Mash(imageUrl = imageUrl))
                 }
             }
             entry<AppRoute.Mash> { key ->
-                mashScreen(key.imageUrl) { isVisible ->
-                    isBottomBarVisible = isVisible
-                }
+                mashScreen(
+                    key.workId,
+                    key.imageUrl,
+                    { feedScreen { Unit } },
+                    {
+                        if (backStack.size > 1) {
+                            backStack.removeAt(backStack.lastIndex)
+                        }
+                    },
+                    { isVisible ->
+                        isBottomBarVisible = isVisible
+                    }
+                )
             }
             entry<AppRoute.Settings> { settingsScreen() }
         }

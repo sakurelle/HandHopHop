@@ -11,7 +11,7 @@ import ru.handhophop.core.system.database.work.WorkEntity
     entities = [
         WorkEntity::class,
     ],
-    version = 1,
+    version = 3,
     exportSchema = false,
 )
 abstract class HandHopHopDatabase : RoomDatabase() {
@@ -27,7 +27,9 @@ object HandHopHopDatabaseProvider {
                 context = context.applicationContext,
                 klass = HandHopHopDatabase::class.java,
                 name = "hand_hop_hop.db",
-            ).build()
+            )
+            .fallbackToDestructiveMigration()
+            .build()
 
         return checkNotNull(instance)
     }

@@ -23,6 +23,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,7 +70,7 @@ fun SimpleTopBar(
                         .padding(0.dp),
                     painter = painterResource(state.leftIconRes),
                     contentDescription = null,
-                    tint = textColor,
+                    tint = textColor
                 )
             }
         }
@@ -106,7 +107,8 @@ fun SimpleTopBar(
             ) {
                 Icon(
                     modifier = Modifier
-                        .size(iconSize),
+                        .size(iconSize)
+                        .padding(0.dp),
                     painter = painterResource(state.rightIconRes),
                     contentDescription = null,
                     tint = textColor

@@ -10,6 +10,7 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data class Mash(
+        val workId: Long? = null,
         val imageUrl: String? = null,
     ) : AppRoute {
         override val tab: Route = Route.MASH

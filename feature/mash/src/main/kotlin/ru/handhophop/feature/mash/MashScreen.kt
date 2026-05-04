@@ -64,6 +64,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashThread
@@ -108,14 +109,16 @@ private fun CenterContentMash(
     onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
 ) {
-    val horizontalPadding = dimensionResource(R.dimen.mash_screen_horizontal_padding)
-    val verticalPadding = dimensionResource(R.dimen.mash_screen_vertical_padding)
-    val contentSpacing = dimensionResource(R.dimen.mash_content_spacing)
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val horizontalPadding = dimensions.md
+    val verticalPadding = dimensions.md
+    val contentSpacing = dimensions.md
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.mash_background))
+            .background(colors.background)
     ) {
         BackgroundPattern()
 
@@ -194,8 +197,9 @@ private fun PaletteBar(
     onPaletteColorLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rowSpacing = dimensionResource(R.dimen.mash_palette_row_spacing)
-    val horizontalPadding = dimensionResource(R.dimen.mash_palette_horizontal_padding)
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val rowSpacing = dimensions.sm
+    val horizontalPadding = dimensions.sm
 
     LazyRow(
         modifier = modifier,
@@ -229,15 +233,17 @@ private fun SchemeCard(
     onBackgroundClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     val cornerRadius = dimensionResource(R.dimen.mash_card_corner_radius)
     val elevation = dimensionResource(R.dimen.mash_card_elevation)
-    val contentPadding = dimensionResource(R.dimen.mash_card_content_padding)
+    val contentPadding = dimensions.md
 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(cornerRadius),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.mash_surface)
+            containerColor = colors.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
@@ -247,7 +253,7 @@ private fun SchemeCard(
         ) {
             when {
                 loading -> CircularProgressIndicator(
-                    color = colorResource(R.color.mash_primary)
+                    color = colors.primaryAction
                 )
 
                 scheme != null -> SchemeWorkspace(
@@ -260,13 +266,13 @@ private fun SchemeCard(
 
                 errorTextRes != null -> Text(
                     text = stringResource(errorTextRes),
-                    color = colorResource(R.color.mash_text_secondary),
+                    color = colors.textSecondary,
                     modifier = Modifier.padding(contentPadding)
                 )
 
                 else -> Text(
                     text = stringResource(R.string.mash_no_scheme),
-                    color = colorResource(R.color.mash_text_secondary),
+                    color = colors.textSecondary,
                     modifier = Modifier.padding(contentPadding)
                 )
             }
@@ -282,10 +288,12 @@ private fun SchemeWorkspace(
     onCellClick: (Int) -> Unit,
     onBackgroundClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     val workspaceShape = RoundedCornerShape(
         dimensionResource(R.dimen.mash_scheme_workspace_corner_radius)
     )
-    val workspacePadding = dimensionResource(R.dimen.mash_scheme_workspace_padding)
+    val workspacePadding = dimensions.sm
     val workspaceBorderWidth = dimensionResource(R.dimen.mash_scheme_workspace_border_width)
 
     Box(
@@ -293,10 +301,10 @@ private fun SchemeWorkspace(
             .fillMaxSize()
             .padding(workspacePadding)
             .clip(workspaceShape)
-            .background(colorResource(R.color.mash_white))
+            .background(colors.white)
             .border(
                 width = workspaceBorderWidth,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
                 shape = workspaceShape,
             )
     ) {
@@ -316,6 +324,7 @@ private fun DownloadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val height = dimensionResource(R.dimen.mash_button_height)
     val cornerRadius = dimensionResource(R.dimen.mash_button_corner_radius)
     val elevation = dimensionResource(R.dimen.mash_button_elevation)
@@ -327,10 +336,10 @@ private fun DownloadButton(
         shape = RoundedCornerShape(cornerRadius),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = elevation),
         colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(R.color.mash_primary),
-            contentColor = colorResource(R.color.mash_white),
-            disabledContainerColor = colorResource(R.color.mash_primary_disabled),
-            disabledContentColor = colorResource(R.color.mash_text_secondary)
+            containerColor = colors.primaryAction,
+            contentColor = colors.onPrimaryAction,
+            disabledContainerColor = colors.primaryActionDisabled,
+            disabledContentColor = colors.textSecondary
         )
     ) {
         Text(
@@ -351,24 +360,26 @@ private fun ColorSwatch(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    val swatchTextSpacing = dimensionResource(R.dimen.mash_swatch_text_spacing)
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val swatchTextSpacing = dimensions.xs
     val swatchSize = dimensionResource(R.dimen.mash_swatch_size)
     val swatchCornerRadius = dimensionResource(R.dimen.mash_swatch_corner_radius)
     val swatchBorderWidth = dimensionResource(R.dimen.mash_swatch_border_width)
     val swatchSelectedBorderWidth = dimensionResource(R.dimen.mash_swatch_selected_border_width)
     val swatchSelectedPadding = dimensionResource(R.dimen.mash_swatch_selected_padding)
     val swatchTextSize = dimensionResource(R.dimen.mash_swatch_text_size).value.sp
-    val bottomSpacing = dimensionResource(R.dimen.mash_palette_bottom_spacing)
+    val bottomSpacing = dimensions.zero
 
     val innerShape = RoundedCornerShape(swatchCornerRadius)
     val outerShape = RoundedCornerShape(swatchCornerRadius + swatchSelectedPadding)
-    val selectedBorderColor = colorResource(R.color.mash_primary)
-    val completedBorderColor = colorResource(R.color.mash_text_primary)
-    val articleColor = colorResource(R.color.mash_swatch_text)
+    val selectedBorderColor = colors.primaryAction
+    val completedBorderColor = colors.textPrimary
+    val articleColor = colors.swatchText
     val numberColor = if (thread.color.luminance() > SWATCH_LIGHT_LUMINANCE_THRESHOLD) {
-        colorResource(R.color.mash_text_primary)
+        colors.textPrimary
     } else {
-        colorResource(R.color.mash_white)
+        colors.white
     }
 
     Column(
@@ -380,7 +391,7 @@ private fun ColorSwatch(
             modifier = Modifier
                 .clip(outerShape)
                 .border(
-                    width = if (isSelected) swatchSelectedBorderWidth else dimensionResource(R.dimen.radius_0),
+                    width = if (isSelected) swatchSelectedBorderWidth else dimensions.zero,
                     color = if (isSelected) selectedBorderColor else Color.Transparent,
                     shape = outerShape,
                 )
@@ -428,6 +439,7 @@ private fun NumberedSchemeCanvas(
     onCellClick: (Int) -> Unit,
     onBackgroundClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val maxScale = integerResource(R.integer.mash_max_scale).toFloat()
     val tapSlopPx = LocalViewConfiguration.current.touchSlop
     val tapSlopSquared = tapSlopPx * tapSlopPx
@@ -435,10 +447,10 @@ private fun NumberedSchemeCanvas(
         dimensionResource(R.dimen.mash_scheme_draw_numbers_threshold).toPx()
     }
 
-    val schemeBackgroundColor = colorResource(R.color.mash_white)
-    val gridStrokeColor = colorResource(R.color.mash_grid_stroke)
-    val majorGridStrokeColor = colorResource(R.color.mash_grid_major_stroke)
-    val numberTextColor = colorResource(R.color.mash_number_text)
+    val schemeBackgroundColor = colors.white
+    val gridStrokeColor = colors.gridStroke
+    val majorGridStrokeColor = colors.gridMajorStroke
+    val numberTextColor = colors.gridNumberText
 
     val textPaint = remember {
         Paint().apply {

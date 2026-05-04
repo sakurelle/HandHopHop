@@ -3,7 +3,7 @@ package ru.handhophop.core.network
 import okhttp3.Interceptor
 import okhttp3.Response
 
-private const val API_KEY = "FPSXb560b0811e3f949c5f71d61addabf80b"
+private const val API_KEY = "FPSX940c778f4dfa9a3ea8b15e3473ef373a"
 
 class FreepikApiInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
