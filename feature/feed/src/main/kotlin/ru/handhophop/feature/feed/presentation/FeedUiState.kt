@@ -16,7 +16,8 @@ internal sealed interface FeedUiState {
         val isRecommendedLoading: Boolean = false,
         val filterSections: List<FilterSectionState> = emptyList(),
         val isFilterVisible: Boolean = false,
-        val currentFilter: FeedFilter = FeedFilter()
+        val currentFilter: FeedFilter = FeedFilter(),
+        val isRefreshing: Boolean = false
     ) : FeedUiState
 
     @Immutable

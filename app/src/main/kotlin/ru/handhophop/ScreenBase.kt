@@ -26,8 +26,8 @@ import ru.handhophop.core.design.Route
 @Composable
 internal fun ScreenBase(
     feedScreen: @Composable (onPhotoSelected: (String) -> Unit) -> Unit,
-    mashScreen: @Composable (String?, (Boolean) -> Unit) -> Unit,
-    bookmarkScreen: @Composable () -> Unit,
+    mashScreen: @Composable (Long?, String?, (Boolean) -> Unit) -> Unit,
+    bookmarkScreen: @Composable (onPhotoSelected: (Long, String) -> Unit) -> Unit,
     settingsScreen: @Composable () -> Unit,
 ) {
     @Suppress("UNCHECKED_CAST")
