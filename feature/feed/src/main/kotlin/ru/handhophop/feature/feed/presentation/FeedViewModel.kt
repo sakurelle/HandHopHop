@@ -113,6 +113,8 @@ internal class FeedViewModel(
 
     private fun refreshPhotos() {
         repository.clearCache()
+        repository.updateTerm()
+        curPage.set(1)
         loadPhotos(refresh = true)
     }
 
@@ -132,7 +134,16 @@ internal class FeedViewModel(
 
         viewModelScope.launch {
             Log.d(TAG, "Loading photos. refresh=$refresh")
-            _uiState.value = FeedUiState.Loading
+            val currentState = _uiState.value
+
+            if (refresh && currentState is FeedUiState.Success) {
+                _uiState.update { current ->
+                    if (current !is FeedUiState.Success) return@update current
+                    current.copy(isRefreshing = true)
+                }
+            } else {
+                _uiState.value = FeedUiState.Loading
+            }
 
             repository.getPhotos(
                 orientationId = filterCopy.orientation.id,
@@ -152,16 +163,25 @@ internal class FeedViewModel(
                         isRecommendedLoading = true,
                         hasNext = items.isNotEmpty(),
                         filterSections = setFilterSections(filterCopy),
-                        currentFilter = filterCopy
+                        currentFilter = filterCopy,
+                        isRefreshing = false
                     )
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Main feed load failed", error)
-                    _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
+                    _uiState.update { current ->
+                        if (current is FeedUiState.Success) {
+                            current.copy(isRefreshing =false)
+                        } else {
+                            FeedUiState.Error(
+                                reason = mapError(error),
+                                msg = error.message ?: "Unknown error"
+                            )
+                        }
+                    }
                 }
             )
 
-            val current = _uiState.value as? FeedUiState.Success ?: return@launch
             repository.getRecommendedPhotos().fold(
 
                 onSuccess = { photos ->

@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class DesignDimensions(
-    val zero: Dp = 0.dp,
     val xs: Dp = 4.dp,
     val sm: Dp = 8.dp,
     val md: Dp = 16.dp,

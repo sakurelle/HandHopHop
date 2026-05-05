@@ -11,7 +11,30 @@ internal class FeedRepository(
         const val TAG = "FeedRepository"
     }
 
-    private val recommendedFilters = listOf("sea", "mountains")
+    private val feedTerms = listOf(
+        "nature",
+        "sea",
+        "mountains",
+        "forest",
+        "cats",
+        "dogs",
+        "sunset",
+        "ocean",
+        "flowers",
+        "waterfall",
+        "lake",
+        "beach",
+        "sky",
+        "wildlife",
+        "island",
+        "snow",
+        "desert",
+        "river",
+        "garden",
+        "birds"
+    )
+
+    private var currentTerm: String = feedTerms.random()
     private val cachedIds = mutableSetOf<String>()
 
     suspend fun getPhotos(
@@ -47,6 +70,8 @@ internal class FeedRepository(
             val photos = apiService.getRandomPhotos(
                 page = page,
                 limit = count,
+                term = currentTerm,
+                photo = 1,
                 color = colorParam,
                 landscape = landscape,
                 portrait = portrait,
@@ -57,7 +82,7 @@ internal class FeedRepository(
             ).data
             val unique = photos.filter { it.id.toString() !in cachedIds }
             cachedIds.addAll(unique.map { it.id.toString() })
-            Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}")
+            Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}, filter=${currentTerm}")
             unique
         }.onFailure { error ->
             Log.e(TAG, "Failed to load photos for page=$page", error)
@@ -65,19 +90,26 @@ internal class FeedRepository(
     }
 
     suspend fun getRecommendedPhotos(): Result<List<FreepikPhoto>> {
-        val filter = recommendedFilters.random()
         return runCatching {
-            Log.d(TAG, "Requesting recommended photos: term=$filter")
-            val photos = apiService.getRandomPhotos(limit = 5, term = filter).data
-            Log.d(TAG, "Received recommended photos: term=$filter, count=${photos.size}")
+            Log.d(TAG, "Requesting recommended photos")
+            val photos = apiService.getRandomPhotos(limit = 5, photo = 1).data
+            Log.d(TAG, "Received recommended photos, count=${photos.size}")
             photos
         }.onFailure { error ->
-            Log.e(TAG, "Failed to load recommended photos for term=$filter", error)
+            Log.e(TAG, "Failed to load recommended photos", error)
         }
     }
 
     fun clearCache() {
         Log.d(TAG, "Clearing photo cache. Previous size=${cachedIds.size}")
         cachedIds.clear()
+    }
+
+    fun updateTerm() {
+        val oldTerm = currentTerm
+        currentTerm = feedTerms
+            .filter { it != oldTerm }
+            .random()
+        Log.d(TAG, "Updated feed term: $oldTerm -> $currentTerm")
     }
 }

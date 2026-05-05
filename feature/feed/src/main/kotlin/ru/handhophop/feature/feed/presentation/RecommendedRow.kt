@@ -1,5 +1,6 @@
 package ru.handhophop.feature.feed.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import ru.handhophop.feature.feed.R
 @Composable
 internal fun RecommendedRow(
     state: FeedUiState.Success,
+    onPhotoClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val spacing = dimensionResource(R.dimen.feed_spacing)
@@ -74,7 +76,8 @@ internal fun RecommendedRow(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {onPhotoClicked(photo.photoUrl)},
                             contentScale = ContentScale.Crop
                         )
                     }
