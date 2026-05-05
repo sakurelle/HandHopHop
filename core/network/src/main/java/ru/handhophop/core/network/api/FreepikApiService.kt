@@ -10,6 +10,7 @@ interface FreepikApiService {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 10,
         @Query("term") term: String? = null,
+        @Query("filters[content_type][photo]") photo: Int? = null,
         @Query(value = "filters%5Bcolor%5D", encoded = true) color: String? = null,
         @Query("filters[orientation][landscape]") landscape: Int? = null,
         @Query("filters[orientation][portrait]") portrait: Int? = null,
