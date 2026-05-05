@@ -53,6 +53,7 @@ private val LightDesignColors = DesignColors(
     lightBrown = Color(0xFFBD9C89),
     button = Color(0xFF69564B),
     textAndIcons = Color(0xFF211915),
+
     surfaceSoft = Color(0xFFE9DDD5),
     outline = Color(0xFFBD9C89),
 )
