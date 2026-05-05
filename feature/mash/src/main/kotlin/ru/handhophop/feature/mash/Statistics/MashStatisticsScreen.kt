@@ -17,8 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +31,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
@@ -206,16 +206,13 @@ private fun MashStatisticsProjectCard(
                 color = colors.primaryAction,
             )
 
-            Button(
+            HandHopHopButton(
                 onClick = onOpenProjectClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = dimensions.lg * 2),
-                shape = RoundedCornerShape(buttonCornerRadius),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primaryAction,
-                    contentColor = colors.onPrimaryAction,
-                )
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = stringResource(R.string.mash_statistics_open_scheme_button))
             }
@@ -525,14 +522,12 @@ private fun MashStatisticsStateCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
             )
-            Button(
+            HandHopHopButton(
                 onClick = onButtonClick,
                 modifier = Modifier.defaultMinSize(minHeight = dimensions.lg * 2),
-                shape = RoundedCornerShape(dimensions.md),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primaryAction,
-                    contentColor = colors.onPrimaryAction,
-                )
+                size = ButtonState.Size.WRAPCONTENT,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = buttonText)
             }

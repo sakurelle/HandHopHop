@@ -21,6 +21,7 @@ import ru.handhophop.design.R
 fun HandHopHopButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     isActive: Boolean = true,
     size: Size = Size.FIX,
     textColor: ButtonState.Color = ButtonState.Color.White,
@@ -36,7 +37,7 @@ fun HandHopHopButton(
     val containerColor = buttonColor.getColor()
     val outlineColor = borderColor.getColor()
     val contentColor = textColor.getColor().let { baseColor ->
-        if (isActive) baseColor else baseColor.copy(alpha = 0.5f)
+        if (enabled && isActive) baseColor else baseColor.copy(alpha = 0.5f)
     }
 
     val sizeModifier = when (size) {
@@ -50,19 +51,20 @@ fun HandHopHopButton(
     }
 
     Button(
-        modifier = modifier
-            .then(sizeModifier)
+        modifier = sizeModifier
+            .then(modifier)
             .border(
                 width = border,
                 color = outlineColor,
                 shape = RoundedCornerShape(radius),
             ),
         onClick = onClick,
+        enabled = enabled,
         shape = RoundedCornerShape(radius),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
-            disabledContainerColor = containerColor,
+            disabledContainerColor = containerColor.copy(alpha = 0.55f),
             disabledContentColor = contentColor,
         ),
     ) {

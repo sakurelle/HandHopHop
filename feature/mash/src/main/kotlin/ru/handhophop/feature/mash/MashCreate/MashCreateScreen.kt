@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -48,6 +46,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.R
@@ -215,19 +215,14 @@ private fun MashCreateContent(
                             onDifficultyChanged = onDifficultyChanged,
                         )
 
-                        Button(
+                        HandHopHopButton(
                             onClick = onCreateClick,
                             enabled = isCreateButtonEnabled,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .defaultMinSize(minHeight = dimensions.lg * 2),
-                            shape = RoundedCornerShape(dimensions.md),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primaryAction,
-                                contentColor = colors.onPrimaryAction,
-                                disabledContainerColor = colors.primaryAction.copy(alpha = 0.55f),
-                                disabledContentColor = colors.textSecondary.copy(alpha = 0.75f),
-                            )
+                            textColor = ButtonState.Color.White,
+                            buttonColor = ButtonState.Color.Button,
                         ) {
                             Text(
                                 text = stringResource(R.string.mash_create_button_title),

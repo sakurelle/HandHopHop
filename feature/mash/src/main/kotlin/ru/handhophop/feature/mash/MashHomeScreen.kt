@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.Statistics.MashProjectMetrics
@@ -306,16 +306,13 @@ private fun MashCurrentWorkCard(
             )
         }
 
-        Button(
+        HandHopHopButton(
             onClick = onOpenProjectClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = dimensions.lg * 2),
-            shape = RoundedCornerShape(buttonCornerRadius),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colors.primaryAction,
-                contentColor = colors.onPrimaryAction,
-            ),
+            textColor = ButtonState.Color.White,
+            buttonColor = ButtonState.Color.Button,
         ) {
             Text(
                 text = if (metrics.completedCells == 0) {
@@ -421,13 +418,11 @@ private fun MashHomeStateCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
             )
-            Button(
+            HandHopHopButton(
                 onClick = onButtonClick,
-                shape = RoundedCornerShape(dimensions.md),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primaryAction,
-                    contentColor = colors.onPrimaryAction,
-                ),
+                size = ButtonState.Size.WRAPCONTENT,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = buttonText)
             }

@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,6 +60,8 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
@@ -316,18 +316,12 @@ private fun DownloadButton(
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
 
-    Button(
+    HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.defaultMinSize(minHeight = dimensions.lg * 2),
-        shape = RoundedCornerShape(dimensions.md),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = dimensions.xs),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.primaryAction,
-            contentColor = colors.onPrimaryAction,
-            disabledContainerColor = colors.primaryAction.copy(alpha = 0.55f),
-            disabledContentColor = colors.textSecondary.copy(alpha = 0.75f)
-        )
+        textColor = ButtonState.Color.White,
+        buttonColor = ButtonState.Color.Button,
     ) {
         Text(
             text = stringResource(R.string.mash_download_scheme),
