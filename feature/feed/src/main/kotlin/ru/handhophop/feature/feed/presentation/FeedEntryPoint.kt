@@ -1,20 +1,27 @@
 package ru.handhophop.feature.feed.presentation
 
-import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.handhophop.core.network.FreepikNetwork
+import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
+import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.feed.data.FeedRepository
 
 @Composable
 fun FeedEntryPoint(
     onPhotoSelected: (String) -> Unit = {},
 ) {
-    val repository = remember {
+    val context = LocalContext.current
+
+    val repository = remember(context) {
         FeedRepository(
-            FreepikNetwork.getApiService(),
+            apiService = FreepikNetwork.getApiService(),
+            workLocalRepository = WorkLocalRepository(
+                workDao = HandHopHopDatabaseProvider.get(context).workDao()
+            )
         )
     }
 

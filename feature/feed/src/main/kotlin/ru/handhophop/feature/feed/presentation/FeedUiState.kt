@@ -37,5 +37,7 @@ internal sealed interface FeedError {
 @Immutable
 internal data class FeedPhotoItem(
     val id: String,
-    val photoUrl: String
+    val photoUrl: String,
+    val isBookmarked: Boolean = false,
+    val progressPercentage: Int = 0
 )

@@ -68,6 +68,11 @@ class WorkLocalRepository(
         return workDao.getByUrl(url)?.toLocalItem()
     }
 
+    suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {
+        if (urls.isEmpty()) return emptyList()
+        return workDao.getByUrls(urls).map(WorkEntity::toLocalItem)
+    }
+
     suspend fun getWorkById(id: Long): WorkLocalItem? {
         return workDao.getById(id)?.toLocalItem()
     }
