@@ -3,6 +3,7 @@ package ru.handhophop.core.design
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -47,6 +48,10 @@ fun HandHopHopButton(
 
         Size.WRAPCONTENT -> Modifier
             .wrapContentWidth()
+            .height(height)
+
+        Size.FILL -> Modifier
+            .fillMaxWidth()
             .height(height)
     }
 

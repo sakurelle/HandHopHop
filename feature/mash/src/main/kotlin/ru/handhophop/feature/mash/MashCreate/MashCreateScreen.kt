@@ -218,9 +218,7 @@ private fun MashCreateContent(
                         HandHopHopButton(
                             onClick = onCreateClick,
                             enabled = isCreateButtonEnabled,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .defaultMinSize(minHeight = dimensions.lg * 2),
+                            size = ButtonState.Size.FILL,
                             textColor = ButtonState.Color.White,
                             buttonColor = ButtonState.Color.Button,
                         ) {

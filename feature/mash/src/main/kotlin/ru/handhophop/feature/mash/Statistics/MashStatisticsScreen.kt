@@ -208,9 +208,7 @@ private fun MashStatisticsProjectCard(
 
             HandHopHopButton(
                 onClick = onOpenProjectClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = dimensions.lg * 2),
+                size = ButtonState.Size.FILL,
                 textColor = ButtonState.Color.White,
                 buttonColor = ButtonState.Color.Button,
             ) {

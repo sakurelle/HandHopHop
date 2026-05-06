@@ -319,7 +319,8 @@ private fun DownloadButton(
     HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.defaultMinSize(minHeight = dimensions.lg * 2),
+        modifier = modifier,
+        size = ButtonState.Size.FILL,
         textColor = ButtonState.Color.White,
         buttonColor = ButtonState.Color.Button,
     ) {

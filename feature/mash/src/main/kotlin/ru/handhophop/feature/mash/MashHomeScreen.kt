@@ -285,32 +285,36 @@ private fun MashCurrentWorkCard(
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = dimensions.lg * 2)
-                .clip(RoundedCornerShape(buttonCornerRadius))
-                .background(colors.surface)
-                .clickable(onClick = onOpenStatisticsClick)
-                .padding(horizontal = dimensions.md, vertical = dimensions.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxWidth(),
         ) {
-            Text(
-                text = stringResource(R.string.mash_home_open_statistics),
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.textPrimary,
-            )
-            Text(
-                text = ">",
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.textPrimary,
-            )
+            HandHopHopButton(
+                onClick = onOpenStatisticsClick,
+                size = ButtonState.Size.FILL,
+                textColor = ButtonState.Color.Button,
+                buttonColor = ButtonState.Color.Background,
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.mash_home_open_statistics),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.textPrimary,
+                    )
+                    Text(
+                        text = ">",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.textPrimary,
+                    )
+                }
+            }
         }
 
         HandHopHopButton(
             onClick = onOpenProjectClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = dimensions.lg * 2),
+            size = ButtonState.Size.FILL,
             textColor = ButtonState.Color.White,
             buttonColor = ButtonState.Color.Button,
         ) {
