@@ -154,8 +154,10 @@ internal class FeedViewModel(
                     Log.d(TAG, "Main feed loaded successfully. count=${photos.size}")
                     val items = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
                     _uiState.value = FeedUiState.Success(
@@ -188,8 +190,10 @@ internal class FeedViewModel(
                     Log.d(TAG, "Recommended photos loaded successfully. count=${photos.size}")
                     val items = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
                     _uiState.update { current ->
@@ -239,8 +243,10 @@ internal class FeedViewModel(
                     Log.d(TAG, "Next page loaded successfully. page=$nextPage, count=${photos.size}")
                     val newPhotos = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
 
