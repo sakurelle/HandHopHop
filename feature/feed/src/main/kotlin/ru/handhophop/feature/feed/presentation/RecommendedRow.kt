@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import ru.handhophop.feature.feed.R
+import ru.handhophop.design.R as DesignR
 
 @Composable
 internal fun RecommendedRow(
@@ -34,18 +35,18 @@ internal fun RecommendedRow(
     onPhotoClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val spacing = dimensionResource(R.dimen.feed_spacing)
+    val spacing = dimensionResource(DesignR.dimen.feed_spacing)
     Column(modifier = modifier.fillMaxWidth().padding(
-        top = dimensionResource(R.dimen.text_spacing)
+        top = dimensionResource(DesignR.dimen.text_spacing)
     )) {
         Text(
             modifier = modifier
                 .padding(
-                    start = dimensionResource(R.dimen.feed_spacing)
+                    start = dimensionResource(DesignR.dimen.feed_spacing)
                 ),
             text = stringResource(R.string.recommended_row_header),
             fontWeight = FontWeight.SemiBold,
-            fontSize = dimensionResource(R.dimen.recommended_header).value.sp,
+            fontSize = dimensionResource(DesignR.dimen.recommended_header).value.sp,
         )
 
         Spacer(modifier = Modifier.height(spacing))
@@ -68,7 +69,7 @@ internal fun RecommendedRow(
                         start = spacing,
                         end = spacing
                     ),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.recommended_row_spacing))
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.recommended_row_spacing))
                 ) {
                     items(items = state.recommendedPhotos, key = {it.id}) { photo ->
                         AsyncImage(

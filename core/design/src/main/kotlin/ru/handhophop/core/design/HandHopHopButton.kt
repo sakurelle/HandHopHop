@@ -1,6 +1,5 @@
 package ru.handhophop.core.design
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,16 +26,13 @@ fun HandHopHopButton(
     size: Size = Size.FIX,
     textColor: ButtonState.Color = ButtonState.Color.White,
     buttonColor: ButtonState.Color = ButtonState.Color.Button,
-    borderColor: ButtonState.Color = ButtonState.Color.Button,
     content: @Composable RowScope.(contentColor: Color) -> Unit,
 ) {
     val radius = dimensionResource(R.dimen.main_radius)
     val height = dimensionResource(R.dimen.button_height)
     val width = dimensionResource(R.dimen.button_width)
-    val border = dimensionResource(R.dimen.button_border)
 
     val containerColor = buttonColor.getColor()
-    val outlineColor = borderColor.getColor()
     val contentColor = textColor.getColor().let { baseColor ->
         if (enabled && isActive) baseColor else baseColor.copy(alpha = 0.5f)
     }
@@ -56,13 +52,7 @@ fun HandHopHopButton(
     }
 
     Button(
-        modifier = sizeModifier
-            .then(modifier)
-            .border(
-                width = border,
-                color = outlineColor,
-                shape = RoundedCornerShape(radius),
-            ),
+        modifier = sizeModifier.then(modifier),
         onClick = onClick,
         enabled = enabled,
         shape = RoundedCornerShape(radius),
