@@ -14,11 +14,13 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -71,6 +73,7 @@ private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 private const val SCHEME_NUMBER_DARK_TEXT_THRESHOLD = 0.6f
 private const val SCHEME_MAJOR_GRID_STEP = 10
 private const val MASH_MAX_SCALE = 4f
+private const val MASH_SCHEME_BOTTOM_GAP_FRACTION = 0.03f
 
 @Composable
 internal fun MashScreen(
@@ -132,27 +135,48 @@ private fun CenterContentMash(
                 onBackClick = onBackClick,
             )
 
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                SchemeCard(
-                    loading = uiState.isLoading,
-                    scheme = uiState.scheme,
-                    errorTextRes = uiState.errorTextRes,
-                    selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    completedCellIndices = uiState.completedCellIndices,
-                    onCellClick = onSchemeCellClick,
-                    onBackgroundClick = onClearSelection,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = horizontalPadding,
-                            end = horizontalPadding,
-                            top = verticalPadding
-                        )
-                )
+                val schemeAspectRatio = uiState.scheme?.let { scheme ->
+                    scheme.gridW.toFloat() / scheme.gridH.toFloat()
+                } ?: 1f
+                val availableSchemeWidth = (maxWidth - (horizontalPadding * 2))
+                    .coerceAtLeast(dimensions.xl * 8)
+                val reservedBottomGap = maxHeight * MASH_SCHEME_BOTTOM_GAP_FRACTION
+                val maxSchemeHeight = (maxHeight - reservedBottomGap - verticalPadding)
+                    .coerceAtLeast(dimensions.xl * 8)
+                val resolvedSchemeHeight = if (uiState.scheme != null) {
+                    minOf(maxSchemeHeight, availableSchemeWidth / schemeAspectRatio)
+                } else {
+                    maxSchemeHeight
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    SchemeCard(
+                        loading = uiState.isLoading,
+                        scheme = uiState.scheme,
+                        errorTextRes = uiState.errorTextRes,
+                        selectedPaletteIndex = uiState.selectedPaletteIndex,
+                        completedCellIndices = uiState.completedCellIndices,
+                        onCellClick = onSchemeCellClick,
+                        onBackgroundClick = onClearSelection,
+                        modifier = Modifier
+                            .padding(
+                                start = horizontalPadding,
+                                end = horizontalPadding,
+                                top = verticalPadding
+                            )
+                            .fillMaxWidth()
+                            .height(resolvedSchemeHeight)
+                            .defaultMinSize(minHeight = dimensions.xl * 8)
+                    )
+                }
             }
 
             DownloadButton(

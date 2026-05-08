@@ -2,14 +2,17 @@ package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
@@ -32,7 +35,7 @@ internal class MashViewModel(
 
     internal fun handleAction(action: UiAction) {
         when (action) {
-            is ClickDownloadsAction -> download()
+            is ClickDownloadsAction -> download(action.projectTitle)
             is GenerateSchemeAction -> generateScheme(
                 config = action.config,
                 imageBytes = action.imageBytes,
@@ -209,7 +212,35 @@ internal class MashViewModel(
         )
     }
 
-    private fun download() {
+    private fun download(projectTitle: String) {
+        val currentScheme = _uiState.value.scheme ?: return
+        val context = getApplication<Application>().applicationContext
+
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                exportSchemePdf(
+                    context = context,
+                    projectTitle = projectTitle,
+                    scheme = currentScheme,
+                )
+            }
+
+            result.onSuccess { savedPdfFile ->
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.mash_pdf_saved, savedPdfFile.fileName),
+                    Toast.LENGTH_LONG,
+                ).show()
+                openSavedPdf(context, savedPdfFile)
+                showSavedPdfNotification(context, savedPdfFile)
+            }.onFailure {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.mash_pdf_failed),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
         // TODO: скачивание схемы
     }
 }

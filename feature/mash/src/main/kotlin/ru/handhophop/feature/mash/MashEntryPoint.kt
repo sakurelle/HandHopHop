@@ -1,6 +1,10 @@
 package ru.handhophop.feature.mash
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
@@ -52,6 +58,7 @@ fun MashEntryPoint(
     var createdConfig by remember { mutableStateOf(cachedWork?.config) }
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
     var pendingCompletedCells by remember { mutableStateOf<Set<Int>?>(null) }
+    var pendingDownloadTitle by remember { mutableStateOf<String?>(null) }
     var destination by rememberSaveable {
         mutableStateOf(
             if (initialWorkId != null || initialImageUrl != null) {
@@ -60,6 +67,16 @@ fun MashEntryPoint(
                 MashDestination.HOME
             }
         )
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { _ ->
+        pendingDownloadTitle?.let { projectTitle ->
+            viewModel.handleAction(
+                ClickDownloadsAction(projectTitle = projectTitle)
+            )
+        }
+        pendingDownloadTitle = null
     }
 
     LaunchedEffect(createdConfig) {
@@ -214,7 +231,17 @@ fun MashEntryPoint(
                 uiState = uiState,
                 onBackClick = { destination = MashDestination.HOME },
                 onDownloadClick = {
-                    viewModel.handleAction(ClickDownloadsAction())
+                    val projectTitle = createdConfig?.projectName.orEmpty()
+                    if (needsNotificationPermission(context)) {
+                        pendingDownloadTitle = projectTitle
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        viewModel.handleAction(
+                            ClickDownloadsAction(
+                                projectTitle = projectTitle,
+                            )
+                        )
+                    }
                 },
                 onSchemeCellClick = { cellIndex ->
                     viewModel.handleAction(ClickSchemeCellAction(cellIndex))
@@ -241,4 +268,12 @@ fun MashEntryPoint(
             )
         }
     }
+}
+
+private fun needsNotificationPermission(context: android.content.Context): Boolean {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
 }

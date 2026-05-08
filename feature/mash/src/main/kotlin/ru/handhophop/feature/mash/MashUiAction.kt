@@ -4,7 +4,9 @@ import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 
 internal interface UiAction
 
-internal class ClickDownloadsAction : UiAction
+internal class ClickDownloadsAction(
+    val projectTitle: String,
+) : UiAction
 
 internal class GenerateSchemeAction(
     val config: MashCreateConfig,

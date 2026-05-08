@@ -90,4 +90,11 @@
     <string name="mash_weekday_sat">Сб</string>
     <string name="mash_weekday_sun">Вс</string>
     <string name="mash_statistics_open_scheme_button">Открыть схему</string>
+    <string name="mash_pdf_file_title_fallback">Схема</string>
+    <string name="mash_pdf_saved">PDF сохранен: %1$s</string>
+    <string name="mash_pdf_saved_title">Схема сохранена</string>
+    <string name="mash_pdf_failed">Не удалось сохранить PDF</string>
+    <string name="mash_pdf_open_action">Открыть PDF</string>
+    <string name="mash_pdf_channel_name">Сохраненные схемы</string>
+    <string name="mash_pdf_channel_description">Уведомления о сохранении схем в PDF</string>
 </resources>
