@@ -9,10 +9,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import ru.handhophop.design.R
+import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.design.R as DesignR
 
 @Composable
 internal fun FeedFilterSheet(
@@ -20,6 +20,7 @@ internal fun FeedFilterSheet(
     onOptionSelected: (sectionId: Int, optionId: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = HandHopHopDesignSystem.colors
     Column(
         modifier = Modifier
             .clickable(
@@ -44,9 +45,9 @@ internal fun FeedFilterSheet(
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.arow_vertic),
+                painter = painterResource(id = DesignR.drawable.arow_vertic),
                 contentDescription = "свернуть",
-                tint = colorResource(R.color.black)
+                tint = colors.textPrimary
             )
         }
     }

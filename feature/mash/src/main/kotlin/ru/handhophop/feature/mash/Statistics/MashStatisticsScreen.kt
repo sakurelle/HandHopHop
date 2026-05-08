@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,8 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,11 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
 import ru.handhophop.feature.mash.MashModuleTopBar
@@ -49,13 +49,15 @@ internal fun MashStatisticsScreen(
     onOpenProjectClick: () -> Unit,
 ) {
     val metrics = uiState.toProjectMetrics()
-    val contentPadding = dimensionResource(R.dimen.mash_module_content_padding)
-    val contentSpacing = dimensionResource(R.dimen.mash_module_section_spacing)
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val contentPadding = dimensions.md
+    val contentSpacing = dimensions.md
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.mash_background))
+            .background(colors.background)
     ) {
         BackgroundPattern()
 
@@ -174,22 +176,25 @@ private fun MashStatisticsProjectCard(
     metrics: MashProjectMetrics,
     onOpenProjectClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val buttonCornerRadius = dimensions.md
     MashStatisticsCard {
         Column(
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_home_status_spacing)
+                dimensions.sm
             )
         ) {
             Text(
                 text = projectConfig.projectName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
             Text(
                 text = stringResource(projectDescription(projectConfig.schemeType)),
                 style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
             )
             Text(
                 text = stringResource(
@@ -198,17 +203,14 @@ private fun MashStatisticsProjectCard(
                     metrics.totalUsedColors
                 ),
                 style = MaterialTheme.typography.labelLarge,
-                color = colorResource(R.color.mash_primary),
+                color = colors.primaryAction,
             )
 
-            Button(
+            HandHopHopButton(
                 onClick = onOpenProjectClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(dimensionResource(R.dimen.mash_button_corner_radius)),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.mash_primary),
-                    contentColor = colorResource(R.color.mash_white),
-                )
+                size = ButtonState.Size.FILL,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = stringResource(R.string.mash_statistics_open_scheme_button))
             }
@@ -220,6 +222,10 @@ private fun MashStatisticsProjectCard(
 private fun MashStatisticsActivityCard(
     values: List<Int>,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val chartHeight = dimensions.xl * 5
+    val chartBarWidth = dimensions.lg
     val dayLabels = listOf(
         stringResource(R.string.mash_weekday_mon),
         stringResource(R.string.mash_weekday_tue),
@@ -233,19 +239,19 @@ private fun MashStatisticsActivityCard(
     MashStatisticsCard {
         Column(
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_home_status_spacing)
+                dimensions.sm
             )
         ) {
             Text(
                 text = stringResource(R.string.mash_statistics_activity_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
             Text(
                 text = stringResource(R.string.mash_statistics_activity_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
             )
 
             Row(
@@ -258,39 +264,39 @@ private fun MashStatisticsActivityCard(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(
-                            dimensionResource(R.dimen.mash_home_status_spacing)
+                            dimensions.sm
                         )
                     ) {
                         Text(
                             text = value.toString(),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colorResource(R.color.mash_text_secondary),
+                            color = colors.textSecondary,
                         )
 
                         Box(
                             modifier = Modifier
-                                .height(dimensionResource(R.dimen.mash_statistics_chart_height))
-                                .width(dimensionResource(R.dimen.mash_statistics_bar_width))
+                                .height(chartHeight)
+                                .width(chartBarWidth)
                                 .clip(RoundedCornerShape(percent = 50))
-                                .background(colorResource(R.color.mash_surface_soft)),
+                                .background(colors.surfaceSoft),
                             contentAlignment = Alignment.BottomCenter
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(
-                                        dimensionResource(R.dimen.mash_statistics_chart_height) *
+                                        chartHeight *
                                                 (value.toFloat() / maxValue.toFloat())
                                     )
                                     .clip(RoundedCornerShape(percent = 50))
-                                    .background(colorResource(R.color.mash_primary))
+                                    .background(colors.primaryAction)
                             )
                         }
 
                         Text(
                             text = dayLabels[index],
                             style = MaterialTheme.typography.labelMedium,
-                            color = colorResource(R.color.mash_text_secondary),
+                            color = colors.textSecondary,
                         )
                     }
                 }
@@ -303,35 +309,37 @@ private fun MashStatisticsActivityCard(
 private fun MashStatisticsProgressCard(
     metrics: MashProjectMetrics,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     MashStatisticsCard {
         Column(
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_home_status_spacing)
+                dimensions.sm
             )
         ) {
             Text(
                 text = stringResource(R.string.mash_statistics_progress_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.mash_module_section_spacing)
+                    dimensions.md
                 ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(
-                        dimensionResource(R.dimen.mash_home_status_spacing)
+                        dimensions.sm
                     )
                 ) {
                     Text(
                         text = metrics.completedCells.toString(),
                         style = MaterialTheme.typography.displaySmall,
-                        color = colorResource(R.color.mash_text_primary),
+                        color = colors.textPrimary,
                     )
                     Text(
                         text = stringResource(
@@ -340,13 +348,13 @@ private fun MashStatisticsProgressCard(
                             metrics.totalCells
                         ),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(R.color.mash_text_secondary),
+                        color = colors.textSecondary,
                     )
                 }
 
                 MashCompletionRing(
                     metrics = metrics,
-                    modifier = Modifier.size(dimensionResource(R.dimen.mash_statistics_ring_size))
+                    modifier = Modifier.size(dimensions.xl * 4)
                 )
             }
 
@@ -362,8 +370,10 @@ private fun MashCompletionRing(
     metrics: MashProjectMetrics,
     modifier: Modifier = Modifier,
 ) {
-    val strokeWidth = dimensionResource(R.dimen.mash_statistics_ring_stroke)
-    val trackColor = colorResource(R.color.mash_surface_soft)
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+    val strokeWidth = dimensions.md
+    val trackColor = colors.surfaceSoft
 
     Box(
         modifier = modifier,
@@ -402,12 +412,12 @@ private fun MashCompletionRing(
                 text = stringResource(R.string.mash_statistics_completion, metrics.progressPercent),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
             Text(
                 text = stringResource(R.string.mash_statistics_completion_caption),
                 style = MaterialTheme.typography.labelMedium,
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
             )
         }
     }
@@ -417,9 +427,11 @@ private fun MashCompletionRing(
 private fun MashPaletteUsageRow(
     usage: MashPaletteUsage,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Column(
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.mash_home_status_spacing)
+            dimensions.sm
         )
     ) {
         Row(
@@ -429,20 +441,20 @@ private fun MashPaletteUsageRow(
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.mash_home_status_spacing)
+                    dimensions.sm
                 ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(dimensionResource(R.dimen.mash_create_thread_circle_size))
+                        .size(dimensions.lg)
                         .clip(CircleShape)
                         .background(usage.thread.color)
                 )
                 Text(
                     text = usage.thread.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colorResource(R.color.mash_text_primary),
+                    color = colors.textPrimary,
                 )
             }
 
@@ -453,16 +465,16 @@ private fun MashPaletteUsageRow(
                     usage.cells
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
             )
         }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(dimensionResource(R.dimen.mash_statistics_palette_bar_height))
+                .height(dimensions.xs + (dimensions.xs / 2))
                 .clip(RoundedCornerShape(percent = 50))
-                .background(colorResource(R.color.mash_surface_soft))
+                .background(colors.surfaceSoft)
         ) {
             Box(
                 modifier = Modifier
@@ -473,7 +485,7 @@ private fun MashPaletteUsageRow(
                             usage.completedCells.toFloat() / usage.cells.toFloat()
                         }
                     )
-                    .height(dimensionResource(R.dimen.mash_statistics_palette_bar_height))
+                    .height(dimensions.xs + (dimensions.xs / 2))
                     .clip(RoundedCornerShape(percent = 50))
                     .background(usage.thread.color)
             )
@@ -489,30 +501,31 @@ private fun MashStatisticsStateCard(
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     MashStatisticsCard(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_module_section_spacing)
+                dimensions.md
             )
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.mash_text_secondary),
+                color = colors.textSecondary,
             )
-            Button(
+            HandHopHopButton(
                 onClick = onButtonClick,
-                shape = RoundedCornerShape(dimensionResource(R.dimen.mash_button_corner_radius)),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.mash_primary),
-                    contentColor = colorResource(R.color.mash_white),
-                )
+                modifier = Modifier.defaultMinSize(minHeight = dimensions.lg * 2),
+                size = ButtonState.Size.WRAPCONTENT,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = buttonText)
             }
@@ -524,19 +537,21 @@ private fun MashStatisticsStateCard(
 private fun MashStatisticsLoadingCard(
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     MashStatisticsCard(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_home_status_spacing)
+                dimensions.sm
             ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CircularProgressIndicator(color = colorResource(R.color.mash_primary))
+            CircularProgressIndicator(color = colors.primaryAction)
             Text(
                 text = stringResource(R.string.mash_statistics_loading_title),
                 style = MaterialTheme.typography.bodyLarge,
-                color = colorResource(R.color.mash_text_primary),
+                color = colors.textPrimary,
             )
         }
     }
@@ -547,23 +562,25 @@ private fun MashStatisticsCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensionResource(R.dimen.mash_module_card_corner_radius)),
+        shape = RoundedCornerShape(dimensions.lg),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.mash_surface)
+            containerColor = colors.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = dimensionResource(R.dimen.mash_card_elevation)
+            defaultElevation = dimensions.xs
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colorResource(R.color.mash_surface))
-                .padding(dimensionResource(R.dimen.mash_module_card_padding)),
+                .background(colors.surface)
+                .padding(dimensions.md),
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.mash_home_status_spacing)
+                dimensions.sm
             )
         ) {
             content()
