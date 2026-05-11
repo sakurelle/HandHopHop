@@ -75,6 +75,10 @@ private const val SCHEME_MAJOR_GRID_STEP = 10
 private const val MASH_MAX_SCALE = 4f
 private const val MASH_SCHEME_BOTTOM_GAP_FRACTION = 0.03f
 
+private data class SchemeLayoutMetrics(
+    val resolvedHeight: androidx.compose.ui.unit.Dp,
+)
+
 @Composable
 internal fun MashScreen(
     title: String,
@@ -140,18 +144,31 @@ private fun CenterContentMash(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                val schemeAspectRatio = uiState.scheme?.let { scheme ->
-                    scheme.gridW.toFloat() / scheme.gridH.toFloat()
-                } ?: 1f
-                val availableSchemeWidth = (maxWidth - (horizontalPadding * 2))
-                    .coerceAtLeast(dimensions.xl * 8)
-                val reservedBottomGap = maxHeight * MASH_SCHEME_BOTTOM_GAP_FRACTION
-                val maxSchemeHeight = (maxHeight - reservedBottomGap - verticalPadding)
-                    .coerceAtLeast(dimensions.xl * 8)
-                val resolvedSchemeHeight = if (uiState.scheme != null) {
-                    minOf(maxSchemeHeight, availableSchemeWidth / schemeAspectRatio)
-                } else {
-                    maxSchemeHeight
+                val schemeLayoutMetrics = remember(
+                    uiState.scheme,
+                    maxWidth,
+                    maxHeight,
+                    horizontalPadding,
+                    verticalPadding,
+                    dimensions.xl,
+                ) {
+                    val schemeAspectRatio = uiState.scheme?.let { scheme ->
+                        scheme.gridW.toFloat() / scheme.gridH.toFloat()
+                    } ?: 1f
+                    val availableSchemeWidth = (maxWidth - (horizontalPadding * 2))
+                        .coerceAtLeast(dimensions.xl * 8)
+                    val reservedBottomGap = maxHeight * MASH_SCHEME_BOTTOM_GAP_FRACTION
+                    val maxSchemeHeight = (maxHeight - reservedBottomGap - verticalPadding)
+                        .coerceAtLeast(dimensions.xl * 8)
+                    val resolvedSchemeHeight = if (uiState.scheme != null) {
+                        minOf(maxSchemeHeight, availableSchemeWidth / schemeAspectRatio)
+                    } else {
+                        maxSchemeHeight
+                    }
+
+                    SchemeLayoutMetrics(
+                        resolvedHeight = resolvedSchemeHeight,
+                    )
                 }
 
                 Box(
@@ -173,7 +190,7 @@ private fun CenterContentMash(
                                 top = verticalPadding
                             )
                             .fillMaxWidth()
-                            .height(resolvedSchemeHeight)
+                            .height(schemeLayoutMetrics.resolvedHeight)
                             .defaultMinSize(minHeight = dimensions.xl * 8)
                     )
                 }
