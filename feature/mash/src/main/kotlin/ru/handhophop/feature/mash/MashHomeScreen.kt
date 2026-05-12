@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,8 +68,8 @@ internal fun MashHomeScreen(
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md
     val contentSpacing = dimensions.md
-    val radius = dimensionResource(R.dimen.main_radius)
-    val border = dimensionResource(R.dimen.button_border)
+    val radius = dimensionResource(ru.handhophop.design.R.dimen.radius)
+    val border = dimensionResource(ru.handhophop.design.R.dimen.border)
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
 

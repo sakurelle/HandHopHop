@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,8 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
@@ -50,7 +54,6 @@ fun SettingScreen(
     modifier: Modifier = Modifier,
 ) {
     var isChecked by remember { mutableStateOf(false) }
-    var isCheckedTheme by remember { mutableStateOf(false) }
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val showDialog = remember { mutableStateOf(false) }
@@ -68,8 +71,6 @@ fun SettingScreen(
     val border = dimensionResource(DesignR.dimen.border)
     val width = dimensionResource(DesignR.dimen.width)
     val heightBlock = dimensionResource(DesignR.dimen.height_block)
-
-    val heightButton = dimensionResource(R.dimen.height_button)
 
     val text = stringResource(R.string.dark_theme)
     val clearData = stringResource(R.string.clear_data)
@@ -184,9 +185,9 @@ fun SettingScreen(
                         color = colors.textPrimary,
                     )
                     Switch(
-                        checked = isCheckedTheme,
+                        checked = isChecked,
                         onCheckedChange = { checked ->
-                            isCheckedTheme = checked
+                            isChecked = checked
                             onChangeTheme(checked)
                         },
                         colors = SwitchDefaults.colors(
@@ -235,10 +236,10 @@ fun SettingScreen(
                         progress = { storageProgress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(radius)),
+                            .height(12.dp),
+                            //.clip(RoundedCornerShape(radius)),
                         color = colors.primaryAction, // Темная часть
-                        trackColor = colors.white, // Светлая часть
+                        trackColor = Color.White, // Светлая часть
                     )
 
                     Spacer(modifier = Modifier.height(dimensions.md / 2))
