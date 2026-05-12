@@ -25,8 +25,10 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,8 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.handhophop.core.design.ExposableTopBar
 import ru.handhophop.core.design.TopBarState
-import ru.handhophop.design.R
+import ru.handhophop.design.R as DesignR
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun FeedScreen(
     viewModel: FeedViewModel,
@@ -68,23 +71,31 @@ internal fun FeedScreen(
 
         is FeedUiState.Success -> {
             Box(modifier = Modifier.fillMaxSize()) {
-                val spacing = dimensionResource(ru.handhophop.feature.feed.R.dimen.feed_spacing)
-                FeedGrid(
-                    state = state,
-                    onPhotoClicked = onPhotoSelected,
-                    onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
-                    contentPadding = PaddingValues(
-                        top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
-                            ru.handhophop.feature.feed.R.dimen.top_spacing),
-                        bottom = spacing
+                val spacing = dimensionResource(DesignR.dimen.feed_spacing)
+                PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = {
+                        viewModel.handleAction(FeedUiAction.Refresh)
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    FeedGrid(
+                        state = state,
+                        onPhotoClicked = onPhotoSelected,
+                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
+                        contentPadding = PaddingValues(
+                            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
+                                DesignR.dimen.top_spacing),
+                            bottom = spacing
+                        )
                     )
-                )
+                }
 
                 ExposableTopBar(
                     state = TopBarState(
-                        titleRes = R.string.feed_title,
+                        titleRes = DesignR.string.feed_title,
                         leftIconRes = null,
-                        rightIconRes = if (state.isFilterVisible) R.drawable.open_filter else R.drawable.filter
+                        rightIconRes = if (state.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
                     ),
                     onChanged = { isVisible ->
                         viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))

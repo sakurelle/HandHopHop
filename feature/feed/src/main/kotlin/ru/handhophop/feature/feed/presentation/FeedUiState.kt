@@ -16,7 +16,8 @@ internal sealed interface FeedUiState {
         val isRecommendedLoading: Boolean = false,
         val filterSections: List<FilterSectionState> = emptyList(),
         val isFilterVisible: Boolean = false,
-        val currentFilter: FeedFilter = FeedFilter()
+        val currentFilter: FeedFilter = FeedFilter(),
+        val isRefreshing: Boolean = false
     ) : FeedUiState
 
     @Immutable
@@ -36,5 +37,7 @@ internal sealed interface FeedError {
 @Immutable
 internal data class FeedPhotoItem(
     val id: String,
-    val photoUrl: String
+    val photoUrl: String,
+    val isBookmarked: Boolean = false,
+    val progressPercentage: Int = 0
 )

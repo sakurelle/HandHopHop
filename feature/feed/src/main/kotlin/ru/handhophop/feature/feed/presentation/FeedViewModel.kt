@@ -113,6 +113,8 @@ internal class FeedViewModel(
 
     private fun refreshPhotos() {
         repository.clearCache()
+        repository.updateTerm()
+        curPage.set(1)
         loadPhotos(refresh = true)
     }
 
@@ -132,7 +134,16 @@ internal class FeedViewModel(
 
         viewModelScope.launch {
             Log.d(TAG, "Loading photos. refresh=$refresh")
-            _uiState.value = FeedUiState.Loading
+            val currentState = _uiState.value
+
+            if (refresh && currentState is FeedUiState.Success) {
+                _uiState.update { current ->
+                    if (current !is FeedUiState.Success) return@update current
+                    current.copy(isRefreshing = true)
+                }
+            } else {
+                _uiState.value = FeedUiState.Loading
+            }
 
             repository.getPhotos(
                 orientationId = filterCopy.orientation.id,
@@ -143,8 +154,10 @@ internal class FeedViewModel(
                     Log.d(TAG, "Main feed loaded successfully. count=${photos.size}")
                     val items = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
                     _uiState.value = FeedUiState.Success(
@@ -152,24 +165,35 @@ internal class FeedViewModel(
                         isRecommendedLoading = true,
                         hasNext = items.isNotEmpty(),
                         filterSections = setFilterSections(filterCopy),
-                        currentFilter = filterCopy
+                        currentFilter = filterCopy,
+                        isRefreshing = false
                     )
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Main feed load failed", error)
-                    _uiState.value = FeedUiState.Error(reason = mapError(error), msg = error.message ?: "Unknown error")
+                    _uiState.update { current ->
+                        if (current is FeedUiState.Success) {
+                            current.copy(isRefreshing =false)
+                        } else {
+                            FeedUiState.Error(
+                                reason = mapError(error),
+                                msg = error.message ?: "Unknown error"
+                            )
+                        }
+                    }
                 }
             )
 
-            val current = _uiState.value as? FeedUiState.Success ?: return@launch
             repository.getRecommendedPhotos().fold(
 
                 onSuccess = { photos ->
                     Log.d(TAG, "Recommended photos loaded successfully. count=${photos.size}")
                     val items = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
                     _uiState.update { current ->
@@ -219,8 +243,10 @@ internal class FeedViewModel(
                     Log.d(TAG, "Next page loaded successfully. page=$nextPage, count=${photos.size}")
                     val newPhotos = photos.map {
                         FeedPhotoItem(
-                            id = it.id.toString(),
-                            photoUrl = it.image.source.url.replace("http://", "https://")
+                            id = it.id,
+                            photoUrl = it.photoUrl,
+                            isBookmarked = it.isBookmarked,
+                            progressPercentage = it.progressPercentage
                         )
                     }
 

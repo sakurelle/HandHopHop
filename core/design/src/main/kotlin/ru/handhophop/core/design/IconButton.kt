@@ -1,13 +1,9 @@
 package ru.handhophop.core.design
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,58 +19,46 @@ internal fun IconButton(
     state: IconButtonState,
     onClick: () -> Unit,
 ) {
-    val radius = dimensionResource(R.dimen.main_radius)
-    val height = dimensionResource(R.dimen.button_height)
     val padding = dimensionResource(R.dimen.main_padding)
-
     val text = dimensionResource(R.dimen.button_text_main).value.sp
-
-    val buttonColor = state.buttonColor.getColor()
-    val rowColor = state.textColor.getColor()
-
-
-
-    Button(
+    HandHopHopButton(
+        onClick = onClick,
         modifier = if (state.size == Size.FIX) {
             Modifier
                 .fillMaxWidth()
                 .padding(
                     start = padding,
-                    end = padding
+                    end = padding,
                 )
-                .height(height)
-        } else
+        } else {
             Modifier
-                .wrapContentWidth()
-                .height(height),
-        onClick = onClick,
-        shape = RoundedCornerShape(radius),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = buttonColor
-        )
-    ) {
+        },
+        isActive = state.isActive,
+        size = state.size,
+        textColor = state.textColor,
+        buttonColor = state.buttonColor,
+    ) { contentColor ->
         Row(
-            modifier = Modifier
+            modifier = if (state.size == Size.FIX) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier
+            },
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                modifier = if (state.size == Size.FIX) {
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                } else {
-                    Modifier
-                },
+                modifier = Modifier,
                 text = state.text,
                 fontSize = text,
-                color = if (state.isActive) rowColor else rowColor.copy(alpha = 0.5f),
-                textAlign = TextAlign.Start
+                color = contentColor,
+                textAlign = TextAlign.Start,
             )
             state.icon?.let {
                 Icon(
                     modifier = Modifier,
                     painter = state.icon,
                     contentDescription = null,
-                    tint = if (state.isActive) rowColor else rowColor.copy(alpha = 0.5f),
+                    tint = contentColor,
                 )
             }
         }

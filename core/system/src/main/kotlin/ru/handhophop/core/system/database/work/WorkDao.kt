@@ -41,6 +41,9 @@ interface WorkDao {
     @Query("SELECT * FROM work WHERE url = :url ORDER BY id DESC LIMIT 1")
     suspend fun getByUrl(url: String): WorkEntity?
 
+    @Query("SELECT * FROM work WHERE url in (:urls)")
+    suspend fun getByUrls(urls: List<String>): List<WorkEntity>
+
     @Query("SELECT * FROM work WHERE is_favorite = 1 ORDER BY id DESC")
     suspend fun getFavorites(): List<WorkEntity>
 

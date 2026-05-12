@@ -16,17 +16,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,11 +57,14 @@ import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
@@ -74,6 +75,7 @@ private const val SCHEME_SELECTED_FILL_ALPHA = 0.42f
 private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 private const val SCHEME_NUMBER_DARK_TEXT_THRESHOLD = 0.6f
 private const val SCHEME_MAJOR_GRID_STEP = 10
+private const val MASH_MAX_SCALE = 4f
 
 @Composable
 internal fun MashScreen(
@@ -235,17 +237,15 @@ private fun SchemeCard(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-    val cornerRadius = dimensionResource(R.dimen.mash_card_corner_radius)
-    val elevation = dimensionResource(R.dimen.mash_card_elevation)
     val contentPadding = dimensions.md
 
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(cornerRadius),
+        shape = RoundedCornerShape(dimensions.lg),
         colors = CardDefaults.cardColors(
             containerColor = colors.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
+        elevation = CardDefaults.cardElevation(defaultElevation = dimensions.xs)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -290,18 +290,16 @@ private fun SchemeWorkspace(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-    val workspaceShape = RoundedCornerShape(
-        dimensionResource(R.dimen.mash_scheme_workspace_corner_radius)
-    )
+    val workspaceShape = RoundedCornerShape(dimensions.md)
     val workspacePadding = dimensions.sm
-    val workspaceBorderWidth = dimensionResource(R.dimen.mash_scheme_workspace_border_width)
+    val workspaceBorderWidth = dimensions.xs / 4
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(workspacePadding)
             .clip(workspaceShape)
-            .background(colors.white)
+            .background(colors.notWhite)
             .border(
                 width = workspaceBorderWidth,
                 color = colors.textPrimary,
@@ -325,22 +323,15 @@ private fun DownloadButton(
     modifier: Modifier = Modifier,
 ) {
     val colors = HandHopHopDesignSystem.colors
-    val height = dimensionResource(R.dimen.mash_button_height)
-    val cornerRadius = dimensionResource(R.dimen.mash_button_corner_radius)
-    val elevation = dimensionResource(R.dimen.mash_button_elevation)
+    val dimensions = HandHopHopDesignSystem.dimensions
 
-    Button(
+    HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(height),
-        shape = RoundedCornerShape(cornerRadius),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = elevation),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.primaryAction,
-            contentColor = colors.onPrimaryAction,
-            disabledContainerColor = colors.primaryActionDisabled,
-            disabledContentColor = colors.textSecondary
-        )
+        modifier = modifier,
+        size = ButtonState.Size.FILL,
+        textColor = ButtonState.Color.White,
+        buttonColor = ButtonState.Color.Button,
     ) {
         Text(
             text = stringResource(R.string.mash_download_scheme),
@@ -363,23 +354,22 @@ private fun ColorSwatch(
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val swatchTextSpacing = dimensions.xs
-    val swatchSize = dimensionResource(R.dimen.mash_swatch_size)
-    val swatchCornerRadius = dimensionResource(R.dimen.mash_swatch_corner_radius)
-    val swatchBorderWidth = dimensionResource(R.dimen.mash_swatch_border_width)
-    val swatchSelectedBorderWidth = dimensionResource(R.dimen.mash_swatch_selected_border_width)
-    val swatchSelectedPadding = dimensionResource(R.dimen.mash_swatch_selected_padding)
-    val swatchTextSize = dimensionResource(R.dimen.mash_swatch_text_size).value.sp
-    val bottomSpacing = dimensions.zero
+    val swatchSize = dimensions.xl
+    val swatchCornerRadius = dimensions.xs
+    val swatchBorderWidth = dimensions.xs / 4
+    val swatchSelectedBorderWidth = dimensions.xs / 2
+    val swatchSelectedPadding = dimensions.xs / 2
+    val bottomSpacing = 0.dp
 
     val innerShape = RoundedCornerShape(swatchCornerRadius)
     val outerShape = RoundedCornerShape(swatchCornerRadius + swatchSelectedPadding)
     val selectedBorderColor = colors.primaryAction
     val completedBorderColor = colors.textPrimary
-    val articleColor = colors.swatchText
+    val articleColor = colors.textPrimary.copy(alpha = 0.72f)
     val numberColor = if (thread.color.luminance() > SWATCH_LIGHT_LUMINANCE_THRESHOLD) {
         colors.textPrimary
     } else {
-        colors.white
+        colors.notWhite
     }
 
     Column(
@@ -391,7 +381,7 @@ private fun ColorSwatch(
             modifier = Modifier
                 .clip(outerShape)
                 .border(
-                    width = if (isSelected) swatchSelectedBorderWidth else dimensions.zero,
+                    width = if (isSelected) swatchSelectedBorderWidth else 0.dp,
                     color = if (isSelected) selectedBorderColor else Color.Transparent,
                     shape = outerShape,
                 )
@@ -416,7 +406,7 @@ private fun ColorSwatch(
             ) {
                 Text(
                     text = number.toString(),
-                    fontSize = swatchTextSize,
+                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
                     fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.SemiBold,
                     color = numberColor,
                 )
@@ -440,17 +430,15 @@ private fun NumberedSchemeCanvas(
     onBackgroundClick: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
-    val maxScale = integerResource(R.integer.mash_max_scale).toFloat()
+    val dimensions = HandHopHopDesignSystem.dimensions
     val tapSlopPx = LocalViewConfiguration.current.touchSlop
     val tapSlopSquared = tapSlopPx * tapSlopPx
-    val drawNumbersThresholdPx = with(LocalDensity.current) {
-        dimensionResource(R.dimen.mash_scheme_draw_numbers_threshold).toPx()
-    }
+    val drawNumbersThresholdPx = with(LocalDensity.current) { dimensions.sm.toPx() }
 
-    val schemeBackgroundColor = colors.white
-    val gridStrokeColor = colors.gridStroke
-    val majorGridStrokeColor = colors.gridMajorStroke
-    val numberTextColor = colors.gridNumberText
+    val schemeBackgroundColor = colors.notWhite
+    val gridStrokeColor = colors.primaryAction.copy(alpha = 0.40f)
+    val majorGridStrokeColor = colors.textPrimary.copy(alpha = 0.70f)
+    val numberTextColor = colors.textPrimary.copy(alpha = 0.80f)
 
     val textPaint = remember {
         Paint().apply {
@@ -602,7 +590,7 @@ private fun NumberedSchemeCanvas(
                         val viewWidth = size.width.toFloat()
                         val viewHeight = size.height.toFloat()
                         val oldScale = scale
-                        val newScale = (oldScale * zoom).coerceIn(1f, maxScale)
+                        val newScale = (oldScale * zoom).coerceIn(1f, MASH_MAX_SCALE)
 
                         val oldCell = baseCell(viewWidth, viewHeight) * oldScale
                         val newCell = baseCell(viewWidth, viewHeight) * newScale

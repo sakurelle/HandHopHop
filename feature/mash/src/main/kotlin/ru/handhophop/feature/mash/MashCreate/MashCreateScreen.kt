@@ -9,12 +9,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -50,6 +48,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.BackgroundPattern
+import ru.handhophop.core.design.ButtonState
+import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
@@ -186,9 +186,7 @@ private fun MashCreateContent(
             ) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(
-                        dimensionResource(R.dimen.mash_create_card_corner_radius)
-                    ),
+                    shape = RoundedCornerShape(dimensions.lg),
                 ) {
                     Column(
                         modifier = Modifier
@@ -227,21 +225,12 @@ private fun MashCreateContent(
                             onDifficultyChanged = onDifficultyChanged,
                         )
 
-                        Button(
+                        HandHopHopButton(
                             onClick = onCreateClick,
                             enabled = isCreateButtonEnabled,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(dimensionResource(R.dimen.mash_create_button_height)),
-                            shape = RoundedCornerShape(
-                                dimensionResource(R.dimen.mash_create_button_corner_radius)
-                            ),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primaryAction,
-                                contentColor = colors.onPrimaryAction,
-                                disabledContainerColor = colors.primaryActionDisabled,
-                                disabledContentColor = colors.textSecondary,
-                            )
+                            size = ButtonState.Size.FILL,
+                            textColor = ButtonState.Color.White,
+                            buttonColor = ButtonState.Color.Button,
                         ) {
                             Text(
                                 text = stringResource(R.string.mash_create_button_title),
@@ -295,9 +284,7 @@ private fun MashCreateProjectNameSection(
                     )
                 }
             },
-            shape = RoundedCornerShape(
-                dimensionResource(R.dimen.mash_create_text_field_corner_radius)
-            ),
+            shape = RoundedCornerShape(dimensions.md),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = colors.surfaceSoft,
                 unfocusedContainerColor = colors.surfaceSoft,
@@ -321,6 +308,7 @@ private fun MashCreateImageSection(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
+    val imageShape = RoundedCornerShape(dimensions.md)
     Column(
         verticalArrangement = Arrangement.spacedBy(
             dimensions.sm
@@ -335,18 +323,12 @@ private fun MashCreateImageSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(
-                    RoundedCornerShape(
-                        dimensionResource(R.dimen.mash_create_image_corner_radius)
-                    )
-                )
+                .clip(imageShape)
                 .background(colors.surfaceSoft)
                 .border(
-                    width = dimensionResource(R.dimen.mash_create_image_border_width),
+                    width = dimensions.xs / 4,
                     color = colors.outline,
-                    shape = RoundedCornerShape(
-                        dimensionResource(R.dimen.mash_create_image_corner_radius)
-                    )
+                    shape = imageShape
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -357,7 +339,7 @@ private fun MashCreateImageSection(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(dimensionResource(R.dimen.mash_create_image_height))
+                        .aspectRatio(4f / 3f)
                         .padding(dimensions.lg),
                 )
             } else {
@@ -426,13 +408,11 @@ private fun RowScope.MashCreateSchemeTypeChip(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-    val shape = RoundedCornerShape(
-        dimensionResource(R.dimen.mash_create_toggle_corner_radius)
-    )
+    val shape = RoundedCornerShape(dimensions.sm)
     val backgroundColor = when {
         isSelected -> colors.primaryAction
         isEnabled -> colors.surfaceSoft
-        else -> colors.primaryActionDisabled
+        else -> colors.primaryAction.copy(alpha = 0.55f)
     }
     val borderColor = if (isSelected) {
         colors.primaryAction
@@ -451,7 +431,7 @@ private fun RowScope.MashCreateSchemeTypeChip(
             .clip(shape)
             .background(backgroundColor)
             .border(
-                width = dimensionResource(R.dimen.mash_create_toggle_border_width),
+                width = dimensions.xs / 4,
                 color = borderColor,
                 shape = shape,
             )
@@ -545,10 +525,10 @@ private fun MashCreateThreadPreview(
     ) {
         Box(
             modifier = Modifier
-                .size(dimensionResource(R.dimen.mash_create_thread_circle_size))
+                .size(dimensions.lg)
                 .background(thread.color, CircleShape)
                 .border(
-                    width = dimensionResource(R.dimen.mash_create_thread_circle_border_width),
+                    width = dimensions.xs / 4,
                     color = colors.outline,
                     shape = CircleShape
                 )

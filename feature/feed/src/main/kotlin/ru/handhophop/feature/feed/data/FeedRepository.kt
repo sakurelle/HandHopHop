@@ -3,16 +3,73 @@ package ru.handhophop.feature.feed.data
 import android.util.Log
 import ru.handhophop.core.network.api.FreepikApiService
 import ru.handhophop.core.network.models.FreepikPhoto
+import ru.handhophop.core.system.database.work.WorkLocalRepository
+import ru.handhophop.core.system.database.work.hasStartedWork
 
 internal class FeedRepository(
-    private val apiService: FreepikApiService
+    private val apiService: FreepikApiService,
+    private val workLocalRepository: WorkLocalRepository,
 ) {
     private companion object {
         const val TAG = "FeedRepository"
     }
 
-    private val recommendedFilters = listOf("sea", "mountains")
+    private val feedTerms = listOf(
+        "nature",
+        "sea",
+        "mountains",
+        "forest",
+        "cats",
+        "dogs",
+        "sunset",
+        "ocean",
+        "flowers",
+        "waterfall",
+        "lake",
+        "beach",
+        "sky",
+        "wildlife",
+        "island",
+        "snow",
+        "desert",
+        "river",
+        "garden",
+        "birds"
+    )
+
+    private var currentTerm: String = feedTerms.random()
     private val cachedIds = mutableSetOf<String>()
+
+    private fun String.normalizePhotoUrl(): String {
+        return replace("http://", "https://")
+    }
+
+    private suspend fun fillPhotosWithLocalData(
+        photos: List<FreepikPhoto>
+    ): List<FeedPhotoModel> {
+        val normalizedPhotos = photos.map { photo ->
+            photo to photo.image.source.url.normalizePhotoUrl()
+        }
+
+        val urls = normalizedPhotos.map { it.second }
+
+        val worksByUrl = workLocalRepository
+            .getWorksByUrls(urls)
+            .associateBy{ it.url.normalizePhotoUrl() }
+
+        return normalizedPhotos.map { (photo, normalizedUrl) ->
+            val localWork = worksByUrl[normalizedUrl]
+
+            FeedPhotoModel(
+                id = photo.id.toString(),
+                photoUrl = normalizedUrl,
+                isBookmarked = localWork?.isFavorite == true,
+                progressPercentage = if (localWork?.hasStartedWork() == true) { localWork.percentage ?: 0} else {0}
+            )
+
+        }
+
+    }
 
     suspend fun getPhotos(
         page: Int = 1,
@@ -20,7 +77,7 @@ internal class FeedRepository(
         orientationId: Int = 0,
         colorId: Int = 0,
         aiId: Int = 0
-    ): Result<List<FreepikPhoto>> {
+    ): Result<List<FeedPhotoModel>> {
         return runCatching {
             val colorParam = when (colorId) {
                 0  -> null
@@ -47,6 +104,8 @@ internal class FeedRepository(
             val photos = apiService.getRandomPhotos(
                 page = page,
                 limit = count,
+                term = currentTerm,
+                photo = 1,
                 color = colorParam,
                 landscape = landscape,
                 portrait = portrait,
@@ -57,27 +116,34 @@ internal class FeedRepository(
             ).data
             val unique = photos.filter { it.id.toString() !in cachedIds }
             cachedIds.addAll(unique.map { it.id.toString() })
-            Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}")
-            unique
+            Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}, filter=${currentTerm}")
+            fillPhotosWithLocalData(unique)
         }.onFailure { error ->
             Log.e(TAG, "Failed to load photos for page=$page", error)
         }
     }
 
-    suspend fun getRecommendedPhotos(): Result<List<FreepikPhoto>> {
-        val filter = recommendedFilters.random()
+    suspend fun getRecommendedPhotos(): Result<List<FeedPhotoModel>> {
         return runCatching {
-            Log.d(TAG, "Requesting recommended photos: term=$filter")
-            val photos = apiService.getRandomPhotos(limit = 5, term = filter).data
-            Log.d(TAG, "Received recommended photos: term=$filter, count=${photos.size}")
-            photos
+            Log.d(TAG, "Requesting recommended photos")
+            val photos = apiService.getRandomPhotos(limit = 5, photo = 1).data
+            Log.d(TAG, "Received recommended photos, count=${photos.size}")
+            fillPhotosWithLocalData(photos)
         }.onFailure { error ->
-            Log.e(TAG, "Failed to load recommended photos for term=$filter", error)
+            Log.e(TAG, "Failed to load recommended photos", error)
         }
     }
 
     fun clearCache() {
         Log.d(TAG, "Clearing photo cache. Previous size=${cachedIds.size}")
         cachedIds.clear()
+    }
+
+    fun updateTerm() {
+        val oldTerm = currentTerm
+        currentTerm = feedTerms
+            .filter { it != oldTerm }
+            .random()
+        Log.d(TAG, "Updated feed term: $oldTerm -> $currentTerm")
     }
 }

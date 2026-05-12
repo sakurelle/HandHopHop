@@ -36,7 +36,8 @@ abstract class ButtonState(
 
     enum class Size {
         FIX,
-        WRAPCONTENT
+        WRAPCONTENT,
+        FILL
     }
 }
 

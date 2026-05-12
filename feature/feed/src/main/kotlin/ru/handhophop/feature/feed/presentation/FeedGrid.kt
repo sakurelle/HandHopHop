@@ -24,6 +24,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.feature.feed.R
+import ru.handhophop.design.R as DesignR
 
 @Composable
 internal fun FeedGrid(
@@ -44,12 +45,12 @@ internal fun FeedGrid(
     }
 
     LaunchedEffect(needLoadMore.value, state.isLoadingMore) {
-        if (needLoadMore.value && !state.isLoadingMore) {
+        if (needLoadMore.value && !state.isLoadingMore && !state.isRefreshing) {
             onLoadMore()
         }
     }
 
-    val spacing = dimensionResource(R.dimen.feed_spacing)
+    val spacing = dimensionResource(DesignR.dimen.feed_spacing)
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
@@ -59,7 +60,10 @@ internal fun FeedGrid(
         modifier = modifier
     ) {
         item(span = StaggeredGridItemSpan.FullLine) {
-            RecommendedRow(state = state)
+            RecommendedRow(
+                state = state,
+                onPhotoClicked = onPhotoClicked
+            )
         }
 
         itemsIndexed(items = state.photos, key = { _, it -> it.id}) { index, photo ->
@@ -69,8 +73,8 @@ internal fun FeedGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        start = startPadding,
-                        end = endPadding
+                        start = 8.dp,
+                        end = 8.dp
                     )
             ) {
                 AsyncImage(

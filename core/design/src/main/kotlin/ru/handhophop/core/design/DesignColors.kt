@@ -12,12 +12,6 @@ data class DesignColors(
     val textAndIcons: Color = Color.Unspecified,
     val surfaceSoft: Color = Color.Unspecified,
     val outline: Color = Color.Unspecified,
-    val buttonPressed: Color = Color.Unspecified,
-    val buttonDisabled: Color = Color.Unspecified,
-    val gridStroke: Color = Color.Unspecified,
-    val gridMajorStroke: Color = Color.Unspecified,
-    val gridNumberText: Color = Color.Unspecified,
-    val swatchText: Color = Color.Unspecified,
 ) {
     val background: Color
         get() = notWhite
@@ -34,12 +28,6 @@ data class DesignColors(
     val primaryAction: Color
         get() = button
 
-    val primaryActionPressed: Color
-        get() = buttonPressed
-
-    val primaryActionDisabled: Color
-        get() = buttonDisabled
-
     val textPrimary: Color
         get() = textAndIcons
 
@@ -51,12 +39,6 @@ data class DesignColors(
 
     val floatingAction: Color
         get() = textAndIcons
-
-    val white: Color
-        get() = notWhite
-
-    val black: Color
-        get() = textAndIcons
 }
 
 @Immutable
@@ -66,22 +48,14 @@ data class DesignColorScheme(
 )
 
 private val LightDesignColors = DesignColors(
-    //Основные оттенки
     notWhite = Color(0xFFFBFBFB),
     selection = Color(0xFFDBC5B9),
     lightBrown = Color(0xFFBD9C89),
     button = Color(0xFF69564B),
     textAndIcons = Color(0xFF211915),
 
-    //Дополнительные системные цвета
     surfaceSoft = Color(0xFFE9DDD5),
     outline = Color(0xFFBD9C89),
-    buttonPressed = Color(0xFF7B665A),
-    buttonDisabled = Color(0xFFA49188),
-    gridStroke = Color(0xFF69564B).copy(alpha = 0.40f),
-    gridMajorStroke = Color(0xFF211915).copy(alpha = 0.70f),
-    gridNumberText = Color(0xFF211915).copy(alpha = 0.80f),
-    swatchText = Color(0xFF211915).copy(alpha = 0.72f),
 )
 
 private val DarkDesignColors = LightDesignColors.copy()

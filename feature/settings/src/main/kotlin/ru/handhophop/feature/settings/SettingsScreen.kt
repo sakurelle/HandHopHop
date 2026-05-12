@@ -23,30 +23,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
+import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.design.R as DesignR
 
 @Composable
 internal fun SettingsScreen(
     viewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val colors = HandHopHopDesignSystem.colors
 
-    val screenPadding = dimensionResource(R.dimen.profile_screen_padding)
-    val contentSpacing = dimensionResource(R.dimen.profile_content_spacing)
-    val avatarSize = dimensionResource(R.dimen.profile_avatar_size)
-    val cardCornerRadius = dimensionResource(R.dimen.profile_card_corner_radius)
-    val cardElevation = dimensionResource(R.dimen.profile_card_elevation)
-    val cardInnerPadding = dimensionResource(R.dimen.profile_card_inner_padding)
-    val infoSpacing = dimensionResource(R.dimen.profile_info_spacing)
+    val screenPadding = dimensionResource(DesignR.dimen.profile_screen_padding)
+    val contentSpacing = dimensionResource(DesignR.dimen.profile_content_spacing)
+    val avatarSize = dimensionResource(DesignR.dimen.settings_profile_avatar_size)
+    val cardCornerRadius = dimensionResource(DesignR.dimen.profile_card_corner_radius)
+    val cardElevation = dimensionResource(DesignR.dimen.profile_card_elevation)
+    val cardInnerPadding = dimensionResource(DesignR.dimen.profile_card_inner_padding)
+    val infoSpacing = dimensionResource(DesignR.dimen.profile_info_spacing)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.profile_background))
+            .background(colors.background)
             .padding(screenPadding)
     ) {
         Column(
@@ -70,19 +72,19 @@ internal fun SettingsScreen(
                     text = uiState.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = colorResource(R.color.profile_primary_text)
+                    color = colors.textPrimary
                 )
 
                 Spacer(
                     modifier = Modifier.height(
-                        dimensionResource(R.dimen.profile_name_spacing)
+                        dimensionResource(DesignR.dimen.profile_name_spacing)
                     )
                 )
 
                 Text(
                     text = uiState.nickname,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = colorResource(R.color.profile_secondary_text)
+                    color = colors.textSecondary
                 )
             }
 
@@ -90,7 +92,7 @@ internal fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(cardCornerRadius),
                 colors = CardDefaults.cardColors(
-                    containerColor = colorResource(R.color.profile_card_background)
+                    containerColor = colors.surfaceSoft
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
             ) {
@@ -125,19 +127,19 @@ private fun SettingsInfoItem(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
-            color = colorResource(R.color.profile_hint_text)
+            color = HandHopHopDesignSystem.colors.textSecondary.copy(alpha = 0.8f)
         )
 
         Spacer(
             modifier = Modifier.height(
-                dimensionResource(R.dimen.profile_info_title_spacing)
+                dimensionResource(DesignR.dimen.profile_info_title_spacing)
             )
         )
 
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = colorResource(R.color.profile_primary_text)
+            color = HandHopHopDesignSystem.colors.textPrimary
         )
     }
 }
