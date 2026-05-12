@@ -40,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -49,7 +51,8 @@ import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
-import ru.handhophop.feature.mash.MashModuleTopBar
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.R
 import ru.handhophop.feature.mash.loadBitmapFromUrl
 import ru.handhophop.feature.mash.selectPaletteForImage
@@ -157,9 +160,16 @@ private fun MashCreateContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            MashModuleTopBar(
-                title = stringResource(R.string.mash_create_screen_title),
-                onBackClick = onBackClick,
+
+            TopBar(
+                state = TopBarState(
+                    titleRes = R.string.mash_create_screen_title,
+                    leftIconRes = R.drawable.arrow,
+                    null
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = {Unit}
+
             )
 
             Column(

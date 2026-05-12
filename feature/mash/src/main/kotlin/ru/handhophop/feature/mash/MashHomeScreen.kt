@@ -16,18 +16,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +47,8 @@ import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.Statistics.MashProjectMetrics
 import ru.handhophop.feature.mash.Statistics.toProjectMetrics
@@ -49,13 +61,77 @@ internal fun MashHomeScreen(
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
+    onDeleteSheme: () -> Unit,
 ) {
     val metrics = uiState.toProjectMetrics()
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md
     val contentSpacing = dimensions.md
+    val radius = dimensionResource(ru.handhophop.design.R.dimen.radius)
+    val border = dimensionResource(ru.handhophop.design.R.dimen.border)
 
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+
+    val dialogTitle = stringResource(R.string.dialog_warning_title)
+    val dialogMessage = stringResource(R.string.dialog_warning_message)
+    val dialogConfirm = stringResource(R.string.dialog_confirm)
+    val dialogDismiss = stringResource(R.string.dialog_dismiss)
+
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            modifier = Modifier.border(
+                width = border * 2,
+                color = colors.button,
+                shape = RoundedCornerShape(radius)
+            ),
+            title = {
+                Text(
+                    modifier = Modifier,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                    fontWeight = FontWeight.Bold,
+                    text = dialogTitle
+                )
+            },
+            text = {
+                Text(
+                    modifier = Modifier,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                    text = dialogMessage
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteSheme()
+                        showDialog = false
+                    }
+                ) {
+                    Text(
+                        modifier = Modifier,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                        text = dialogConfirm,
+                        color = Color.Red,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) {
+                    Text(
+                        modifier = Modifier,
+                        text = dialogDismiss,
+                        color = colors.button
+                    )
+                }
+            },
+            containerColor = colors.surface,
+            shape = RoundedCornerShape(radius),
+            )
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -67,8 +143,16 @@ internal fun MashHomeScreen(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing),
         ) {
-            MashModuleTopBar(
-                title = projectConfig?.projectName ?: stringResource(R.string.mash_home_screen_title),
+            TopBar(
+                state = TopBarState(
+                    projectName = projectConfig?.projectName
+                        ?: stringResource(R.string.mash_home_screen_title),
+                    titleRes = null,
+                    leftIconRes = null,
+                    rightIconRes = ru.handhophop.design.R.drawable.delete
+                ),
+                { showDialog = true },
+                { Unit }
             )
 
             Box(
@@ -117,72 +201,6 @@ internal fun MashHomeScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-internal fun MashModuleTopBar(
-    title: String,
-    onBackClick: (() -> Unit)? = null,
-) {
-    val colors = HandHopHopDesignSystem.colors
-    val dimensions = HandHopHopDesignSystem.dimensions
-    val horizontalPadding = dimensions.md
-    val verticalPadding = dimensions.xs
-    val sideWidth = dimensions.xl * 2
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    bottomStart = dimensions.lg,
-                    bottomEnd = dimensions.lg,
-                )
-            )
-            .background(colors.topBar)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(
-                    start = horizontalPadding,
-                    end = horizontalPadding,
-                    top = verticalPadding,
-                    bottom = verticalPadding,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Box(
-                modifier = Modifier.size(sideWidth),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                if (onBackClick != null) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(DesignR.drawable.arrow),
-                            contentDescription = stringResource(R.string.mash_navigation_back),
-                            tint = colors.textPrimary,
-                            modifier = Modifier.rotate(180f),
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.textPrimary,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = horizontalPadding),
-            )
-
-            SpacerSlot(sideWidth = sideWidth)
         }
     }
 }

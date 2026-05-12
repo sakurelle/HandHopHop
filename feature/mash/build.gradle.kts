@@ -55,4 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.foundation)
 
+    implementation(project(":feature:feed"))
+    implementation(project(":core:system"))
+
 }

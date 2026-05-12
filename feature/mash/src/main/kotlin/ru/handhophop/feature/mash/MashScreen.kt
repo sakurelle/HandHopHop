@@ -51,6 +51,9 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
@@ -63,6 +66,8 @@ import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
@@ -123,13 +128,17 @@ private fun CenterContentMash(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
-            MashModuleTopBar(
-                title = if (title.isBlank()) {
-                    stringResource(R.string.mash_workspace_title_fallback)
-                } else {
-                    title
-                },
-                onBackClick = onBackClick,
+            TopBar(
+                state = TopBarState(
+                    projectName = title.ifBlank {
+                        stringResource(R.string.mash_workspace_title_fallback)
+                    },
+                    leftIconRes = R.drawable.arrow,
+                    titleRes = null
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = {Unit}
+
             )
 
             Box(

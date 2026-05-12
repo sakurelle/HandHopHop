@@ -14,4 +14,7 @@
     <string name="mash_download_scheme">Скачать схему</string>
     <string name="mash_select_scheme_first">Сначала выберите схему</string>
     <string name="mash_failed_build_scheme">Не удалось построить схему</string>
+
+    <string name="btn_start_work">Начать работу</string>
+    <string name="btn_close">Закрыть</string>
 </resources>

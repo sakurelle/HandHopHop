@@ -62,6 +62,21 @@ internal class MashViewModel(
         }
     }
 
+    internal fun resetWork() {
+        _uiState.value = MashUiState(
+            isLoading = false,
+            scheme = null,
+            visiblePalette = emptyList(),
+            paletteProgress = emptyList(),
+            errorTextRes = null,
+            isDownloadButtonEnabled = false,
+            isPaletteVisible = false,
+            selectedPaletteIndex = null,
+            completedCellIndices = emptySet()
+        )
+    }
+
+
     internal fun restoreCachedWork(cachedState: MashUiState) {
         _uiState.value = cachedState.withDerivedPaletteState()
     }

@@ -44,6 +44,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.bookmark.R
@@ -82,7 +84,13 @@ private fun BookmarkScreen(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        BookmarkTopBar()
+        TopBar(
+            state = TopBarState(
+                titleRes = R.string.bookmark_highlight_title
+            ),
+            {Unit},
+            {Unit}
+        )
 
         when (val state = uiState) {
             BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
@@ -107,35 +115,6 @@ private fun BookmarkScreen(
     }
 }
 
-@Composable
-private fun BookmarkTopBar() {
-    val colors = HandHopHopDesignSystem.colors
-    val dimensions = HandHopHopDesignSystem.dimensions
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    bottomStart = dimensions.lg,
-                    bottomEnd = dimensions.lg,
-                )
-            )
-            .background(colors.topBar)
-    ) {
-        Text(
-            text = stringResource(R.string.bookmark_highlight_title),
-            style = MaterialTheme.typography.titleLarge,
-            color = colors.textPrimary,
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(
-                    horizontal = dimensions.md,
-                    vertical = dimensions.sm + dimensions.xs,
-                ),
-        )
-    }
-}
 
 @Composable
 private fun BookmarkGrid(

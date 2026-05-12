@@ -1,5 +1,10 @@
 package ru.handhophop.core.system.database.work
 
+import android.content.Context
+import androidx.sqlite.db.SimpleSQLiteQuery
+import java.io.File
+import kotlin.io.path.exists
+
 data class WorkLocalItem(
     val id: Long = 0,
     val url: String,
@@ -19,6 +24,27 @@ data class WorkLocalItem(
 class WorkLocalRepository(
     private val workDao: WorkDao,
 ) {
+
+    suspend fun clearAllWorks() {
+        workDao.deleteAll()
+        workDao.checkpoint(SimpleSQLiteQuery("VACUUM"))
+    }
+
+
+    fun getDatabaseSize(context: Context): Long {
+        val dbPath = context.getDatabasePath("hand_hop_hop.db").absolutePath
+        val files = listOf(
+            File(dbPath),
+            File("$dbPath-wal"),
+            File("$dbPath-shm")
+        )
+        return files.filter { it.exists() }.sumOf { it.length() }
+    }
+
+    suspend fun getWorkCount(): Int {
+        return workDao.getCount()
+    }
+
 
     suspend fun addFavorite(work: WorkLocalItem): Long {
         return upsert(work) { current ->

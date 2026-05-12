@@ -1,11 +1,16 @@
 package ru.handhophop.core.design
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,23 +39,35 @@ fun SimpleTopBar(
 ) {
     val topBarStr = dimensionResource(R.dimen.top_bar_str).value.sp
     val bottomPadding = dimensionResource(R.dimen.top_bar_padding)
+    val padding = dimensionResource(R.dimen.top_bar_padding)
+    val radius = dimensionResource(R.dimen.main_radius)
+    val buttonWidth = 40.dp
+    val iconSize = 24.dp
 
     val topBarBackground = colorResource(R.color.main_color)
     val textColor = colorResource(R.color.black)
 
+
     Row(
-        modifier = modifier,
+        modifier = Modifier
+            .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         state.leftIconRes?.let {
             Button(
-                modifier = Modifier,
+                modifier = Modifier
+                    .width(buttonWidth)
+                    .padding(0.dp),
                 onClick = onClickLeft,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = topBarBackground
                 ),
+                contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
+                    modifier = Modifier
+                        .size(iconSize)
+                        .padding(0.dp),
                     painter = painterResource(state.leftIconRes),
                     contentDescription = null,
                     tint = textColor
@@ -60,12 +77,18 @@ fun SimpleTopBar(
         state.titleRes?.let {
             Text(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(
-                        start = 16.dp,
-                        bottom = bottomPadding
-                    ),
+                    .weight(1f),
                 text = stringResource(state.titleRes),
+                color = textColor,
+                fontSize = topBarStr,
+                textAlign = TextAlign.Left
+            )
+        }
+        state.projectName?.let {
+            Text(
+                modifier = Modifier
+                    .weight(1f),
+                text = state.projectName,
                 color = textColor,
                 fontSize = topBarStr,
                 textAlign = TextAlign.Left
@@ -73,7 +96,9 @@ fun SimpleTopBar(
         }
         state.rightIconRes?.let {
             Button(
-                modifier = Modifier,
+                modifier = Modifier
+                    .width(buttonWidth)
+                    .padding(0.dp),
                 onClick = onClickRight,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = topBarBackground
@@ -81,11 +106,28 @@ fun SimpleTopBar(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
+                    modifier = Modifier
+                        .size(iconSize)
+                        .padding(0.dp),
                     painter = painterResource(state.rightIconRes),
                     contentDescription = null,
                     tint = textColor
                 )
+
             }
         }
     }
+}
+
+
+@Composable
+@Preview(showSystemUi = true)
+fun ExposableTopBar1(
+) {
+    SimpleTopBar(
+        modifier = Modifier,
+        TopBarState(R.string.Download, R.drawable.arrow, null),
+        {},
+        {}
+    )
 }

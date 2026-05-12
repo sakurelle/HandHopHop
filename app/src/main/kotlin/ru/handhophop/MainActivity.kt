@@ -20,13 +20,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(
-                lightScrim = ContextCompat.getColor(this, ru.handhophop.design.R.color.black),//не работает почему-то
-                darkScrim = ContextCompat.getColor(this, ru.handhophop.design.R.color.main_color),//todo
-            ),
             navigationBarStyle = SystemBarStyle.auto(
                 lightScrim = ContextCompat.getColor(this, ru.handhophop.design.R.color.main_color),
-                darkScrim = ContextCompat.getColor(this, ru.handhophop.design.R.color.main_color),//todo
+                darkScrim = ContextCompat.getColor(
+                    this,
+                    ru.handhophop.design.R.color.main_color_dark
+                ),
             )
         )
         super.onCreate(savedInstanceState)
@@ -38,11 +37,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     ScreenBase(
                         feedScreen = { onPhotoSelected -> FeedEntryPoint(onPhotoSelected = onPhotoSelected) },
-                        mashScreen = { initialWorkId, initialImageUrl, onBottomBarVisibilityChanged ->
+                        mashScreen = { initialWorkId, initialImageUrl,backgroundContent, onBack, onBottomBarVisibilityChanged ->
                             MashEntryPoint(
                                 initialWorkId = initialWorkId,
                                 initialImageUrl = initialImageUrl,
-                                onBottomBarVisibilityChanged = onBottomBarVisibilityChanged,
+                                backgroundContent = backgroundContent,
+                                onBack = onBack,
+                                onBottomBarVisibilityChanged = onBottomBarVisibilityChanged
                             )
                         },
                         bookmarkScreen = { onPhotoSelected -> BookmarkEntryPoint(onPhotoSelected = onPhotoSelected) },
@@ -50,6 +51,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+
         }
     }
 }

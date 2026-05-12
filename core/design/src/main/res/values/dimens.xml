@@ -105,7 +105,7 @@
     <dimen name="button_border">2dp</dimen>
 
     <!-- для screenBase -->
-    <dimen name="top_bar_height">100dp</dimen>
+    <dimen name="top_bar_height">54dp</dimen>
     <dimen name="filter_top_bar_height">451dp</dimen>
     <dimen name = "main_radius">15dp</dimen>
     <dimen name="top_bar_str">30sp</dimen>
@@ -156,4 +156,12 @@
     <dimen name="padding">20dp</dimen>
     <dimen name="mash_scheme_draw_numbers_threshold">24dp</dimen>
     <dimen name="mash_scheme_draw_grid_threshold">12dp</dimen>
+
+    <dimen name="popup_image_aspect_ratio">0.8</dimen>
+    <dimen name="popup_spacer_large">32.dp</dimen>
+    <dimen name="popup_spacer_small">12.dp</dimen>
+    <dimen name="popup_button_height">60.dp</dimen>
+    <dimen name="popup_button_border">2.dp</dimen>
+    <dimen name="popup_save_icon_padding">8.dp</dimen>
+    <dimen name="popup_font_size">24.sp</dimen>
 </resources>

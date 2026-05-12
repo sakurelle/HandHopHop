@@ -34,9 +34,9 @@ import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
-import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.MashUiState
 import ru.handhophop.feature.mash.R
 
@@ -65,9 +65,13 @@ internal fun MashStatisticsScreen(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(contentSpacing),
         ) {
-            MashModuleTopBar(
-                title = stringResource(R.string.mash_statistics_screen_title),
-                onBackClick = onBackClick,
+            TopBar(
+                state = ru.handhophop.core.design.TopBarState(
+                    leftIconRes = R.drawable.arrow,
+                    titleRes = R.string.mash_statistics_screen_title
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = {Unit}
             )
 
             Box(

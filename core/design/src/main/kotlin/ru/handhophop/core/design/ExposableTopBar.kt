@@ -1,5 +1,8 @@
 package ru.handhophop.core.design
 
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,8 @@ fun ExposableTopBar(
     content: @Composable (onDismiss: () -> Unit) -> Unit
 ) {
     val radius = dimensionResource(R.dimen.main_radius)
+    val padding = dimensionResource(R.dimen.top_bar_padding)
+
     val topBarBackground = colorResource(R.color.main_color)
 
     var isExposed by remember { mutableStateOf(false) }
@@ -34,8 +39,6 @@ fun ExposableTopBar(
 
     Box(
         modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
             .background(
                 topBarBackground,
                 shape = RoundedCornerShape(
@@ -43,31 +46,51 @@ fun ExposableTopBar(
                     bottomStart = radius
                 )
             )
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .fillMaxWidth()
+            .wrapContentHeight()
     ) {
-        Column(
-            modifier = Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .statusBarsPadding()
+                .wrapContentHeight()
+                .padding(padding)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            SimpleTopBar(
-                state = state,
-                onClickRight = {
-                    isExposed = !isExposed
-                    onChanged(isExposed)
-                },
-                onClickLeft = { Unit }
-            )
-
-            if (isExposed) {
-                content {
-                    isExposed = false
-                    onChanged(false)
+            Column(
+                modifier = Modifier,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SimpleTopBar(
+                    state = state,
+                    onClickRight = {
+                        isExposed = !isExposed
+                        onChanged(isExposed)
+                    },
+                    onClickLeft = { Unit }
+                )
+                if (isExposed) {
+                    content {
+                        isExposed = false
+                        onChanged(false)
+                    }
                 }
             }
+
         }
     }
 }
 
+@Composable
+@Preview(showSystemUi = true)
+fun ExposableTopBar11(
+) {
 
+    ExposableTopBar(
+        TopBarState(R.string.Download, null, null),
+        onChanged = {},
+        content = {}
+    )
+}
 
 

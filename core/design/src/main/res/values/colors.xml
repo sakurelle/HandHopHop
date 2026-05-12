@@ -22,5 +22,6 @@
     <color name = "button">#69564B</color>
     <color name = "plus_button">#211915</color>
     <color name="button_touched">#A49188</color>
+    <color name="main_color_dark">#57412C</color>
 
 </resources>

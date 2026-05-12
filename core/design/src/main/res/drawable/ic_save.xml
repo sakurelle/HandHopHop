@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="23dp"
+    android:height="26dp"
+    android:viewportWidth="23"
+    android:viewportHeight="26">
+
+    <!-- Сам символ глобуса -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M0 25.9048V2.87831C0 2.08677 0.279762 1.40917 0.839286 0.845503C1.39881 0.281834 2.07143 0 2.85714 0H11.4286V2.87831H2.85714V21.5153L10 18.4212L17.1429 21.5153V11.5132H20V25.9048L10 21.5873L0 25.9048ZM17.1429 8.63492V5.75661H14.2857V2.87831H17.1429V0H20V2.87831H22.8571V5.75661H20V8.63492H17.1429Z"/>
+
+</vector>

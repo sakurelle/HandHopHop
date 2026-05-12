@@ -5,4 +5,10 @@
     <string name="profile_phone_label">Телефон</string>
     <string name="dark_theme">Темная тема</string>
     <string name="setting">Настройки</string>
+    <string name="memory">Занято памяти</string>
+    <string name="clear_data">Очистить данные</string>
+    <string name="dialog_warning_title">Предупреждение!</string>
+    <string name="dialog_warning_message">Вы уверены, что хотите очистить все данные? Это действие нельзя будет отменить.</string>
+    <string name="dialog_confirm">Очистить</string>
+    <string name="dialog_dismiss">Отмена</string>
 </resources>

@@ -90,4 +90,9 @@
     <string name="mash_weekday_sat">Сб</string>
     <string name="mash_weekday_sun">Вс</string>
     <string name="mash_statistics_open_scheme_button">Открыть схему</string>
+
+    <string name="dialog_warning_title">Предупреждение!</string>
+    <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>
+    <string name="dialog_confirm">Удалить</string>
+    <string name="dialog_dismiss">Отмена</string>
 </resources>

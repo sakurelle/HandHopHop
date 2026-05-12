@@ -44,8 +44,14 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil)
     implementation(libs.coil.compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+
+
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(project(":core:design"))
+    implementation(project(":core:system"))
 }
