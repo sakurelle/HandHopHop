@@ -58,4 +58,13 @@
     <string name="square_option">Квадратная</string>
     <string name="panoramic_option">Панорамная</string>
 
+    <string name="ai_only_option">Только ИИ</string>
+    <string name="ai_excluded_option">Без ИИ</string>
+
+    <string name="feed_bookmark_add_to_favorites">Добавить в избранное</string>
+    <string name="feed_bookmark_remove_from_favorites">Удалить из избранного</string>
+
+    <string name="feed_progress_percent">%1$d%%</string>
+    <string name="feed_error_message">Ошибка: %1$s</string>
+
 </resources>

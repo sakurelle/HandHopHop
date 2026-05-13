@@ -3,11 +3,14 @@ package ru.handhophop.feature.bookmark.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
+
 
 internal class BookmarkViewModel(
     private val repository: WorkLocalRepository,
@@ -21,20 +24,28 @@ internal class BookmarkViewModel(
             _uiState.value = BookmarkUiState.Loading
 
             runCatching {
-                repository.getFavoriteWorks()
+                repository.getBookmarkPreviews()
                     .asSequence()
                     .map { work ->
                         BookmarkPhotoItem(
                             id = work.id,
-                            photoUrl = work.url,
-                            imageBytes = work.image,
+                            photoUrl = work.url.orEmpty(),
+                            imageBytes = null,
+                            isBookmarked = work.isFavorite,
+                            isStarted = work.isStarted,
+                            progressPercentage = work.percentage ?: 0,
+                            projectName = work.projectName,
                         )
                     }
                     .toList()
             }.fold(
                 onSuccess = { photos ->
+                    val allPhotos = photos.toImmutableList()
+
                     _uiState.value = BookmarkUiState.Success(
-                        photos = photos,
+                        allPhotos = allPhotos,
+                        photos = allPhotos,
+                        selectedFilter = BookmarkFilter.ALL,
                     )
                 },
                 onFailure = { error ->
@@ -44,6 +55,80 @@ internal class BookmarkViewModel(
                 },
             )
         }
+    }
+
+    fun onFilterSelected(filter: BookmarkFilter) {
+        applyFilter(filter)
+    }
+
+    fun onFavoriteClick(photo: BookmarkPhotoItem) {
+        viewModelScope.launch {
+            val newIsBookmarked = !photo.isBookmarked
+
+            runCatching {
+                if (newIsBookmarked) {
+                    repository.addFavorite(
+                        WorkLocalItem(
+                            id = photo.id,
+                            url = photo.photoUrl,
+                            image = photo.imageBytes,
+                            isFavorite = true,
+                        )
+                    )
+                } else {
+                    repository.removeFavorite(photo.photoUrl)
+                }
+            }.onSuccess {
+                updateFavoriteState(
+                    photoUrl = photo.photoUrl,
+                    isBookmarked = newIsBookmarked,
+                )
+            }
+        }
+    }
+
+    private fun applyFilter(filter: BookmarkFilter) {
+        val currentState = _uiState.value as? BookmarkUiState.Success ?: return
+        val allPhotos = currentState.allPhotos
+
+        val filterPhotos = when(filter) {
+            BookmarkFilter.ALL -> allPhotos
+            BookmarkFilter.LIKES -> allPhotos.filter {it.isBookmarked}.toImmutableList()
+            BookmarkFilter.WORKS -> allPhotos.filter { it.isStarted }.toImmutableList()
+        }
+
+        _uiState.value = currentState.copy(
+            photos = filterPhotos,
+            selectedFilter = filter,
+        )
+    }
+
+    private fun updateFavoriteState(
+        photoUrl: String,
+        isBookmarked: Boolean,
+    ) {
+        val currentState = _uiState.value as? BookmarkUiState.Success ?: return
+
+        val allPhotos = currentState.allPhotos.map { photo ->
+            if (photo.photoUrl == photoUrl) {
+                photo.copy(isBookmarked = isBookmarked)
+            } else {
+                photo
+            }
+        }.filter { photo ->
+            photo.isBookmarked || photo.isStarted
+        }.toImmutableList()
+
+        val filteredPhotos = when (currentState.selectedFilter) {
+            BookmarkFilter.ALL -> allPhotos
+            BookmarkFilter.LIKES -> allPhotos.filter { it.isBookmarked }.toImmutableList()
+            BookmarkFilter.WORKS -> allPhotos.filter { it.isStarted }.toImmutableList()
+        }
+
+        _uiState.value = currentState.copy(
+            allPhotos = allPhotos,
+            photos = filteredPhotos,
+        )
     }
 
     class Factory(

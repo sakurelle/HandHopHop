@@ -3,6 +3,7 @@ package ru.handhophop.core.system.database.work
 import android.content.Context
 import androidx.sqlite.db.SimpleSQLiteQuery
 import java.io.File
+import kotlin.io.path.exists
 
 data class WorkLocalItem(
     val id: Long = 0,
@@ -95,6 +96,16 @@ class WorkLocalRepository(
         }
     }
 
+    suspend fun removeFavorite(url: String) {
+        val current = workDao.getByUrl(url) ?: return
+
+        if (current.hasStartedWork()) {
+            workDao.update(current.copy(isFavorite = false))
+        } else {
+            workDao.deleteByUrl(url)
+        }
+    }
+
     suspend fun addWork(work: WorkLocalItem): Long {
         return upsert(work) { current ->
             current.copy(
@@ -136,6 +147,15 @@ class WorkLocalRepository(
 
     suspend fun getWorkById(id: Long): WorkLocalItem? {
         return workDao.getById(id)?.toLocalItem()
+    }
+
+    suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta> {
+        if (urls.isEmpty()) return emptyList()
+        return workDao.getFeedMetaByUrls(urls)
+    }
+
+    suspend fun getBookmarkPreviews(): List<WorkBookmarkPreview> {
+        return workDao.getBookmarkPreviews()
     }
 
     private suspend fun upsert(
@@ -204,3 +224,14 @@ private fun WorkEntity.toLocalItem(): WorkLocalItem {
     )
 }
 
+private fun WorkEntity.hasStartedWork(): Boolean {
+    return projectName != null ||
+            schemeType != null ||
+            colorCount != null ||
+            difficulty != null ||
+            gridWidth != null ||
+            gridHeight != null ||
+            gridRle != null ||
+            percentage != null ||
+            spendedTime != null
+}

@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:design"))
     implementation(project(":core:system"))
+    implementation(project(":feature:bookmark"))
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.coil)

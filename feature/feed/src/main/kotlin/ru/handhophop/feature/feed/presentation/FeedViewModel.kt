@@ -33,8 +33,9 @@ internal class FeedViewModel(
             is FeedUiAction.Refresh -> refreshPhotos()
             is FeedUiAction.LoadNextPage -> loadNextPage()
             is FeedUiAction.PhotoClicked -> { /*какое-то действие, пока не трогаю*/ }
-            is FeedUiAction.ApplyFilter -> aplyFilter(action.sectionId, action.optionId)
+            is FeedUiAction.ApplyFilter -> applyFilter(action.sectionId, action.optionId)
             is FeedUiAction.SetFilterVisibility -> setFilterVisibility(action.isVisible)
+            is FeedUiAction.FavoriteClicked -> onFavoriteClick(action.photo)
         }
     }
 
@@ -45,7 +46,56 @@ internal class FeedViewModel(
         }
     }
 
-    private fun aplyFilter(sectionId: Int, optionId: Int) {
+    private fun onFavoriteClick(photo: FeedPhotoItem) {
+        val newIsBookmarked = !photo.isBookmarked
+
+        updateFavoriteState(
+            photoUrl = photo.photoUrl,
+            isBookmarked = newIsBookmarked,
+        )
+
+        viewModelScope.launch {
+            runCatching {
+                repository.setFavorite(
+                    photoUrl = photo.photoUrl,
+                    isFavorite = newIsBookmarked,
+                )
+            }.onFailure {
+                updateFavoriteState(
+                    photoUrl = photo.photoUrl,
+                    isBookmarked = photo.isBookmarked,
+                )
+            }
+        }
+    }
+
+    private fun updateFavoriteState(
+        photoUrl: String,
+        isBookmarked: Boolean,
+    ) {
+        _uiState.update { current ->
+            if (current !is FeedUiState.Success) return@update current
+
+            current.copy(
+                photos = current.photos.map { photo ->
+                    if (photo.photoUrl == photoUrl) {
+                        photo.copy(isBookmarked = isBookmarked)
+                    } else {
+                        photo
+                    }
+                },
+                recommendedPhotos = current.recommendedPhotos.map { photo ->
+                    if (photo.photoUrl == photoUrl) {
+                        photo.copy(isBookmarked = isBookmarked)
+                    } else {
+                        photo
+                    }
+                },
+            )
+        }
+    }
+
+    private fun applyFilter(sectionId: Int, optionId: Int) {
         val newFilter = when (sectionId) {
             SECTION_ORIENTATION -> {
                 val orientation = OrientationFilter.entries.first {it.id == optionId}
@@ -175,6 +225,7 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
+                            isStarted = it.isStarted,
                             progressPercentage = it.progressPercentage
                         )
                     }
@@ -211,6 +262,7 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
+                            isStarted = it.isStarted,
                             progressPercentage = it.progressPercentage
                         )
                     }
@@ -265,6 +317,7 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
+                            isStarted = it.isStarted,
                             progressPercentage = it.progressPercentage
                         )
                     }

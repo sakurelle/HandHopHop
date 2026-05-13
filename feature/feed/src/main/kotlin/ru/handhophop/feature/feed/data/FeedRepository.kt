@@ -3,8 +3,8 @@ package ru.handhophop.feature.feed.data
 import android.util.Log
 import ru.handhophop.core.network.api.WallhavenApiService
 import ru.handhophop.core.network.models.WallhavenPhoto
+import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
-import ru.handhophop.core.system.database.work.hasStartedWork
 
 internal class FeedRepository(
     private val apiService: WallhavenApiService,
@@ -54,17 +54,20 @@ internal class FeedRepository(
         val urls = normalizedPhotos.map { it.second }
 
         val worksByUrl = workLocalRepository
-            .getWorksByUrls(urls)
-            .associateBy{ it.url.normalizePhotoUrl() }
+            .getFeedMetaByUrls(urls)
+            .associateBy{ it.url.orEmpty().normalizePhotoUrl() }
 
         return normalizedPhotos.map { (photo, normalizedUrl) ->
             val localWork = worksByUrl[normalizedUrl]
+
+            val hasStarted = localWork?.isStarted == true
 
             FeedPhotoModel(
                 id = photo.id,
                 photoUrl = normalizedUrl,
                 isBookmarked = localWork?.isFavorite == true,
-                progressPercentage = if (localWork?.hasStartedWork() == true) { localWork.percentage ?: 0} else {0}
+                isStarted = hasStarted,
+                progressPercentage = if (hasStarted) { localWork.percentage ?: 0} else {0}
             )
 
         }
@@ -139,6 +142,24 @@ internal class FeedRepository(
             fillPhotosWithLocalData(photos)
         }.onFailure { error ->
             Log.e(TAG, "Failed to load recommended photos", error)
+        }
+    }
+
+    suspend fun setFavorite(
+        photoUrl: String,
+        isFavorite: Boolean,
+    ) {
+        val normalizedUrl = photoUrl.normalizePhotoUrl()
+
+        if (isFavorite) {
+            workLocalRepository.addFavorite(
+                WorkLocalItem(
+                    url = normalizedUrl,
+                    isFavorite = true,
+                )
+            )
+        } else {
+            workLocalRepository.removeFavorite(normalizedUrl)
         }
     }
 

@@ -49,4 +49,63 @@ interface WorkDao {
 
     @Query("SELECT * FROM work ORDER BY id DESC")
     suspend fun getAll(): List<WorkEntity>
+
+    //ВОзможный фикс для row is too big (не беру тяжкие поля)
+    @Query(
+        """
+    SELECT 
+        url,
+        is_favorite AS isFavorite,
+        CASE 
+            WHEN project_name IS NOT NULL
+              OR scheme_type IS NOT NULL
+              OR color_count IS NOT NULL
+              OR difficulty IS NOT NULL
+              OR grid_width IS NOT NULL
+              OR grid_height IS NOT NULL
+              OR percentage IS NOT NULL
+              OR spended_time IS NOT NULL
+            THEN 1 ELSE 0 
+        END AS isStarted,
+        percentage,
+        project_name AS projectName
+    FROM work 
+    WHERE url IN (:urls)
+    """
+    )
+    suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta>
+
+    @Query(
+        """
+        SELECT 
+            id,
+            url,
+            is_favorite AS isFavorite,
+            CASE 
+                WHEN project_name IS NOT NULL
+                  OR scheme_type IS NOT NULL
+                  OR color_count IS NOT NULL
+                  OR difficulty IS NOT NULL
+                  OR grid_width IS NOT NULL
+                  OR grid_height IS NOT NULL
+                  OR percentage IS NOT NULL
+                  OR spended_time IS NOT NULL
+                THEN 1 ELSE 0 
+            END AS isStarted,
+            percentage,
+            project_name AS projectName
+        FROM work
+        WHERE is_favorite = 1
+           OR project_name IS NOT NULL
+           OR scheme_type IS NOT NULL
+           OR color_count IS NOT NULL
+           OR difficulty IS NOT NULL
+           OR grid_width IS NOT NULL
+           OR grid_height IS NOT NULL
+           OR percentage IS NOT NULL
+           OR spended_time IS NOT NULL
+        ORDER BY id DESC
+        """
+    )
+    suspend fun getBookmarkPreviews(): List<WorkBookmarkPreview>
 }
