@@ -13,9 +13,14 @@ import ru.handhophop.design.R
 @Composable
 fun BackgroundPattern() {
     val alpha = integerResource(R.integer.bg_pattern_alpha_percent) / 100f
+    val patternRes = if (HandHopHopDesignSystem.isDarkTheme) {
+        R.drawable.dark_theme
+    } else {
+        R.drawable.bg_pattern
+    }
 
     Image(
-        painter = painterResource(R.drawable.bg_pattern),
+        painter = painterResource(patternRes),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxSize(),

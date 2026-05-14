@@ -8,16 +8,19 @@ import androidx.compose.foundation.isSystemInDarkTheme
 
 val LocalDesignColors = compositionLocalOf { DefaultDesignColors }
 val LocalDesignDimensions = compositionLocalOf { DefaultDesignDimensions }
+val LocalIsDarkTheme = compositionLocalOf { false }
 
 @Composable
 fun ProvideDesignSystem(
     colors: DesignColors = DefaultDesignColors,
     dimensions: DesignDimensions = DefaultDesignDimensions,
+    isDarkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalDesignColors provides colors,
         LocalDesignDimensions provides dimensions,
+        LocalIsDarkTheme provides isDarkTheme,
         content = content,
     )
 }
@@ -32,6 +35,11 @@ object HandHopHopDesignSystem {
         @Composable
         @ReadOnlyComposable
         get() = LocalDesignDimensions.current
+
+    val isDarkTheme: Boolean
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalIsDarkTheme.current
 }
 
 @Composable
@@ -46,6 +54,7 @@ fun HandHopHopDesignTheme(
             HandHopHopDesignColorScheme.light
         },
         dimensions = DefaultDesignDimensions,
+        isDarkTheme = isDarkTheme,
         content = content,
     )
 }

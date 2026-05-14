@@ -58,7 +58,16 @@ private val LightDesignColors = DesignColors(
     outline = Color(0xFFBD9C89),
 )
 
-private val DarkDesignColors = LightDesignColors.copy()
+private val DarkDesignColors = DesignColors(
+    notWhite = Color(0xFFF7EDE3),
+    selection = Color(0xFF5B412E),
+    lightBrown = Color(0xFF644933),
+    button = Color(0xFF86684D),
+    textAndIcons = Color(0xFFF1E4D8),
+
+    surfaceSoft = Color(0xFF2A1E16),
+    outline = Color(0xFF8F6E52),
+)
 
 internal val HandHopHopDesignColorScheme = DesignColorScheme(
     light = LightDesignColors,

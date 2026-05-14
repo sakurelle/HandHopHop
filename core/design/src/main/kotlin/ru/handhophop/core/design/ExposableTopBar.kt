@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import ru.handhophop.design.R
 
@@ -31,8 +30,7 @@ fun ExposableTopBar(
 ) {
     val radius = dimensionResource(R.dimen.main_radius)
     val padding = dimensionResource(R.dimen.top_bar_padding)
-
-    val topBarBackground = colorResource(R.color.main_color)
+    val colors = HandHopHopDesignSystem.colors
 
     var isExposed by remember { mutableStateOf(false) }
 
@@ -40,7 +38,7 @@ fun ExposableTopBar(
     Box(
         modifier = Modifier
             .background(
-                topBarBackground,
+                colors.topBar,
                 shape = RoundedCornerShape(
                     bottomEnd = radius,
                     bottomStart = radius
