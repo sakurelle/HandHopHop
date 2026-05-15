@@ -1,5 +1,6 @@
 package ru.handhophop.core.design
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -113,13 +114,16 @@ fun SimpleTopBar(
 
 
 @Composable
-@Preview(showSystemUi = true)
+@Preview(name = "SimpleTopBar Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "SimpleTopBar Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun ExposableTopBar1(
 ) {
-    SimpleTopBar(
-        modifier = Modifier,
-        TopBarState(R.string.Download, R.drawable.arrow, null),
-        {},
-        {}
-    )
+    HandHopHopDesignTheme {
+        SimpleTopBar(
+            modifier = Modifier,
+            TopBarState(R.string.Download, R.drawable.arrow, null),
+            {},
+            {}
+        )
+    }
 }

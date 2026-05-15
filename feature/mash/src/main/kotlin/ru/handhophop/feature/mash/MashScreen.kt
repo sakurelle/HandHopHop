@@ -266,7 +266,7 @@ private fun SchemeCard(
 
                 errorTextRes != null -> Text(
                     text = stringResource(errorTextRes),
-                    color = colors.textSecondary,
+                    color = colors.error,
                     modifier = Modifier.padding(contentPadding)
                 )
 

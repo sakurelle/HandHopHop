@@ -115,6 +115,7 @@ internal fun MashStatisticsScreen(
                                 buttonText = stringResource(R.string.mash_home_new_project),
                                 onButtonClick = onCreateProjectClick,
                                 modifier = Modifier.fillMaxWidth(),
+                                descriptionColor = colors.error,
                             )
                         }
                     }
@@ -504,6 +505,7 @@ private fun MashStatisticsStateCard(
     buttonText: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
+    descriptionColor: androidx.compose.ui.graphics.Color = HandHopHopDesignSystem.colors.textSecondary,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -522,7 +524,7 @@ private fun MashStatisticsStateCard(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colors.textSecondary,
+                color = descriptionColor,
             )
             HandHopHopButton(
                 onClick = onButtonClick,

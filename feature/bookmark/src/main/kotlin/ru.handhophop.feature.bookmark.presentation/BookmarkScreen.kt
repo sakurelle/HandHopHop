@@ -1,6 +1,7 @@
 package ru.handhophop.feature.bookmark.presentation
 
 import android.graphics.BitmapFactory
+import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -23,6 +24,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.tooling.preview.Preview
+import ru.handhophop.core.design.HandHopHopDesignTheme
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
@@ -80,35 +84,43 @@ private fun BookmarkScreen(
     onPhotoSelected: (Long, String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = HandHopHopDesignSystem.colors
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background),
     ) {
-        TopBar(
-            state = TopBarState(
-                titleRes = R.string.bookmark_highlight_title
-            ),
-            {Unit},
-            {Unit}
-        )
+        BackgroundPattern()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            TopBar(
+                state = TopBarState(
+                    titleRes = R.string.bookmark_highlight_title
+                ),
+                { Unit },
+                { Unit }
+            )
 
-        when (val state = uiState) {
-            BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
-                modifier = Modifier.weight(1f),
-            )
-            is BookmarkUiState.Error -> BookmarkErrorState(
-                message = state.message,
-                modifier = Modifier.weight(1f),
-            )
-            is BookmarkUiState.Success -> {
-                if (state.photos.isEmpty()) {
-                    BookmarkEmptyState(modifier = Modifier.weight(1f))
-                } else {
-                    BookmarkGrid(
-                        state = state,
-                        onPhotoSelected = onPhotoSelected,
-                        modifier = Modifier.weight(1f),
-                    )
+            when (val state = uiState) {
+                BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
+                    modifier = Modifier.weight(1f),
+                )
+                is BookmarkUiState.Error -> BookmarkErrorState(
+                    message = state.message,
+                    modifier = Modifier.weight(1f),
+                )
+                is BookmarkUiState.Success -> {
+                    if (state.photos.isEmpty()) {
+                        BookmarkEmptyState(modifier = Modifier.weight(1f))
+                    } else {
+                        BookmarkGrid(
+                            state = state,
+                            onPhotoSelected = onPhotoSelected,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
@@ -122,6 +134,7 @@ private fun BookmarkGrid(
     onPhotoSelected: (Long, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         modifier = modifier.fillMaxWidth(),
@@ -131,7 +144,10 @@ private fun BookmarkGrid(
     ) {
         items(items = state.photos, key = { it.id }) { photo ->
             Card(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface,
+                ),
             ) {
                 BookmarkPhoto(
                     photo = photo,
@@ -149,6 +165,7 @@ private fun BookmarkGrid(
 private fun BookmarkEmptyState(
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -161,11 +178,12 @@ private fun BookmarkEmptyState(
             Text(
                 text = stringResource(R.string.bookmark_empty_title),
                 style = MaterialTheme.typography.headlineSmall,
+                color = colors.textPrimary,
             )
             Text(
                 text = stringResource(R.string.bookmark_empty_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = colors.textSecondary,
             )
         }
     }
@@ -232,6 +250,7 @@ private fun BookmarkErrorState(
     message: String,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -244,11 +263,12 @@ private fun BookmarkErrorState(
             Text(
                 text = stringResource(R.string.bookmark_error_title),
                 style = MaterialTheme.typography.headlineSmall,
+                color = colors.error,
             )
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = colors.textSecondary,
             )
         }
     }
@@ -256,8 +276,9 @@ private fun BookmarkErrorState(
 
 @Composable
 private fun rememberShimmerBrush(): Brush {
-    val baseColor = MaterialTheme.colorScheme.surfaceVariant
-    val highlightColor = Color.White.copy(alpha = 0.6f)
+    val colors = HandHopHopDesignSystem.colors
+    val baseColor = colors.shimmerBase
+    val highlightColor = colors.shimmerHighlight
     val transition = rememberInfiniteTransition(label = "bookmark_shimmer")
     val translateX by transition.animateFloat(
         initialValue = -400f,
@@ -278,4 +299,22 @@ private fun rememberShimmerBrush(): Brush {
         start = Offset(translateX - 300f, 0f),
         end = Offset(translateX, 300f),
     )
+}
+
+@Preview(name = "Bookmark Empty Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Bookmark Empty Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun BookmarkEmptyStatePreview() {
+    HandHopHopDesignTheme {
+        BookmarkEmptyState()
+    }
+}
+
+@Preview(name = "Bookmark Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Bookmark Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun BookmarkErrorStatePreview() {
+    HandHopHopDesignTheme {
+        BookmarkErrorState(message = "Failed to load favorites")
+    }
 }

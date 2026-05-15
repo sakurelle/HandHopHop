@@ -1,5 +1,6 @@
 package ru.handhophop.feature.feed.presentation
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -37,11 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ExposableTopBar
+import ru.handhophop.core.design.HandHopHopDesignTheme
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.design.R as DesignR
 
@@ -55,75 +59,100 @@ internal fun FeedScreen(
         viewModel.handleAction(FeedUiAction.LoadPhotos)
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    when (val state = uiState) {
-        is FeedUiState.Loading -> {
-            FeedLoadingSkeleton()
-        }
-
-        is FeedUiState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Error: ${state.msg}")
+    val colors = HandHopHopDesignSystem.colors
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background)
+    ) {
+        BackgroundPattern()
+        when (val state = uiState) {
+            is FeedUiState.Loading -> {
+                FeedLoadingSkeleton()
             }
-        }
 
-        is FeedUiState.Success -> {
-            Box(modifier = Modifier.fillMaxSize()) {
-                val spacing = dimensionResource(DesignR.dimen.feed_spacing)
-                PullToRefreshBox(
-                    isRefreshing = state.isRefreshing,
-                    onRefresh = {
-                        viewModel.handleAction(FeedUiAction.Refresh)
-                    },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    FeedGrid(
-                        state = state,
-                        onPhotoClicked = onPhotoSelected,
-                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
-                        contentPadding = PaddingValues(
-                            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
-                                DesignR.dimen.top_spacing),
-                            bottom = spacing
-                        )
-                    )
-                }
+            is FeedUiState.Error -> {
+                FeedErrorState(message = state.msg)
+            }
 
-                ExposableTopBar(
-                    state = TopBarState(
-                        titleRes = DesignR.string.feed_title,
-                        leftIconRes = null,
-                        rightIconRes = if (state.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
-                    ),
-                    onChanged = { isVisible ->
-                        viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
-                    }
-                ) { onDismiss ->
-                    FeedFilterSheet(
-                        sections = state.filterSections,
-                        onOptionSelected = { sectionId, optionId ->
-                            viewModel.handleAction(
-                                FeedUiAction.ApplyFilter(sectionId, optionId)
-                            )
+            is FeedUiState.Success -> {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    val spacing = dimensionResource(DesignR.dimen.feed_spacing)
+                    PullToRefreshBox(
+                        isRefreshing = state.isRefreshing,
+                        onRefresh = {
+                            viewModel.handleAction(FeedUiAction.Refresh)
                         },
-                        onDismiss = onDismiss
-                    )
-                }
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        FeedGrid(
+                            state = state,
+                            onPhotoClicked = onPhotoSelected,
+                            onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
+                            contentPadding = PaddingValues(
+                                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
+                                    DesignR.dimen.top_spacing),
+                                bottom = spacing
+                            )
+                        )
+                    }
 
+                    ExposableTopBar(
+                        state = TopBarState(
+                            titleRes = DesignR.string.feed_title,
+                            leftIconRes = null,
+                            rightIconRes = if (state.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
+                        ),
+                        onChanged = { isVisible ->
+                            viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
+                        }
+                    ) { onDismiss ->
+                        FeedFilterSheet(
+                            sections = state.filterSections,
+                            onOptionSelected = { sectionId, optionId ->
+                                viewModel.handleAction(
+                                    FeedUiAction.ApplyFilter(sectionId, optionId)
+                                )
+                            },
+                            onDismiss = onDismiss
+                        )
+                    }
+
+                }
             }
         }
     }
 }
 
 @Composable
+private fun FeedErrorState(message: String) {
+    val colors = HandHopHopDesignSystem.colors
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Error: $message",
+            color = colors.error,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
 private fun FeedLoadingSkeleton() {
+    val colors = HandHopHopDesignSystem.colors
     val shimmerBrush = rememberShimmerBrush()
     val recommendedPlaceholders = List(4) { it }
     val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,8 +205,9 @@ private fun FeedLoadingSkeleton() {
 
 @Composable
 private fun rememberShimmerBrush(): Brush {
-    val baseColor = MaterialTheme.colorScheme.surfaceVariant
-    val highlightColor = Color.White.copy(alpha = 0.6f)
+    val colors = HandHopHopDesignSystem.colors
+    val baseColor = colors.shimmerBase
+    val highlightColor = colors.shimmerHighlight
     val transition = rememberInfiniteTransition(label = "feed_shimmer")
     val translateX by transition.animateFloat(
         initialValue = -400f,
@@ -198,4 +228,22 @@ private fun rememberShimmerBrush(): Brush {
         start = Offset(translateX - 300f, 0f),
         end = Offset(translateX, 300f)
     )
+}
+
+@Preview(name = "Feed Loading Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Feed Loading Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun FeedLoadingSkeletonPreview() {
+    HandHopHopDesignTheme {
+        FeedLoadingSkeleton()
+    }
+}
+
+@Preview(name = "Feed Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Feed Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun FeedErrorStatePreview() {
+    HandHopHopDesignTheme {
+        FeedErrorState(message = "Network unavailable")
+    }
 }

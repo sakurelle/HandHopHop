@@ -7,6 +7,14 @@
     <string name="setting">Настройки</string>
     <string name="memory">Занято памяти</string>
     <string name="clear_data">Очистить данные</string>
+    <string name="current_theme_label">Текущий режим</string>
+    <string name="system_theme_button">Использовать системную тему</string>
+    <string name="theme_mode_light">Светлая тема</string>
+    <string name="theme_mode_dark">Темная тема</string>
+    <string name="theme_mode_system_light">Системная тема (сейчас светлая)</string>
+    <string name="theme_mode_system_dark">Системная тема (сейчас темная)</string>
+    <string name="theme_mode_follow_system_description">По умолчанию приложение следует теме устройства.</string>
+    <string name="theme_mode_manual_description">Вы используете ручной режим темы.</string>
     <string name="dialog_warning_title">Предупреждение!</string>
     <string name="dialog_warning_message">Вы уверены, что хотите очистить все данные? Это действие нельзя будет отменить.</string>
     <string name="dialog_confirm">Очистить</string>
