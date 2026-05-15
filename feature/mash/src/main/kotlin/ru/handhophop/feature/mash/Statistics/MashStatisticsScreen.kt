@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
 import ru.handhophop.feature.mash.MashUiState
@@ -54,30 +56,35 @@ internal fun MashStatisticsScreen(
     val contentPadding = dimensions.md
     val contentSpacing = dimensions.md
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(contentSpacing),
-        ) {
+    Scaffold(
+        topBar = {
             TopBar(
-                state = ru.handhophop.core.design.TopBarState(
+                state = TopBarState(
                     leftIconRes = R.drawable.arrow,
                     titleRes = R.string.mash_statistics_screen_title
                 ),
                 onClickLeft = onBackClick,
-                onClickRight = {Unit}
+                onClickRight = { Unit }
             )
+        },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+                .padding(paddingValues)
+        ) {
+            BackgroundPattern()
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = contentPadding)
+                    .padding(
+                        start = contentPadding,
+                        top = contentSpacing,
+                        end = contentPadding,
+                    )
             ) {
                 when {
                     projectConfig == null -> {

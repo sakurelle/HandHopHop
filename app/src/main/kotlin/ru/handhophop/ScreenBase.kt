@@ -38,7 +38,8 @@ internal fun ScreenBase(
         String?,
         backgroundContent: @Composable () -> Unit,
         onBack: () -> Unit,
-        (Boolean) -> Unit
+        (Boolean) -> Unit,
+        () -> Unit
     ) -> Unit,
     bookmarkScreen: @Composable ((Long, String) -> Unit) -> Unit,
     settingsScreen: @Composable () -> Unit,
@@ -46,6 +47,9 @@ internal fun ScreenBase(
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppRoute.Feed) as NavBackStack<AppRoute>
     var isBottomBarVisible by remember { mutableStateOf(true) }
+    val currentRoute = (backStack.lastOrNull())?.tab ?: AppRoute.Feed.tab
+
+
     val appEntryProvider = remember(mashScreen, settingsScreen, feedScreen, bookmarkScreen) {
         entryProvider {
             entry<AppRoute.Bookmark> {
@@ -75,6 +79,10 @@ internal fun ScreenBase(
                     },
                     { isVisible ->
                         isBottomBarVisible = isVisible
+                    },
+                    {
+                        backStack.removeAt(backStack.size - 1)
+                        backStack.add(AppRoute.Feed)
                     }
                 )
             }
@@ -84,7 +92,6 @@ internal fun ScreenBase(
     BackHandler(enabled = backStack.size > 1) {
         backStack.removeAt(backStack.lastIndex)
     }
-    val currentRoute = (backStack.lastOrNull() as? AppRoute)?.tab ?: AppRoute.Feed.tab
 
     LaunchedEffect(currentRoute) {
         if (currentRoute != Route.MASH) {

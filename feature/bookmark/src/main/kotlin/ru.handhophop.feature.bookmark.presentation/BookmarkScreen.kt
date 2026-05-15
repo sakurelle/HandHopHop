@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -81,34 +82,43 @@ private fun BookmarkScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        TopBar(
-            state = TopBarState(
-                titleRes = R.string.bookmark_highlight_title
-            ),
-            {Unit},
-            {Unit}
-        )
+    Scaffold(
+        topBar = {
+            TopBar(
+                state = TopBarState(
+                    titleRes = R.string.bookmark_highlight_title
+                ),
+                { Unit },
+                { Unit }
+            )
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
 
-        when (val state = uiState) {
-            BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
-                modifier = Modifier.weight(1f),
-            )
-            is BookmarkUiState.Error -> BookmarkErrorState(
-                message = state.message,
-                modifier = Modifier.weight(1f),
-            )
-            is BookmarkUiState.Success -> {
-                if (state.photos.isEmpty()) {
-                    BookmarkEmptyState(modifier = Modifier.weight(1f))
-                } else {
-                    BookmarkGrid(
-                        state = state,
-                        onPhotoSelected = onPhotoSelected,
-                        modifier = Modifier.weight(1f),
-                    )
+            when (val state = uiState) {
+                BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                is BookmarkUiState.Error -> BookmarkErrorState(
+                    message = state.message,
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                is BookmarkUiState.Success -> {
+                    if (state.photos.isEmpty()) {
+                        BookmarkEmptyState(modifier = Modifier.fillMaxSize())
+                    } else {
+                        BookmarkGrid(
+                            state = state,
+                            onPhotoSelected = onPhotoSelected,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
         }

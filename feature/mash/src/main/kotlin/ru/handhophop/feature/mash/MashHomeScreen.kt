@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,6 +59,7 @@ import ru.handhophop.design.R as DesignR
 internal fun MashHomeScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
+    onSearchFeedClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
@@ -132,35 +134,37 @@ internal fun MashHomeScreen(
             shape = RoundedCornerShape(radius),
             )
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(contentSpacing),
-        ) {
+    Scaffold(
+        topBar = {
             TopBar(
                 state = TopBarState(
                     projectName = projectConfig?.projectName
                         ?: stringResource(R.string.mash_home_screen_title),
                     titleRes = null,
                     leftIconRes = null,
-                    rightIconRes = ru.handhophop.design.R.drawable.delete
+                    rightIconRes = if (projectConfig != null) ru.handhophop.design.R.drawable.delete else null
                 ),
                 { showDialog = true },
                 { Unit }
             )
+        },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+                .padding(paddingValues)
+        ) {
+            BackgroundPattern()
 
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .fillMaxWidth()
                     .padding(
                         start = contentPadding,
+                        top = contentSpacing,
                         end = contentPadding,
                         bottom = contentPadding,
                     ),
@@ -174,8 +178,8 @@ internal fun MashHomeScreen(
                         projectConfig == null -> MashHomeStateCard(
                             title = stringResource(R.string.mash_home_no_project_title),
                             description = stringResource(R.string.mash_home_no_project_description),
-                            buttonText = stringResource(R.string.mash_home_create_project),
-                            onButtonClick = onCreateProjectClick,
+                            buttonText = stringResource(R.string.mash_home_go_to_feed),
+                            onButtonClick = onSearchFeedClick,
                         )
 
                         uiState.isLoading && !metrics.isReady -> MashHomeStateCard(

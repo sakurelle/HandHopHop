@@ -29,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -117,17 +118,8 @@ private fun CenterContentMash(
     val verticalPadding = dimensions.md
     val contentSpacing = dimensions.md
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(contentSpacing)
-        ) {
+    Scaffold(
+        topBar = {
             TopBar(
                 state = TopBarState(
                     projectName = title.ifBlank {
@@ -137,55 +129,71 @@ private fun CenterContentMash(
                     titleRes = null
                 ),
                 onClickLeft = onBackClick,
-                onClickRight = {Unit}
-
+                onClickRight = { Unit },
             )
+        },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+                .padding(paddingValues)
+        ) {
+            BackgroundPattern()
 
-            Box(
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .padding(top = contentSpacing),
+                verticalArrangement = Arrangement.spacedBy(contentSpacing)
             ) {
-                SchemeCard(
-                    loading = uiState.isLoading,
-                    scheme = uiState.scheme,
-                    errorTextRes = uiState.errorTextRes,
-                    selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    completedCellIndices = uiState.completedCellIndices,
-                    onCellClick = onSchemeCellClick,
-                    onBackgroundClick = onClearSelection,
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = horizontalPadding,
-                            end = horizontalPadding,
-                            top = verticalPadding
-                        )
-                )
-            }
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    SchemeCard(
+                        loading = uiState.isLoading,
+                        scheme = uiState.scheme,
+                        errorTextRes = uiState.errorTextRes,
+                        selectedPaletteIndex = uiState.selectedPaletteIndex,
+                        completedCellIndices = uiState.completedCellIndices,
+                        onCellClick = onSchemeCellClick,
+                        onBackgroundClick = onClearSelection,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = horizontalPadding,
+                                end = horizontalPadding,
+                                top = verticalPadding
+                            )
+                    )
+                }
 
-            DownloadButton(
-                enabled = uiState.isDownloadButtonEnabled,
-                onClick = onDownloadClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding)
-            )
-
-            if (uiState.isPaletteVisible) {
-                PaletteBar(
-                    threads = uiState.visiblePalette,
-                    selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    onPaletteColorClick = onHighlightColorToggle,
-                    onPaletteColorLongClick = onPaletteCompletionToggle,
+                DownloadButton(
+                    enabled = uiState.isDownloadButtonEnabled,
+                    onClick = onDownloadClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            start = horizontalPadding,
-                            end = horizontalPadding,
-                            bottom = verticalPadding
-                        )
+                        .padding(horizontal = horizontalPadding)
                 )
+
+                if (uiState.isPaletteVisible) {
+                    PaletteBar(
+                        threads = uiState.visiblePalette,
+                        selectedPaletteIndex = uiState.selectedPaletteIndex,
+                        onPaletteColorClick = onHighlightColorToggle,
+                        onPaletteColorLongClick = onPaletteCompletionToggle,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = horizontalPadding,
+                                end = horizontalPadding,
+                                bottom = verticalPadding
+                            )
+                    )
+                }
             }
         }
     }

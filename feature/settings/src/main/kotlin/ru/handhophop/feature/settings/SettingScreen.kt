@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -136,136 +137,142 @@ fun SettingScreen(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Scaffold(
+        topBar = {
             TopBar(
-                state= TopBarState(
+                state = TopBarState(
                     R.string.setting,
                     null,
                     null
                 ),
-                { Unit},
-                {Unit}
+                { Unit },
+                { Unit }
             )
-            Box(
+        },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
                 modifier = Modifier
-                    .padding(top = dimensions.md)
-                    .width(width)
-                    .height(heightBlock)
-                    .border(
-                        border,
-                        colors.primaryAction,
-                        shape = RoundedCornerShape(radius),
-                    )
-                    .background(
-                        color = colors.topBar,
-                        shape = RoundedCornerShape(radius),
-                    ),
-
-                ) {
-                Column(
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
                     modifier = Modifier
-                        .wrapContentHeight()
-                        .padding(dimensions.md),
-                ) {
-                    Text(
-                        modifier = Modifier.padding(bottom = dimensions.md),
-                        text = stringResource(R.string.dark_theme),
-                        fontSize = fontSize,
-                        color = colors.textPrimary,
-                    )
-                    Switch(
-                        checked = isChecked,
-                        onCheckedChange = { checked ->
-                            isChecked = checked
-                            onChangeTheme(checked)
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = colors.background,
-                            checkedTrackColor = colors.primaryAction,
-                            uncheckedThumbColor = colors.background,
-                            uncheckedTrackColor = colors.primaryAction.copy(alpha = 0.65f),
-                            uncheckedBorderColor = colors.background.copy(alpha = 0f),
-                        ),
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(
-                        top = dimensions.md
-                    )
-                    .width(width = width)
-                    .wrapContentHeight()
-                    .border(
-                        border,
-                        colors.primaryAction,
-                        shape = RoundedCornerShape(radius)
-                    )
-                    .background(
-                        color = colors.topBar,
-                        shape = RoundedCornerShape(
-                            radius
+                        .padding(top = dimensions.md)
+                        .width(width)
+                        .height(heightBlock)
+                        .border(
+                            border,
+                            colors.primaryAction,
+                            shape = RoundedCornerShape(radius),
                         )
-                    ),
-            ) {
-                Column(
+                        .background(
+                            color = colors.topBar,
+                            shape = RoundedCornerShape(radius),
+                        ),
+
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .padding(dimensions.md),
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(bottom = dimensions.md),
+                            text = stringResource(R.string.dark_theme),
+                            fontSize = fontSize,
+                            color = colors.textPrimary,
+                        )
+                        Switch(
+                            checked = isChecked,
+                            onCheckedChange = { checked ->
+                                isChecked = checked
+                                onChangeTheme(checked)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = colors.background,
+                                checkedTrackColor = colors.primaryAction,
+                                uncheckedThumbColor = colors.background,
+                                uncheckedTrackColor = colors.primaryAction.copy(alpha = 0.65f),
+                                uncheckedBorderColor = colors.background.copy(alpha = 0f),
+                            ),
+                        )
+                    }
+                }
+
+                Box(
                     modifier = Modifier
+                        .padding(
+                            top = dimensions.md
+                        )
+                        .width(width = width)
                         .wrapContentHeight()
-                        .padding(dimensions.md)
+                        .border(
+                            border,
+                            colors.primaryAction,
+                            shape = RoundedCornerShape(radius)
+                        )
+                        .background(
+                            color = colors.topBar,
+                            shape = RoundedCornerShape(
+                                radius
+                            )
+                        ),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .padding(dimensions.md)
+                    ) {
+                        Text(
+                            text = memory,
+                            fontSize = fontSize,
+                        )
+
+                        Spacer(modifier = Modifier.height(dimensions.md))
+
+                        androidx.compose.material3.LinearProgressIndicator(
+                            progress = { storageProgress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp),
+                            //.clip(RoundedCornerShape(radius)),
+                            color = colors.primaryAction, // Темная часть
+                            trackColor = Color.White, // Светлая часть
+                        )
+
+                        Spacer(modifier = Modifier.height(dimensions.md / 2))
+
+                        Text(
+                            text = storageText,
+                            fontSize = fontSize,
+                        )
+                    }
+                }
+                HandHopHopButton(
+                    modifier = Modifier
+                        .padding(top = dimensions.md)
+                        .width(width),
+                    onClick = {
+                        showDialog.value = true
+                    },
+                    size = ButtonState.Size.FIX,
+                    textColor = ButtonState.Color.Button,
+                    buttonColor = ButtonState.Color.BottomBar,
                 ) {
                     Text(
-                        text = memory,
+                        text = clearData,
                         fontSize = fontSize,
-                    )
-
-                    Spacer(modifier = Modifier.height(dimensions.md))
-
-                    androidx.compose.material3.LinearProgressIndicator(
-                        progress = { storageProgress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp),
-                            //.clip(RoundedCornerShape(radius)),
-                        color = colors.primaryAction, // Темная часть
-                        trackColor = Color.White, // Светлая часть
-                    )
-
-                    Spacer(modifier = Modifier.height(dimensions.md / 2))
-
-                    Text(
-                        text = storageText,
-                        fontSize = fontSize,
+                        color = colors.primaryAction,
                     )
                 }
-            }
-            HandHopHopButton(
-                modifier = Modifier
-                    .padding(top = dimensions.md)
-                    .width(width),
-                onClick = {
-                    showDialog.value = true
-                },
-                size = ButtonState.Size.FIX,
-                textColor = ButtonState.Color.Button,
-                buttonColor = ButtonState.Color.BottomBar,
-            ) {
-                Text(
-                    text = clearData,
-                    fontSize = fontSize,
-                    color = colors.primaryAction,
-                )
             }
         }
     }

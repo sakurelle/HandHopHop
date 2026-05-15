@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -150,27 +151,27 @@ private fun MashCreateContent(
     val dimensions = HandHopHopDesignSystem.dimensions
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
+    Scaffold(
+        topBar = {
             TopBar(
                 state = TopBarState(
                     titleRes = R.string.mash_create_screen_title,
                     leftIconRes = R.drawable.arrow,
-                    null
+                    rightIconRes = null,
                 ),
                 onClickLeft = onBackClick,
-                onClickRight = {Unit}
-
+                onClickRight = { Unit },
             )
+        },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+                .padding(paddingValues)
+        ) {
+            BackgroundPattern()
 
             Column(
                 modifier = Modifier

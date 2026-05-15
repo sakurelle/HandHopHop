@@ -11,22 +11,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -38,7 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.handhophop.core.design.ExposableTopBar
@@ -55,54 +56,25 @@ internal fun FeedScreen(
         viewModel.handleAction(FeedUiAction.LoadPhotos)
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    when (val state = uiState) {
-        is FeedUiState.Loading -> {
-            FeedLoadingSkeleton()
-        }
+    val layoutDirection = LocalLayoutDirection.current
 
-        is FeedUiState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Error: ${state.msg}")
-            }
-        }
-
-        is FeedUiState.Success -> {
-            Box(modifier = Modifier.fillMaxSize()) {
-                val spacing = dimensionResource(DesignR.dimen.feed_spacing)
-                PullToRefreshBox(
-                    isRefreshing = state.isRefreshing,
-                    onRefresh = {
-                        viewModel.handleAction(FeedUiAction.Refresh)
-                    },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    FeedGrid(
-                        state = state,
-                        onPhotoClicked = onPhotoSelected,
-                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
-                        contentPadding = PaddingValues(
-                            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + dimensionResource(
-                                DesignR.dimen.top_spacing),
-                            bottom = spacing
-                        )
-                    )
-                }
-
-                ExposableTopBar(
-                    state = TopBarState(
-                        titleRes = DesignR.string.feed_title,
-                        leftIconRes = null,
-                        rightIconRes = if (state.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
-                    ),
-                    onChanged = { isVisible ->
-                        viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
+    Scaffold(
+        topBar = {
+            ExposableTopBar(
+                state = TopBarState(
+                    titleRes = DesignR.string.feed_title,
+                    leftIconRes = null,
+                    rightIconRes = (uiState as? FeedUiState.Success)?.let {
+                        if (it.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
                     }
-                ) { onDismiss ->
+                ),
+                onChanged = { isVisible ->
+                    viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
+                }
+            ) { onDismiss ->
+                (uiState as? FeedUiState.Success)?.let {
                     FeedFilterSheet(
-                        sections = state.filterSections,
+                        sections = it.filterSections,
                         onOptionSelected = { sectionId, optionId ->
                             viewModel.handleAction(
                                 FeedUiAction.ApplyFilter(sectionId, optionId)
@@ -111,19 +83,69 @@ internal fun FeedScreen(
                         onDismiss = onDismiss
                     )
                 }
+            }
+        }
+    ) { paddingValues ->
+        val contentPadding = PaddingValues(
+            start = paddingValues.calculateStartPadding(layoutDirection),
+            top = paddingValues.calculateTopPadding(),
+            end = paddingValues.calculateEndPadding(layoutDirection),
+            bottom = 0.dp
+        )
 
+        when (val state = uiState) {
+            is FeedUiState.Loading -> {
+                FeedLoadingSkeleton(
+                    modifier = Modifier.padding(contentPadding)
+                )
+            }
+
+            is FeedUiState.Error -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            viewModel.handleAction(FeedUiAction.Refresh)
+                        }
+                    ) {
+                        Text("Перезагрузить")
+                    }
+                }
+            }
+
+            is FeedUiState.Success -> {
+                PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = {
+                        viewModel.handleAction(FeedUiAction.Refresh)
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding)
+                ) {
+                    FeedGrid(
+                        state = state,
+                        onPhotoClicked = onPhotoSelected,
+                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun FeedLoadingSkeleton() {
+private fun FeedLoadingSkeleton(
+    modifier: Modifier = Modifier
+) {
     val shimmerBrush = rememberShimmerBrush()
     val recommendedPlaceholders = List(4) { it }
     val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
