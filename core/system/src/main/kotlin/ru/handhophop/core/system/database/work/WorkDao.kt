@@ -129,36 +129,36 @@ interface WorkDao {
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               grid_width, grid_height, percentage, spended_time
-        FROM work
-        WHERE id = :workId
-        """,
+    SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+           grid_width, grid_height, percentage, spended_time
+    FROM work
+    WHERE id = :workId
+    """,
     )
     suspend fun getDetailsById(workId: Long): WorkDetailsPreview?
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               grid_width, grid_height, percentage, spended_time
-        FROM work
-        WHERE url = :url
-        ORDER BY
-            CASE
-                WHEN project_name IS NOT NULL
-                    AND project_name != ''
-                    AND scheme_type IS NOT NULL
-                    AND scheme_type != ''
-                    AND color_count IS NOT NULL
-                    AND color_count > 0
-                    AND difficulty IS NOT NULL
-                    AND difficulty != ''
-                THEN 0
-                ELSE 1
-            END,
-            id DESC
-        LIMIT 1
-        """,
+    SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+           grid_width, grid_height, percentage, spended_time
+    FROM work
+    WHERE url = :url
+    ORDER BY
+        CASE
+            WHEN project_name IS NOT NULL
+                AND project_name != ''
+                AND scheme_type IS NOT NULL
+                AND scheme_type != ''
+                AND color_count IS NOT NULL
+                AND color_count > 0
+                AND difficulty IS NOT NULL
+                AND difficulty != ''
+            THEN 0
+            ELSE 1
+        END,
+        id DESC
+    LIMIT 1
+    """,
     )
     suspend fun getDetailsByUrl(url: String): WorkDetailsPreview?
 
@@ -178,7 +178,14 @@ interface WorkDao {
     )
     suspend fun getByUrls(urls: List<String>): List<WorkUrlPreview>
 
-    @Query("SELECT id, url, image FROM work WHERE is_favorite = 1 ORDER BY id DESC")
+    @Query(
+        """
+    SELECT id, url, NULL AS image
+    FROM work
+    WHERE is_favorite = 1
+    ORDER BY id DESC
+    """,
+    )
     suspend fun getFavorites(): List<WorkFavoritePreview>
 
     @Query("SELECT is_favorite FROM work WHERE url = :url ORDER BY id DESC LIMIT 1")
@@ -199,11 +206,11 @@ interface WorkDao {
 
     @Query(
         """
-        SELECT rle_chunk
-        FROM work_progress_chunk
-        WHERE work_id = :workId
-        ORDER BY chunk_index ASC
-        """,
+    SELECT rle_chunk
+    FROM work_progress_chunk
+    WHERE work_id = :workId
+    ORDER BY chunk_index ASC
+    """,
     )
     suspend fun getProgressChunks(workId: Long): List<String>
 

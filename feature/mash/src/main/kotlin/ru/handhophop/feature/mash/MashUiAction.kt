@@ -11,6 +11,7 @@ internal class ClickDownloadsAction(
 internal class GenerateSchemeAction(
     val config: MashCreateConfig,
     val imageBytes: ByteArray? = null,
+    val initialCompletedCellIndices: Set<Int> = emptySet(),
 ) : UiAction
 
 internal class TogglePaletteHighlightAction(

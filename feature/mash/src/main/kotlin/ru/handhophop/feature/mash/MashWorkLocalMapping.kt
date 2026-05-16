@@ -57,9 +57,14 @@ internal fun WorkLocalItem.toMashCreateConfigOrNull(): MashCreateConfig? {
     )
 }
 
-internal fun WorkLocalItem.decodeCompletedCells(): Set<Int> {
+internal fun WorkLocalItem.decodeCompletedCells(
+    totalCellsOverride: Int? = null,
+): Set<Int> {
+    val totalCells = totalCellsOverride
+        ?: ((gridWidth ?: 0) * (gridHeight ?: 0))
+
     return decodeCompletedCellsRle(
-        totalCells = (gridWidth ?: 0) * (gridHeight ?: 0),
+        totalCells = totalCells,
         rle = gridRle,
     )
 }

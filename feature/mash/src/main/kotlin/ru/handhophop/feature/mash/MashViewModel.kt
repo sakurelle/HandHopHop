@@ -48,6 +48,7 @@ internal class MashViewModel : ViewModel() {
             is GenerateSchemeAction -> generateScheme(
                 config = action.config,
                 imageBytes = action.imageBytes,
+                initialCompletedCellIndices = action.initialCompletedCellIndices,
             )
 
             is ClickSchemeCellAction -> handleSchemeCellClick(action.cellIndex)
@@ -165,6 +166,7 @@ internal class MashViewModel : ViewModel() {
     private fun generateScheme(
         config: MashCreateConfig,
         imageBytes: ByteArray?,
+        initialCompletedCellIndices: Set<Int>,
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -193,12 +195,17 @@ internal class MashViewModel : ViewModel() {
             }
 
             _uiState.value = if (scheme != null) {
+                val restoredCompletedCells = initialCompletedCellIndices
+                    .filterTo(linkedSetOf()) { index ->
+                        index in scheme.indices.indices
+                    }
+
                 _uiState.value.copy(
                     isLoading = false,
                     scheme = scheme,
                     errorTextRes = null,
                     selectedPaletteIndex = null,
-                    completedCellIndices = emptySet(),
+                    completedCellIndices = restoredCompletedCells,
                 ).withDerivedPaletteState()
             } else {
                 _uiState.value.copy(

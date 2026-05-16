@@ -83,7 +83,15 @@ fun MashEntryPoint(
     var currentWorkId by remember { mutableStateOf<Long?>(null) }
     var createdConfig by remember { mutableStateOf(cachedWork?.config) }
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
-    var pendingCompletedCells by remember { mutableStateOf<Set<Int>?>(null) }
+
+    var isRestoringPersistedProgress by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var pendingCompletedCells by remember {
+        mutableStateOf<Set<Int>?>(null)
+    }
+
     var pendingDownloadTitle by remember { mutableStateOf<String?>(null) }
     var spentTimeBaseMillis by rememberSaveable { mutableStateOf(0L) }
     var workspaceStartedAtMillis by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -151,18 +159,25 @@ fun MashEntryPoint(
         }
     }
 
-    LaunchedEffect(createdConfig, workImageBytes) {
+    LaunchedEffect(createdConfig, workImageBytes, pendingCompletedCells) {
         val config = createdConfig ?: return@LaunchedEffect
         val imageBytes = workImageBytes ?: return@LaunchedEffect
 
         if (config != lastGeneratedConfig) {
+            val completedCellsForRestore = pendingCompletedCells.orEmpty()
+
             lastGeneratedConfig = config
+            pendingCompletedCells = null
+
             viewModel.handleAction(
                 GenerateSchemeAction(
                     config = config,
                     imageBytes = imageBytes,
+                    initialCompletedCellIndices = completedCellsForRestore,
                 ),
             )
+
+            isRestoringPersistedProgress = false
         }
     }
 
@@ -174,11 +189,10 @@ fun MashEntryPoint(
 
     LaunchedEffect(initialWorkId, initialImageUrl) {
         if (initialWorkId != null || initialImageUrl != null) {
-            val persistedWork = when {
-                initialWorkId != null -> repository.getWorkById(initialWorkId)
-                initialImageUrl != null -> repository.getWorkByUrl(initialImageUrl)
-                else -> null
-            }
+            val persistedWork = repository.getWorkForOpening(
+                id = initialWorkId,
+                url = initialImageUrl,
+            )
 
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
 
@@ -186,7 +200,10 @@ fun MashEntryPoint(
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
                 createdConfig = persistedConfig
+
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
+                isRestoringPersistedProgress = true
+
                 spentTimeBaseMillis = persistedWork.spentTime ?: 0L
                 workspaceStartedAtMillis = null
                 destination = MashDestination.WORKSPACE
@@ -194,7 +211,10 @@ fun MashEntryPoint(
                 createdConfig = null
                 currentWorkId = persistedWork?.id
                 workImageBytes = persistedWork?.image
+
                 pendingCompletedCells = null
+                isRestoringPersistedProgress = false
+
                 spentTimeBaseMillis = persistedWork?.spentTime ?: 0L
                 workspaceStartedAtMillis = null
                 destination = MashDestination.CREATE
@@ -202,6 +222,7 @@ fun MashEntryPoint(
         } else if (createdConfig == null) {
             val persistedWorkSummary = repository.getAllWorks()
                 .firstOrNull { it.hasCreatedWorkConfig() }
+
             val persistedWork = persistedWorkSummary
                 ?.let { repository.getWorkById(it.id) }
                 ?: persistedWorkSummary
@@ -212,7 +233,10 @@ fun MashEntryPoint(
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
                 createdConfig = persistedConfig
+
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
+                isRestoringPersistedProgress = true
+
                 spentTimeBaseMillis = persistedWork.spentTime ?: 0L
                 workspaceStartedAtMillis = null
                 destination = MashDestination.HOME
@@ -286,9 +310,22 @@ fun MashEntryPoint(
         )
     }
 
-    LaunchedEffect(createdConfig, uiState.scheme, uiState.completedCellIndices, spentTimeSaveTick) {
+    LaunchedEffect(
+        createdConfig,
+        uiState.scheme,
+        uiState.completedCellIndices,
+        spentTimeSaveTick,
+        isRestoringPersistedProgress,
+    ) {
+        if (isRestoringPersistedProgress) {
+            return@LaunchedEffect
+        }
+
         val config = createdConfig ?: return@LaunchedEffect
+        uiState.scheme ?: return@LaunchedEffect
+
         val url = config.imageUrl?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+
         val activeSpentTime = workspaceStartedAtMillis
             ?.let { startedAt -> System.currentTimeMillis() - startedAt }
             ?: 0L
@@ -302,17 +339,6 @@ fun MashEntryPoint(
                 spentTimeMillis = spentTimeBaseMillis + activeSpentTime,
             ),
         )
-    }
-
-    LaunchedEffect(uiState.scheme, pendingCompletedCells) {
-        val restoredCompletedCells = pendingCompletedCells ?: return@LaunchedEffect
-
-        if (uiState.scheme == null) {
-            return@LaunchedEffect
-        }
-
-        viewModel.restoreCompletedCells(restoredCompletedCells)
-        pendingCompletedCells = null
     }
 
     BackHandler(enabled = destination != MashDestination.HOME) {
@@ -336,9 +362,9 @@ fun MashEntryPoint(
                             createdConfig = null
                             workImageBytes = null
                             pendingCompletedCells = null
+                            isRestoringPersistedProgress = false
                             spentTimeBaseMillis = 0L
                             workspaceStartedAtMillis = null
-
 
                             viewModel.resetWork()
 

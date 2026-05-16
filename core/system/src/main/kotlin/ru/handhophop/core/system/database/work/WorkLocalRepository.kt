@@ -1,7 +1,6 @@
 package ru.handhophop.core.system.database.work
 
 import android.content.Context
-import androidx.sqlite.db.SimpleSQLiteQuery
 import java.io.File
 
 private const val PROGRESS_CHUNK_SIZE = 64 * 1024
@@ -53,6 +52,7 @@ class WorkLocalRepository(
             workDao.insert(
                 work.copy(
                     isFavorite = true,
+                    image = null,
                     gridRle = null,
                 ).toEntity(),
             )
@@ -60,10 +60,15 @@ class WorkLocalRepository(
             workDao.updateFavoriteById(
                 id = current.id,
                 url = work.url,
-                image = work.image,
+                image = null,
             )
+
             current.id
         }
+    }
+
+    suspend fun removeFavorite(url: String) {
+        workDao.deleteByUrlWithProgress(url)
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
@@ -72,7 +77,10 @@ class WorkLocalRepository(
 
         return if (current == null) {
             val insertedId = workDao.insert(
-                work.copy(gridRle = null).toEntity(),
+                work.copy(
+                    image = null,
+                    gridRle = null,
+                ).toEntity(),
             )
 
             workDao.replaceProgressChunks(
@@ -85,7 +93,7 @@ class WorkLocalRepository(
             workDao.updateWorkById(
                 id = current.id,
                 url = work.url,
-                image = work.image,
+                image = null,
                 projectName = work.projectName,
                 schemeType = work.schemeType,
                 colorCount = work.colorCount,
@@ -109,10 +117,6 @@ class WorkLocalRepository(
         workDao.deleteByIdWithProgress(id)
     }
 
-    suspend fun removeFavorite(url: String) {
-        workDao.deleteByUrlWithProgress(url)
-    }
-
     suspend fun getAllWorks(): List<WorkLocalItem> {
         return workDao.getAll().map(WorkUrlPreview::toLocalItem)
     }
@@ -122,19 +126,52 @@ class WorkLocalRepository(
     }
 
     suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {
-        if (urls.isEmpty()) return emptyList()
+        if (urls.isEmpty()) {
+            return emptyList()
+        }
 
         return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
     }
 
     suspend fun getWorkByUrl(url: String): WorkLocalItem? {
-        val details = workDao.getDetailsByUrl(url) ?: return null
-        return details.toLocalItemWithProgress()
+        return workDao.getDetailsByUrl(url)?.toLocalItemWithProgress()
     }
 
     suspend fun getWorkById(id: Long): WorkLocalItem? {
-        val details = workDao.getDetailsById(id) ?: return null
-        return details.toLocalItemWithProgress()
+        return workDao.getDetailsById(id)?.toLocalItemWithProgress()
+    }
+
+    /**
+     * Используется при открытии работы из избранного/ленты.
+     *
+     * Важно:
+     * - не читает image из БД;
+     * - не вызывает getImageById();
+     * - прогресс читает только из work_progress_chunk / legacy grid_rle;
+     * - сначала пытается найти работу по id, потом по url;
+     * - если по id пришла favorite-only запись без прогресса, а по url есть полноценная работа,
+     *   возвращает полноценную работу по url.
+     */
+    suspend fun getWorkForOpening(
+        id: Long?,
+        url: String?,
+    ): WorkLocalItem? {
+        val byId = id
+            ?.takeIf { it > 0 }
+            ?.let { workDao.getDetailsById(it)?.toLocalItemWithProgress() }
+
+        val byUrl = url
+            ?.takeIf { it.isNotBlank() }
+            ?.let { workDao.getDetailsByUrl(it)?.toLocalItemWithProgress() }
+
+        return when {
+            byUrl?.hasCreatedWorkConfig() == true && byUrl.hasProgress() -> byUrl
+            byId?.hasCreatedWorkConfig() == true && byId.hasProgress() -> byId
+            byUrl?.hasCreatedWorkConfig() == true -> byUrl
+            byId?.hasCreatedWorkConfig() == true -> byId
+            byId != null -> byId
+            else -> byUrl
+        }
     }
 
     suspend fun isFavorite(url: String): Boolean {
@@ -142,59 +179,39 @@ class WorkLocalRepository(
     }
 
     private suspend fun findCurrentDetails(work: WorkLocalItem): WorkDetailsPreview? {
-        return if (work.id > 0) {
-            workDao.getDetailsById(work.id)
-        } else {
-            workDao.getDetailsByUrl(work.url)
+        if (work.id > 0) {
+            val byId = workDao.getDetailsById(work.id)
+
+            if (byId != null) {
+                return byId
+            }
         }
+
+        return workDao.getDetailsByUrl(work.url)
     }
 
     private suspend fun WorkDetailsPreview.toLocalItemWithProgress(): WorkLocalItem {
-        val image = workDao.getImageById(id)
-
         val chunkedProgress = workDao.getProgressChunks(id)
             .takeIf { it.isNotEmpty() }
             ?.joinToString(separator = "")
 
-        val progressRle = if (chunkedProgress != null) {
-            chunkedProgress
+        val legacyProgress = if (chunkedProgress == null) {
+            workDao.getLegacyGridRleById(id)
         } else {
-            val legacyRle = workDao.getLegacyGridRleById(id)
-
-            if (!legacyRle.isNullOrBlank()) {
-                workDao.replaceProgressChunks(
-                    workId = id,
-                    rleChunks = legacyRle.toProgressChunks(),
-                )
-            }
-
-            legacyRle
+            null
         }
 
-        return WorkLocalItem(
-            id = id,
-            url = url.orEmpty(),
-            image = image,
-            isFavorite = isFavorite,
-            projectName = projectName,
-            schemeType = schemeType,
-            colorCount = colorCount,
-            difficulty = difficulty,
-            gridWidth = gridWidth,
-            gridHeight = gridHeight,
-            gridRle = progressRle,
-            percentage = percentage,
-            spentTime = spendedTime,
+        if (chunkedProgress == null && !legacyProgress.isNullOrBlank()) {
+            workDao.replaceProgressChunks(
+                workId = id,
+                rleChunks = legacyProgress.toProgressChunks(),
+            )
+        }
+
+        return toLocalItem(
+            progressRle = chunkedProgress ?: legacyProgress,
         )
     }
-}
-
-fun WorkLocalItem.hasCreatedWork(): Boolean {
-    return !projectName.isNullOrBlank() &&
-            !schemeType.isNullOrBlank() &&
-            colorCount != null &&
-            colorCount > 0 &&
-            !difficulty.isNullOrBlank()
 }
 
 fun WorkLocalItem.hasCreatedWorkConfig(): Boolean {
@@ -205,15 +222,16 @@ fun WorkLocalItem.hasCreatedWorkConfig(): Boolean {
             !difficulty.isNullOrBlank()
 }
 
-fun WorkLocalItem.hasProgress(): Boolean {
-    return !gridRle.isNullOrBlank() || (percentage ?: 0) > 0
+fun WorkLocalItem.hasCreatedWork(): Boolean {
+    return hasCreatedWorkConfig()
 }
 
 fun WorkLocalItem.hasStartedWork(): Boolean {
-    return hasCreatedWorkConfig() ||
-            !gridRle.isNullOrBlank() ||
-            (percentage ?: 0) > 0 ||
-            (spentTime ?: 0L) > 0L
+    return hasCreatedWorkConfig() || hasProgress() || hasTrackedTime()
+}
+
+fun WorkLocalItem.hasProgress(): Boolean {
+    return !gridRle.isNullOrBlank() || (percentage ?: 0) > 0
 }
 
 fun WorkLocalItem.hasTrackedTime(): Boolean {
@@ -229,10 +247,18 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
         colorCount = colorCount,
         difficulty = difficulty,
         url = url,
-        image = image,
+
+        // Не сохраняем картинку в БД, чтобы не ловить Row too big to fit into CursorWindow.
+        // Для восстановления схемы используется url.
+        image = null,
+
         gridWidth = gridWidth,
         gridHeight = gridHeight,
+
+        // Новый RLE не пишем в work.grid_rle.
+        // Прогресс хранится чанками в work_progress_chunk.
         gridRle = null,
+
         percentage = percentage,
         spendedTime = spentTime,
     )
@@ -242,7 +268,11 @@ private fun WorkFavoritePreview.toLocalItem(): WorkLocalItem {
     return WorkLocalItem(
         id = id,
         url = url.orEmpty(),
-        image = image,
+
+        // Для экрана избранного image не читаем.
+        // UI должен загрузить превью по url.
+        image = null,
+
         isFavorite = true,
     )
 }
@@ -251,6 +281,7 @@ private fun WorkUrlPreview.toLocalItem(): WorkLocalItem {
     return WorkLocalItem(
         id = id,
         url = url.orEmpty(),
+        image = null,
         isFavorite = isFavorite,
         projectName = projectName,
         schemeType = schemeType,
@@ -263,8 +294,30 @@ private fun WorkUrlPreview.toLocalItem(): WorkLocalItem {
     )
 }
 
+private fun WorkDetailsPreview.toLocalItem(
+    progressRle: String?,
+): WorkLocalItem {
+    return WorkLocalItem(
+        id = id,
+        url = url.orEmpty(),
+        image = null,
+        isFavorite = isFavorite,
+        projectName = projectName,
+        schemeType = schemeType,
+        colorCount = colorCount,
+        difficulty = difficulty,
+        gridWidth = gridWidth,
+        gridHeight = gridHeight,
+        gridRle = progressRle,
+        percentage = percentage,
+        spentTime = spendedTime,
+    )
+}
+
 private fun String?.toProgressChunks(): List<String> {
-    if (isNullOrEmpty()) return emptyList()
+    if (isNullOrEmpty()) {
+        return emptyList()
+    }
 
     return chunked(PROGRESS_CHUNK_SIZE)
 }
