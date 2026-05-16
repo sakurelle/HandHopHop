@@ -90,6 +90,15 @@
     <string name="mash_weekday_sat">Сб</string>
     <string name="mash_weekday_sun">Вс</string>
     <string name="mash_statistics_open_scheme_button">Открыть схему</string>
+    <string name="mash_share_result_button">Поделиться результатом</string>
+    <string name="mash_share_chooser_title">Поделиться работой</string>
+    <string name="mash_share_text">Я завершил(а) работу над схемой в HandHopHop 🎉\nМоя схема готова — теперь можно переходить к рукоделию!</string>
+    <string name="mash_share_text_with_project">Я завершил(а) работу над схемой «%1$s» в HandHopHop 🎉\nМоя схема готова — теперь можно переходить к рукоделию!</string>
+    <string name="mash_share_card_brand">HandHopHop</string>
+    <string name="mash_share_card_headline">Я завершил(а) работу в HandHopHop!</string>
+    <string name="mash_share_card_subtitle">Моя схема готова 🎉</string>
+    <string name="mash_share_card_project">Проект: %1$s</string>
+    <string name="mash_share_card_body">Попробуй тоже создать схему для рукоделия</string>
 
     <string name="dialog_warning_title">Предупреждение!</string>
     <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>

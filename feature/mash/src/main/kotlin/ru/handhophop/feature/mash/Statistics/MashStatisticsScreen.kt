@@ -47,6 +47,7 @@ internal fun MashStatisticsScreen(
     onBackClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
+    onShareResultClick: () -> Unit,
 ) {
     val metrics = uiState.toProjectMetrics()
     val colors = HandHopHopDesignSystem.colors
@@ -129,6 +130,8 @@ internal fun MashStatisticsScreen(
                                 description = stringResource(R.string.mash_statistics_completed_description),
                                 buttonText = stringResource(R.string.mash_home_new_project),
                                 onButtonClick = onCreateProjectClick,
+                                secondaryButtonText = stringResource(R.string.mash_share_result_button),
+                                onSecondaryButtonClick = onShareResultClick,
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
@@ -503,6 +506,8 @@ private fun MashStatisticsStateCard(
     description: String,
     buttonText: String,
     onButtonClick: () -> Unit,
+    secondaryButtonText: String? = null,
+    onSecondaryButtonClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val colors = HandHopHopDesignSystem.colors
@@ -532,6 +537,17 @@ private fun MashStatisticsStateCard(
                 buttonColor = ButtonState.Color.Button,
             ) {
                 Text(text = buttonText)
+            }
+            if (secondaryButtonText != null && onSecondaryButtonClick != null) {
+                HandHopHopButton(
+                    onClick = onSecondaryButtonClick,
+                    modifier = Modifier.defaultMinSize(minHeight = dimensions.lg * 2),
+                    size = ButtonState.Size.WRAPCONTENT,
+                    textColor = ButtonState.Color.Button,
+                    buttonColor = ButtonState.Color.Background,
+                ) {
+                    Text(text = secondaryButtonText)
+                }
             }
         }
     }

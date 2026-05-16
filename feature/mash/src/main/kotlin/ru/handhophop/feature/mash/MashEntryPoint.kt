@@ -204,6 +204,13 @@ fun MashEntryPoint(
                 onCreateProjectClick = { destination = MashDestination.CREATE },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
                 onOpenStatisticsClick = { destination = MashDestination.STATISTICS },
+                onShareResultClick = {
+                    shareCompletedMashWork(
+                        context = context,
+                        projectName = createdConfig?.projectName,
+                        previewImageBytes = workImageBytes,
+                    )
+                },
                 onDeleteSheme = {
                     scope.launch {
                         currentWorkId?.let { id ->
@@ -292,6 +299,13 @@ fun MashEntryPoint(
                 onBackClick = { destination = MashDestination.HOME },
                 onCreateProjectClick = { destination = MashDestination.CREATE },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
+                onShareResultClick = {
+                    shareCompletedMashWork(
+                        context = context,
+                        projectName = createdConfig?.projectName,
+                        previewImageBytes = workImageBytes,
+                    )
+                },
             )
         }
     }

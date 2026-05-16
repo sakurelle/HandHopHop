@@ -61,6 +61,7 @@ internal fun MashHomeScreen(
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
+    onShareResultClick: () -> Unit,
     onDeleteSheme: () -> Unit,
 ) {
     val metrics = uiState.toProjectMetrics()
@@ -197,6 +198,7 @@ internal fun MashHomeScreen(
                             metrics = metrics,
                             onOpenProjectClick = onOpenProjectClick,
                             onOpenStatisticsClick = onOpenStatisticsClick,
+                            onShareResultClick = onShareResultClick,
                         )
                     }
                 }
@@ -218,6 +220,7 @@ private fun MashCurrentWorkCard(
     metrics: MashProjectMetrics,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
+    onShareResultClick: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -327,6 +330,20 @@ private fun MashCurrentWorkCard(
                         color = colors.textPrimary,
                     )
                 }
+            }
+        }
+
+        if (metrics.isCompleted) {
+            HandHopHopButton(
+                onClick = onShareResultClick,
+                size = ButtonState.Size.FILL,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
+            ) {
+                Text(
+                    text = stringResource(R.string.mash_share_result_button),
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
         }
 
