@@ -4,7 +4,7 @@ import android.util.Log
 import ru.handhophop.core.network.api.FreepikApiService
 import ru.handhophop.core.network.models.FreepikPhoto
 import ru.handhophop.core.system.database.work.WorkLocalRepository
-import ru.handhophop.core.system.database.work.hasStartedWork
+import ru.handhophop.core.system.database.work.hasCreatedWork
 
 internal class FeedRepository(
     private val apiService: FreepikApiService,
@@ -64,7 +64,11 @@ internal class FeedRepository(
                 id = photo.id.toString(),
                 photoUrl = normalizedUrl,
                 isBookmarked = localWork?.isFavorite == true,
-                progressPercentage = if (localWork?.hasStartedWork() == true) { localWork.percentage ?: 0} else {0}
+                progressPercentage = if (localWork?.hasCreatedWork() == true) {
+                    localWork.percentage ?: 0
+                } else {
+                    0
+                }
             )
 
         }

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.sqlite.db.SimpleSQLiteQuery
 import java.io.File
 
+private const val PROGRESS_CHUNK_SIZE = 64 * 1024
+
 data class WorkLocalItem(
     val id: Long = 0,
     val url: String,
@@ -65,7 +67,7 @@ class WorkLocalRepository(
 ) {
 
     suspend fun clearAllWorks() {
-        workDao.deleteAll()
+        workDao.deleteAllWithProgress()
         workDao.checkpoint(SimpleSQLiteQuery("VACUUM"))
     }
 
@@ -96,7 +98,11 @@ class WorkLocalRepository(
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
-        return upsert(work) { current ->
+        return upsert(
+            work = work.copy(gridRle = null),
+            progressRle = work.gridRle,
+            replaceProgress = true,
+        ) { current ->
             current.copy(
                 url = work.url,
                 image = work.image ?: current.image,
@@ -106,7 +112,7 @@ class WorkLocalRepository(
                 difficulty = work.difficulty,
                 gridWidth = work.gridWidth,
                 gridHeight = work.gridHeight,
-                gridRle = work.gridRle,
+                gridRle = null,
                 percentage = work.percentage,
                 spendedTime = work.spentTime,
             )
@@ -114,7 +120,7 @@ class WorkLocalRepository(
     }
 
     suspend fun removeWork(id: Long) {
-        workDao.deleteById(id)
+        workDao.deleteByIdWithProgress(id)
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
@@ -122,24 +128,30 @@ class WorkLocalRepository(
     }
 
     suspend fun getFavoriteWorks(): List<WorkLocalItem> {
-        return workDao.getFavorites().map(WorkEntity::toLocalItem)
+        return workDao.getFavorites().map(WorkFavoritePreview::toLocalItem)
     }
 
     suspend fun getWorkByUrl(url: String): WorkLocalItem? {
-        return workDao.getByUrl(url)?.toLocalItem()
+        return workDao.getByUrl(url)?.toLocalItemWithProgress()
+    }
+
+    suspend fun isFavorite(url: String): Boolean {
+        return workDao.isFavoriteByUrl(url) == true
     }
 
     suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {
         if (urls.isEmpty()) return emptyList()
-        return workDao.getByUrls(urls).map(WorkEntity::toLocalItem)
+        return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
     }
 
     suspend fun getWorkById(id: Long): WorkLocalItem? {
-        return workDao.getById(id)?.toLocalItem()
+        return workDao.getById(id)?.toLocalItemWithProgress()
     }
 
     private suspend fun upsert(
         work: WorkLocalItem,
+        progressRle: String? = null,
+        replaceProgress: Boolean = false,
         updateCurrent: (WorkEntity) -> WorkEntity,
     ): Long {
         val current = when {
@@ -147,25 +159,64 @@ class WorkLocalRepository(
             else -> workDao.getByUrl(work.url)
         }
 
+        val progressChunks = progressRle.toProgressChunks()
+
         return if (current == null) {
-            workDao.insert(work.toEntity())
+            if (replaceProgress) {
+                workDao.insertWithProgress(
+                    work = work.toEntity(),
+                    rleChunks = progressChunks,
+                )
+            } else {
+                workDao.insert(work.toEntity())
+            }
         } else {
-            workDao.update(updateCurrent(current))
+            if (replaceProgress) {
+                workDao.updateWithProgress(
+                    work = updateCurrent(current),
+                    rleChunks = progressChunks,
+                )
+            } else {
+                workDao.update(updateCurrent(current))
+            }
             current.id
         }
     }
+
+    private suspend fun WorkEntity.toLocalItemWithProgress(): WorkLocalItem {
+        val chunkedProgress = workDao.getProgressChunks(id)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(separator = "")
+
+        val progressRle = chunkedProgress ?: gridRle
+
+        if (chunkedProgress == null && !gridRle.isNullOrBlank()) {
+            workDao.replaceProgressChunks(id, gridRle.toProgressChunks())
+            workDao.clearLegacyProgress(id)
+        }
+
+        return toLocalItem(progressRle = progressRle)
+    }
 }
 
-fun WorkLocalItem.hasStartedWork(): Boolean {
-    return projectName != null ||
-            schemeType != null ||
-            colorCount != null ||
-            difficulty != null ||
-            gridWidth != null ||
-            gridHeight != null ||
-            gridRle != null ||
-            percentage != null ||
-            spentTime != null
+fun WorkLocalItem.hasCreatedWork(): Boolean {
+    return !projectName.isNullOrBlank() &&
+            !schemeType.isNullOrBlank() &&
+            colorCount != null &&
+            colorCount > 0 &&
+            !difficulty.isNullOrBlank() &&
+            gridWidth != null &&
+            gridWidth > 0 &&
+            gridHeight != null &&
+            gridHeight > 0
+}
+
+fun WorkLocalItem.hasProgress(): Boolean {
+    return !gridRle.isNullOrBlank() || (percentage ?: 0) > 0
+}
+
+fun WorkLocalItem.hasTrackedTime(): Boolean {
+    return (spentTime ?: 0L) > 0L
 }
 
 private fun WorkLocalItem.toEntity(): WorkEntity {
@@ -186,7 +237,9 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
     )
 }
 
-private fun WorkEntity.toLocalItem(): WorkLocalItem {
+private fun WorkEntity.toLocalItem(
+    progressRle: String? = gridRle,
+): WorkLocalItem {
     return WorkLocalItem(
         id = id,
         url = url.orEmpty(),
@@ -198,9 +251,39 @@ private fun WorkEntity.toLocalItem(): WorkLocalItem {
         difficulty = difficulty,
         gridWidth = gridWidth,
         gridHeight = gridHeight,
-        gridRle = gridRle,
+        gridRle = progressRle,
         percentage = percentage,
         spentTime = spendedTime,
     )
+}
+
+private fun WorkFavoritePreview.toLocalItem(): WorkLocalItem {
+    return WorkLocalItem(
+        id = id,
+        url = url.orEmpty(),
+        image = image,
+        isFavorite = true,
+    )
+}
+
+private fun WorkUrlPreview.toLocalItem(): WorkLocalItem {
+    return WorkLocalItem(
+        id = id,
+        url = url.orEmpty(),
+        isFavorite = isFavorite,
+        projectName = projectName,
+        schemeType = schemeType,
+        colorCount = colorCount,
+        difficulty = difficulty,
+        gridWidth = gridWidth,
+        gridHeight = gridHeight,
+        percentage = percentage,
+        spentTime = spendedTime,
+    )
+}
+
+private fun String?.toProgressChunks(): List<String> {
+    if (isNullOrEmpty()) return emptyList()
+    return chunked(PROGRESS_CHUNK_SIZE)
 }
 

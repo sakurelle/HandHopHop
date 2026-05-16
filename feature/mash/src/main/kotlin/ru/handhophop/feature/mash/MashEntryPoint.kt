@@ -23,12 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
-import ru.handhophop.core.system.database.work.hasStartedWork
+import ru.handhophop.core.system.database.work.hasCreatedWork
 import ru.handhophop.feature.mash.MashCreate.FeedPopupScreen
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
@@ -36,6 +37,7 @@ import java.util.Locale
 
 private const val DEFAULT_MASH_IMAGE_URL =
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDqAZfJ7DSp_ML801Txp-yEJ5zTXIDtbM9AQ&s"
+private const val SPENT_TIME_SAVE_INTERVAL_MILLIS = 30_000L
 
 private enum class MashDestination {
     HOME,
@@ -83,6 +85,9 @@ fun MashEntryPoint(
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
     var pendingCompletedCells by remember { mutableStateOf<Set<Int>?>(null) }
     var pendingDownloadTitle by remember { mutableStateOf<String?>(null) }
+    var spentTimeBaseMillis by rememberSaveable { mutableStateOf(0L) }
+    var workspaceStartedAtMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var spentTimeSaveTick by remember { mutableStateOf(0) }
 
     var destination by rememberSaveable {
         mutableStateOf(
@@ -177,26 +182,29 @@ fun MashEntryPoint(
 
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
 
-            if (persistedWork != null && persistedConfig != null && persistedWork.hasStartedWork()) {
+            if (persistedWork != null && persistedConfig != null && persistedWork.hasCreatedWork()) {
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
                 createdConfig = persistedConfig
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
+                spentTimeBaseMillis = persistedWork.spentTime ?: 0L
+                workspaceStartedAtMillis = null
                 destination = MashDestination.WORKSPACE
             } else {
-                if (persistedWork != null && persistedWork.hasStartedWork()) {
-                    repository.removeWork(persistedWork.id)
-                }
-
                 createdConfig = null
                 currentWorkId = persistedWork?.id
                 workImageBytes = persistedWork?.image
                 pendingCompletedCells = null
+                spentTimeBaseMillis = persistedWork?.spentTime ?: 0L
+                workspaceStartedAtMillis = null
                 destination = MashDestination.CREATE
             }
         } else if (createdConfig == null) {
-            val persistedWork = repository.getAllWorks()
-                .firstOrNull { it.hasStartedWork() }
+            val persistedWorkSummary = repository.getAllWorks()
+                .firstOrNull { it.hasCreatedWork() }
+            val persistedWork = persistedWorkSummary
+                ?.let { repository.getWorkById(it.id) }
+                ?: persistedWorkSummary
 
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
 
@@ -205,9 +213,9 @@ fun MashEntryPoint(
                 workImageBytes = persistedWork.image
                 createdConfig = persistedConfig
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
+                spentTimeBaseMillis = persistedWork.spentTime ?: 0L
+                workspaceStartedAtMillis = null
                 destination = MashDestination.HOME
-            } else if (persistedWork != null && persistedWork.hasStartedWork()) {
-                repository.removeWork(persistedWork.id)
             }
         }
     }
@@ -235,6 +243,26 @@ fun MashEntryPoint(
         onBottomBarVisibilityChanged((destination != MashDestination.CREATE)|| showPopup )
     }
 
+    LaunchedEffect(destination) {
+        val now = System.currentTimeMillis()
+        val startedAt = workspaceStartedAtMillis
+
+        if (destination == MashDestination.WORKSPACE && startedAt == null) {
+            workspaceStartedAtMillis = now
+        } else if (destination != MashDestination.WORKSPACE && startedAt != null) {
+            spentTimeBaseMillis += now - startedAt
+            workspaceStartedAtMillis = null
+            spentTimeSaveTick++
+        }
+    }
+
+    LaunchedEffect(destination, workspaceStartedAtMillis) {
+        while (destination == MashDestination.WORKSPACE && workspaceStartedAtMillis != null) {
+            delay(SPENT_TIME_SAVE_INTERVAL_MILLIS)
+            spentTimeSaveTick++
+        }
+    }
+
     LaunchedEffect(createdConfig, uiState) {
         MashWorkCache.currentWork = createdConfig?.let { config ->
             CachedMashWork(
@@ -258,16 +286,20 @@ fun MashEntryPoint(
         )
     }
 
-    LaunchedEffect(createdConfig, uiState.scheme, uiState.completedCellIndices) {
+    LaunchedEffect(createdConfig, uiState.scheme, uiState.completedCellIndices, spentTimeSaveTick) {
         val config = createdConfig ?: return@LaunchedEffect
         val url = config.imageUrl?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        val activeSpentTime = workspaceStartedAtMillis
+            ?.let { startedAt -> System.currentTimeMillis() - startedAt }
+            ?: 0L
 
         currentWorkId = repository.addWork(
             config.toWorkLocalItem(
                 id = currentWorkId ?: 0,
                 image = workImageBytes,
-                isFavorite = repository.getWorkByUrl(url)?.isFavorite == true,
+                isFavorite = repository.isFavorite(url),
                 uiState = uiState,
+                spentTimeMillis = spentTimeBaseMillis + activeSpentTime,
             ),
         )
     }
@@ -304,6 +336,8 @@ fun MashEntryPoint(
                             createdConfig = null
                             workImageBytes = null
                             pendingCompletedCells = null
+                            spentTimeBaseMillis = 0L
+                            workspaceStartedAtMillis = null
 
 
                             viewModel.resetWork()
@@ -343,6 +377,11 @@ fun MashEntryPoint(
                     onCreateFinished = { newConfig ->
                         if (createdConfig?.imageUrl != newConfig.imageUrl) {
                             workImageBytes = null
+                        }
+
+                        if (createdConfig != newConfig) {
+                            spentTimeBaseMillis = 0L
+                            workspaceStartedAtMillis = null
                         }
 
                         lastGeneratedConfig = null

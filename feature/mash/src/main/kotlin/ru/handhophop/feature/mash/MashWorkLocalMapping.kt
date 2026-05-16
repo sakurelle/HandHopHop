@@ -10,6 +10,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
     image: ByteArray? = null,
     isFavorite: Boolean = false,
     uiState: MashUiState? = null,
+    spentTimeMillis: Long? = null,
 ): WorkLocalItem {
     val scheme = uiState?.scheme
     val completedCells = uiState?.completedCellIndices.orEmpty()
@@ -33,6 +34,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
             totalCells = scheme?.indices?.size ?: 0,
             completedCells = completedCells.size,
         ),
+        spentTime = spentTimeMillis,
     )
 }
 
