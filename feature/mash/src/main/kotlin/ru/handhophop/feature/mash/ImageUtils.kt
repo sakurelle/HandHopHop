@@ -6,8 +6,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import coil.ImageLoader
 import coil.request.ImageRequest
@@ -34,15 +32,6 @@ internal suspend fun loadBitmapFromUrl(
         } else {
             null
         }
-    }.getOrNull()
-}
-
-internal suspend fun loadDefaultBitmap(
-    context: Context,
-    @DrawableRes drawableRes: Int
-): Bitmap? = withContext(Dispatchers.IO) {
-    runCatching {
-        ContextCompat.getDrawable(context, drawableRes)?.let(::drawableToBitmap)
     }.getOrNull()
 }
 

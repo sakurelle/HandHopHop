@@ -23,11 +23,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import ru.handhophop.feature.mash.MashCreate.MashThread
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
+import androidx.core.graphics.toColorInt
 
 private const val PDF_PAGE_WIDTH = 595
 private const val PDF_PAGE_HEIGHT = 842
@@ -176,7 +174,6 @@ internal fun showSavedPdfNotification(
 }
 
 private fun ensurePdfNotificationChannel(context: Context) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
     val notificationManager = context.getSystemService(NotificationManager::class.java)
     val channel = NotificationChannel(
@@ -224,13 +221,13 @@ private fun renderSchemePages(
         color = AndroidColor.BLACK
     }
     val gridPaint = Paint().apply {
-        color = AndroidColor.parseColor("#B8A89A")
+        color = "#B8A89A".toColorInt()
         style = Paint.Style.STROKE
         strokeWidth = 0.6f
         isAntiAlias = true
     }
     val majorGridPaint = Paint().apply {
-        color = AndroidColor.parseColor("#4C3E36")
+        color = "#4C3E36".toColorInt()
         style = Paint.Style.STROKE
         strokeWidth = 1.2f
         isAntiAlias = true
@@ -256,7 +253,7 @@ private fun renderSchemePages(
             canvas.drawColor(AndroidColor.WHITE)
 
             val gridWidth = pageColumns * cellSize
-            val gridHeight = pageRows * cellSize
+            pageRows * cellSize
             val gridLeft = PDF_MARGIN + ((usableWidth - gridWidth) / 2f)
             val gridTop = PDF_MARGIN + PDF_HEADER_HEIGHT
 

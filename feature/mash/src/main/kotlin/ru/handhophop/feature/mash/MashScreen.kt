@@ -55,9 +55,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -131,10 +129,8 @@ private fun CenterContentMash(
             verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
             MashModuleTopBar(
-                title = if (title.isBlank()) {
+                title = title.ifBlank {
                     stringResource(R.string.mash_workspace_title_fallback)
-                } else {
-                    title
                 },
                 onBackClick = onBackClick,
             )
@@ -354,9 +350,6 @@ private fun DownloadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = HandHopHopDesignSystem.colors
-    val dimensions = HandHopHopDesignSystem.dimensions
-
     HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
@@ -482,9 +475,7 @@ private fun NumberedSchemeCanvas(
     var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableFloatStateOf(1f)
     }
-    var canvasSize by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
-        mutableStateOf(IntSize.Zero)
-    }
+
     var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableStateOf<Offset?>(null)
     }
@@ -541,7 +532,6 @@ private fun NumberedSchemeCanvas(
             .clipToBounds()
             .background(schemeBackgroundColor)
             .onSizeChanged { size ->
-                canvasSize = size
                 offset = clampOffset(
                     viewWidth = size.width.toFloat(),
                     viewHeight = size.height.toFloat(),
@@ -589,7 +579,7 @@ private fun NumberedSchemeCanvas(
                         }
 
                         val zoom = event.calculateZoom()
-                        if (zoom < 0.999f || zoom > 1.001f) {
+                        if (zoom !in 0.999f..1.001f) {
                             tapCandidate = false
                         }
 

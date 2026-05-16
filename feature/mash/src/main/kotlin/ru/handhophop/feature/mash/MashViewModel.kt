@@ -2,17 +2,14 @@ package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
@@ -323,9 +320,7 @@ internal fun selectPaletteForImage(
         .take(normalizedMaxColors)
         .sorted()
 
-    val effectiveSourceIndices = if (selectedPaletteSourceIndices.isNotEmpty()) {
-        selectedPaletteSourceIndices
-    } else {
+    val effectiveSourceIndices = selectedPaletteSourceIndices.ifEmpty {
         availablePalette.indices.take(normalizedMaxColors)
     }
 

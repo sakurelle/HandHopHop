@@ -2,12 +2,10 @@ package ru.handhophop.feature.mash
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +29,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
@@ -204,7 +201,6 @@ private fun MashCurrentWorkCard(
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val cardCornerRadius = dimensions.lg
-    val buttonCornerRadius = dimensions.md
     val borderWidth = dimensions.xs / 4
     val imageModifier = Modifier
         .fillMaxWidth(0.52f)
