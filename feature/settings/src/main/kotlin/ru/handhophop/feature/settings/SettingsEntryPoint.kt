@@ -6,12 +6,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ru.handhophop.core.design.ThemeMode
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 
 
 @Composable
-fun SettingsEntryPoint() {
+fun SettingsEntryPoint(
+    currentThemeMode: ThemeMode,
+    isDarkTheme: Boolean,
+    onThemeModeChange: (ThemeMode) -> Unit,
+) {
     val context = LocalContext.current
     val appContext = context.applicationContext // Используем appContext для ViewModel
 
@@ -31,7 +36,9 @@ fun SettingsEntryPoint() {
         }
     )
     SettingScreen(
-        onChangeTheme = {},
+        currentThemeMode = currentThemeMode,
+        isDarkTheme = isDarkTheme,
+        onThemeModeChange = onThemeModeChange,
         viewModel = viewModel
     )
 }

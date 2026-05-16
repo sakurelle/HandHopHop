@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.feed.R
 import ru.handhophop.design.R as DesignR
 
@@ -34,6 +36,7 @@ internal fun FeedGrid(
     onLoadMore: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val gridState = rememberLazyStaggeredGridState()
 
     val needLoadMore = remember {
@@ -75,7 +78,10 @@ internal fun FeedGrid(
                     .padding(
                         start = 8.dp,
                         end = 8.dp
-                    )
+                    ),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface,
+                ),
             ) {
                 AsyncImage(
                     model = photo.photoUrl,
@@ -96,7 +102,7 @@ internal fun FeedGrid(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = colors.primaryAction)
         }
     }
 }

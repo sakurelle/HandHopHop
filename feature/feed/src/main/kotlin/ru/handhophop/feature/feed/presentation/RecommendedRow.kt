@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.feed.R
 import ru.handhophop.design.R as DesignR
 
@@ -35,6 +36,7 @@ internal fun RecommendedRow(
     onPhotoClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val spacing = dimensionResource(DesignR.dimen.feed_spacing)
     Column(modifier = modifier.fillMaxWidth().padding(
         top = dimensionResource(DesignR.dimen.text_spacing)
@@ -47,6 +49,7 @@ internal fun RecommendedRow(
             text = stringResource(R.string.recommended_row_header),
             fontWeight = FontWeight.SemiBold,
             fontSize = dimensionResource(DesignR.dimen.recommended_header).value.sp,
+            color = colors.textPrimary,
         )
 
         Spacer(modifier = Modifier.height(spacing))
@@ -56,7 +59,7 @@ internal fun RecommendedRow(
                 modifier = Modifier.fillMaxWidth().height(100.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = colors.primaryAction)
             }
         } else {
             Box(

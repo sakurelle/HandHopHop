@@ -113,7 +113,7 @@ internal fun MashHomeScreen(
                         modifier = Modifier,
                         fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
                         text = dialogConfirm,
-                        color = Color.Red,
+                        color = colors.error,
                     )
                 }
             },
@@ -190,6 +190,7 @@ internal fun MashHomeScreen(
                             description = stringResource(R.string.mash_home_error_description),
                             buttonText = stringResource(R.string.mash_home_new_project),
                             onButtonClick = onCreateProjectClick,
+                            descriptionColor = colors.error,
                         )
 
                         else -> MashCurrentWorkCard(
@@ -408,6 +409,7 @@ private fun MashHomeStateCard(
     description: String,
     buttonText: String,
     onButtonClick: () -> Unit,
+    descriptionColor: androidx.compose.ui.graphics.Color = HandHopHopDesignSystem.colors.textSecondary,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -438,7 +440,7 @@ private fun MashHomeStateCard(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colors.textSecondary,
+                color = descriptionColor,
             )
             HandHopHopButton(
                 onClick = onButtonClick,

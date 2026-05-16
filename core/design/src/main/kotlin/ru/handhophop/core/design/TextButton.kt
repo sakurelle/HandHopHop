@@ -1,5 +1,6 @@
 package ru.handhophop.core.design
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,7 +46,8 @@ internal fun TextButton(
 }
 
 @Composable
-@Preview(showSystemUi = true)
+@Preview(name = "TextButton Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "TextButton Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun ButtonPreview() {
     val stateButton = TextButtonState(
         stringResource(R.string.Download),
@@ -54,15 +56,17 @@ fun ButtonPreview() {
         textColor = ButtonState.Color.Button,
         buttonColor = ButtonState.Color.BottomBar
     )
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        TextButton(
-            state = stateButton,
-            onClick = {/*TODO*/ }
-        )
+    HandHopHopDesignTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            TextButton(
+                state = stateButton,
+                onClick = {}
+            )
+        }
     }
 
 }
