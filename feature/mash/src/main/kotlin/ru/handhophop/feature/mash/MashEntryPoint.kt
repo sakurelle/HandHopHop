@@ -203,7 +203,7 @@ fun MashEntryPoint(
         }
     }
 
-    LaunchedEffect(createdConfig?.imageUrl, workImageBytes) {
+    LaunchedEffect(createdConfig, workImageBytes) {
         val config = createdConfig ?: return@LaunchedEffect
 
         if (workImageBytes != null) {

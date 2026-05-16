@@ -149,7 +149,7 @@ internal class MashViewModel : ViewModel() {
 
     private fun generateScheme(
         config: MashCreateConfig,
-        imageBytes: ByteArray? = null,
+        imageBytes: ByteArray?,
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
