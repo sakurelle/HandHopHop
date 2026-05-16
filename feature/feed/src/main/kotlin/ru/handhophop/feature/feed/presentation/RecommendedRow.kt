@@ -65,11 +65,8 @@ internal fun RecommendedRow(
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(
-                        start = spacing,
-                        end = spacing
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.recommended_row_spacing))
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(items = state.recommendedPhotos, key = {it.id}) { photo ->
                         AsyncImage(

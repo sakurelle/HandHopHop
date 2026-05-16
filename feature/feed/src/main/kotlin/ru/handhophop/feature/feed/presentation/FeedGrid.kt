@@ -55,9 +55,7 @@ internal fun FeedGrid(
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         state = gridState,
-        contentPadding = contentPadding,
-        verticalItemSpacing = spacing,
-        modifier = modifier
+        verticalItemSpacing = 16.dp
     ) {
         item(span = StaggeredGridItemSpan.FullLine) {
             RecommendedRow(
@@ -66,16 +64,11 @@ internal fun FeedGrid(
             )
         }
 
-        itemsIndexed(items = state.photos, key = { _, it -> it.id}) { index, photo ->
-            val startPadding = if (index % 2 == 0) spacing else spacing/2
-            val endPadding = if (index % 2 == 0) spacing/2 else spacing
+        itemsIndexed(items = state.photos, key = { _, it -> it.id }) { index, photo ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = 8.dp,
-                        end = 8.dp
-                    )
+                    .padding(horizontal = 8.dp)
             ) {
                 AsyncImage(
                     model = photo.photoUrl,

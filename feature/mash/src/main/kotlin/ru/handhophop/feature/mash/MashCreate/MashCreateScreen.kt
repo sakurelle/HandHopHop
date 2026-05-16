@@ -62,8 +62,8 @@ import ru.handhophop.feature.mash.selectPaletteForImage
 internal fun MashCreateScreen(
     imageUrl: String?,
     suggestedProjectName: String = "",
-    onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
+    onBackClick: () -> Unit = {},
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(suggestedProjectName)
