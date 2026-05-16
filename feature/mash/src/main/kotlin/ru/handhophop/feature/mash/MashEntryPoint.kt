@@ -21,9 +21,15 @@ import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.core.system.database.work.hasStartedWork
-import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
+import android.widget.Toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import java.util.Locale
+import android.annotation.SuppressLint
+import android.content.Context
 
 private enum class MashDestination {
     HOME,
@@ -39,6 +45,8 @@ fun MashEntryPoint(
     onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
+    val pdfSavedMessageTemplate = stringResource(R.string.mash_pdf_saved)
+    val pdfFailedMessage = stringResource(R.string.mash_pdf_failed)
     val repository = remember(context) {
         WorkLocalRepository(
             workDao = HandHopHopDatabaseProvider.get(context).workDao(),
@@ -73,10 +81,49 @@ fun MashEntryPoint(
     ) { _ ->
         pendingDownloadTitle?.let { projectTitle ->
             viewModel.handleAction(
-                ClickDownloadsAction(projectTitle = projectTitle)
+                ClickDownloadsAction(
+                    projectTitle = projectTitle,
+                ),
             )
         }
         pendingDownloadTitle = null
+    }
+
+    LaunchedEffect(viewModel, context, pdfSavedMessageTemplate, pdfFailedMessage) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is MashViewModel.Event.ExportPdf -> {
+                    val result = withContext(Dispatchers.IO) {
+                        exportSchemePdf(
+                            context = context,
+                            projectTitle = event.projectTitle,
+                            scheme = event.scheme,
+                        )
+                    }
+
+                    result.onSuccess { savedPdfFile ->
+                        Toast.makeText(
+                            context,
+                            String.format(
+                                Locale.getDefault(),
+                                pdfSavedMessageTemplate,
+                                savedPdfFile.fileName,
+                            ),
+                            Toast.LENGTH_LONG,
+                        ).show()
+
+                        openSavedPdf(context, savedPdfFile)
+                        showSavedPdfNotificationIfAllowed(context, savedPdfFile)
+                    }.onFailure {
+                        Toast.makeText(
+                            context,
+                            pdfFailedMessage,
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(createdConfig) {
@@ -239,7 +286,7 @@ fun MashEntryPoint(
                         viewModel.handleAction(
                             ClickDownloadsAction(
                                 projectTitle = projectTitle,
-                            )
+                            ),
                         )
                     }
                 },
@@ -270,10 +317,27 @@ fun MashEntryPoint(
     }
 }
 
-private fun needsNotificationPermission(context: android.content.Context): Boolean {
+private fun needsNotificationPermission(context: Context): Boolean {
     return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS,
             ) != PackageManager.PERMISSION_GRANTED
+}
+
+@SuppressLint("MissingPermission")
+private fun showSavedPdfNotificationIfAllowed(
+    context: Context,
+    savedPdfFile: SavedPdfFile,
+) {
+    val hasNotificationPermission =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ) == PackageManager.PERMISSION_GRANTED
+
+    if (hasNotificationPermission) {
+        showSavedPdfNotification(context, savedPdfFile)
+    }
 }

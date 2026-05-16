@@ -20,6 +20,9 @@ import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 private const val DEFAULT_TRANSPARENT_ALPHA_THRESHOLD = 40
 private const val DEFAULT_FALLBACK_GRID_SIZE = 128
@@ -30,12 +33,23 @@ internal class MashViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
+    internal sealed interface Event {
+
+        data class ExportPdf(
+            val projectTitle: String,
+            val scheme: SchemeData,
+        ) : Event
+    }
+
     private val _uiState = MutableStateFlow(MashUiState())
     val uiState: StateFlow<MashUiState> = _uiState.asStateFlow()
 
+    private val _events = MutableSharedFlow<Event>()
+    val events: SharedFlow<Event> = _events.asSharedFlow()
+
     internal fun handleAction(action: UiAction) {
         when (action) {
-            is ClickDownloadsAction -> download(action.projectTitle)
+            is ClickDownloadsAction -> requestPdfExport(action.projectTitle)
             is GenerateSchemeAction -> generateScheme(
                 config = action.config,
                 imageBytes = action.imageBytes,
@@ -212,36 +226,17 @@ internal class MashViewModel(
         )
     }
 
-    private fun download(projectTitle: String) {
+    private fun requestPdfExport(projectTitle: String) {
         val currentScheme = _uiState.value.scheme ?: return
-        val context = getApplication<Application>().applicationContext
 
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                exportSchemePdf(
-                    context = context,
+            _events.emit(
+                Event.ExportPdf(
                     projectTitle = projectTitle,
                     scheme = currentScheme,
-                )
-            }
-
-            result.onSuccess { savedPdfFile ->
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.mash_pdf_saved, savedPdfFile.fileName),
-                    Toast.LENGTH_LONG,
-                ).show()
-                openSavedPdf(context, savedPdfFile)
-                showSavedPdfNotification(context, savedPdfFile)
-            }.onFailure {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.mash_pdf_failed),
-                    Toast.LENGTH_LONG,
-                ).show()
-            }
+                ),
+            )
         }
-        // TODO: скачивание схемы
     }
 }
 
