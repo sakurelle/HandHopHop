@@ -1,5 +1,6 @@
 package ru.handhophop.core.design
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,15 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,25 +22,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.xr.compose.testing.toDp
 import ru.handhophop.design.R
 
 
 @Composable
-//@Preview(showSystemUi = true)
+@Preview(name = "BottomBar Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "BottomBar Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun BottomBarPreview() {
+    HandHopHopDesignTheme {
     BottomBar(
         Route.MASH,
         onRouteSelected = {}
     )
+    }
 }
 
 @Composable
@@ -55,10 +53,11 @@ fun BottomBar(
     val buttonText = dimensionResource(R.dimen.button_text)
     val bottomPadding = dimensionResource(R.dimen.bottom_pading)
     val radius = dimensionResource(R.dimen.main_radius)
+    val colors = HandHopHopDesignSystem.colors
 
-    val bottomBarBackground = colorResource(R.color.main_color)
-    val buttonBackground = colorResource(R.color.button)
-    val whiteColor = colorResource(R.color.white)
+    val bottomBarBackground = colors.topBar
+    val buttonBackground = colors.primaryAction
+    val whiteColor = colors.onPrimaryAction
 
 
 

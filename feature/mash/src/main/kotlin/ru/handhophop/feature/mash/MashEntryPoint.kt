@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -22,11 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.core.system.database.work.hasStartedWork
+import ru.handhophop.feature.mash.MashCreate.FeedPopupScreen
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
 import java.util.Locale
@@ -45,8 +48,14 @@ private enum class MashDestination {
 fun MashEntryPoint(
     initialWorkId: Long? = null,
     initialImageUrl: String? = null,
+    onOpenFeed: () -> Unit,
+    backgroundContent: @Composable () -> Unit,
+    onBack: () -> Unit,
     onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
 ) {
+    var showPopup by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     val context = LocalContext.current
     val pdfSavedMessageTemplate = stringResource(R.string.mash_pdf_saved)
     val pdfFailedMessage = stringResource(R.string.mash_pdf_failed)
@@ -222,8 +231,8 @@ fun MashEntryPoint(
         workImageBytes = bitmapToByteArray(bitmap)
     }
 
-    LaunchedEffect(destination) {
-        onBottomBarVisibilityChanged(destination != MashDestination.CREATE)
+    LaunchedEffect(destination, showPopup) {
+        onBottomBarVisibilityChanged((destination != MashDestination.CREATE)|| showPopup )
     }
 
     LaunchedEffect(createdConfig, uiState) {
@@ -286,23 +295,62 @@ fun MashEntryPoint(
                 onCreateProjectClick = { destination = MashDestination.CREATE },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
                 onOpenStatisticsClick = { destination = MashDestination.STATISTICS },
+                onDeleteSheme = {
+                    scope.launch {
+                        currentWorkId?.let { id ->
+                            repository.removeWork(id)
+
+                            currentWorkId = null
+                            createdConfig = null
+                            workImageBytes = null
+                            pendingCompletedCells = null
+
+
+                            viewModel.resetWork()
+
+                            MashWorkCache.currentWork = null
+                        }
+                    }
+                },
+                onSearchFeedClick = {
+                    onOpenFeed()
+                }
             )
         }
 
         MashDestination.CREATE -> {
-            MashCreateScreen(
-                imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
-                onBackClick = { destination = MashDestination.HOME },
-                onCreateFinished = { newConfig ->
-                    if (createdConfig?.imageUrl != newConfig.imageUrl) {
-                        workImageBytes = null
-                    }
 
-                    lastGeneratedConfig = null
-                    createdConfig = newConfig
-                    destination = MashDestination.WORKSPACE
-                },
-            )
+            if (showPopup) {
+                backgroundContent()
+                FeedPopupScreen(
+                    imageUrl = initialImageUrl ?: createdConfig?.imageUrl ?: "",
+                    onStartWork = {
+                        showPopup = false
+                    },
+                    onClose = {
+                        showPopup = false
+                    },
+                    onSave = {
+
+                    }
+                )
+            } else {
+                MashCreateScreen(
+                    imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
+                    onBackClick = {
+                        onBack()
+                    },
+                    onCreateFinished = { newConfig ->
+                        if (createdConfig?.imageUrl != newConfig.imageUrl) {
+                            workImageBytes = null
+                        }
+
+                        lastGeneratedConfig = null
+                        createdConfig = newConfig
+                        destination = MashDestination.WORKSPACE
+                    }
+                )
+            }
         }
 
         MashDestination.WORKSPACE -> {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import ru.handhophop.feature.feed.R
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.design.R as DesignR
 
 @Composable
@@ -32,8 +33,9 @@ internal fun FeedGrid(
     state: FeedUiState.Success,
     onPhotoClicked: (String) -> Unit,
     onLoadMore: () -> Unit,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val gridState = rememberLazyStaggeredGridState()
 
     val needLoadMore = remember {
@@ -53,29 +55,30 @@ internal fun FeedGrid(
     val spacing = dimensionResource(DesignR.dimen.feed_spacing)
 
     LazyVerticalStaggeredGrid(
+        modifier = modifier,
         columns = StaggeredGridCells.Fixed(2),
         state = gridState,
         contentPadding = contentPadding,
         verticalItemSpacing = spacing,
-        modifier = modifier
     ) {
         item(span = StaggeredGridItemSpan.FullLine) {
             RecommendedRow(
                 state = state,
-                onPhotoClicked = onPhotoClicked
+                onPhotoClicked = onPhotoClicked,
             )
         }
 
-        itemsIndexed(items = state.photos, key = { _, it -> it.id}) { index, photo ->
-            val startPadding = if (index % 2 == 0) spacing else spacing/2
-            val endPadding = if (index % 2 == 0) spacing/2 else spacing
+        itemsIndexed(
+            items = state.photos,
+            key = { _, photo -> photo.id },
+        ) { _, photo ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = 8.dp,
-                        end = 8.dp
-                    )
+                    .padding(horizontal = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface,
+                ),
             ) {
                 AsyncImage(
                     model = photo.photoUrl,
@@ -83,20 +86,24 @@ internal fun FeedGrid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onPhotoClicked(photo.photoUrl) }
+                        .clickable { onPhotoClicked(photo.photoUrl) },
                 )
             }
         }
-    }
 
-    if (state.isLoadingMore) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
+        if (state.isLoadingMore) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        color = colors.primaryAction,
+                    )
+                }
+            }
         }
     }
 }

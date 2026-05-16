@@ -51,8 +51,11 @@ dependencies {
     implementation(libs.coil)
     implementation(project(":core:network"))
     implementation(project(":core:system"))
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.foundation)
+
+    implementation(project(":feature:feed"))
+    implementation(project(":core:system"))
 
 }

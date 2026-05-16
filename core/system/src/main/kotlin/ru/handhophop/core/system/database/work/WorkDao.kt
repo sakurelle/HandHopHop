@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
 interface WorkDao {
@@ -13,6 +15,14 @@ interface WorkDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(work: WorkEntity): Long
 
+    @Query("DELETE FROM work")
+    suspend fun deleteAll()
+
+    @Query("SELECT COUNT(*) FROM work")
+    suspend fun getCount(): Int
+
+    @RawQuery
+    suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
     @Update
     suspend fun update(work: WorkEntity)
 

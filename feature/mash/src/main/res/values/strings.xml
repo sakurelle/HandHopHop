@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="now_nothing">Пока ничего...</string>
+    <string name="now_nothing">Пока ничего…</string>
     <string name="home">Главная</string>
     <string name="online_sheme">Работа</string>
     <string name="download_sheme">Избранное</string>
@@ -42,8 +42,8 @@
     <string name="mash_home_label_active">Активный проект</string>
     <string name="mash_home_label_completed">Проект завершен</string>
     <string name="mash_home_screen_title">Текущая работа</string>
-    <string name="mash_home_no_project_title">Проект пока не выбран</string>
-    <string name="mash_home_no_project_description">Создайте схему, чтобы открыть рабочий экран и экран статистики.</string>
+    <string name="mash_home_no_project_title">У вас нет активного проекта</string>
+    <string name="mash_home_no_project_description">Вы можете найти подходящую себе работу в нашей ленте</string>
     <string name="mash_home_loading_title">Собираем схему проекта</string>
     <string name="mash_home_loading_description">Немного подождите: рассчитываем сетку, палитру и размеры будущей схемы.</string>
     <string name="mash_home_error_description">Схему не удалось построить. Попробуйте создать проект заново или выбрать другой референс.</string>
@@ -59,6 +59,7 @@
     <string name="mash_home_progress_subtitle">%1$d из %2$d ячеек уже закрыты</string>
     <string name="mash_home_colors_subtitle">%1$d из %2$d используемых цветов уже отмечены</string>
     <string name="mash_home_create_project">Создать проект</string>
+    <string name="mash_home_go_to_feed">Изучить ленту</string>
     <string name="mash_home_new_project">Новый проект</string>
     <string name="mash_home_open_project">Продолжить проект</string>
     <string name="mash_home_open_statistics">Статистика</string>
@@ -97,4 +98,9 @@
     <string name="mash_pdf_open_action">Открыть PDF</string>
     <string name="mash_pdf_channel_name">Сохраненные схемы</string>
     <string name="mash_pdf_channel_description">Уведомления о сохранении схем в PDF</string>
+
+    <string name="dialog_warning_title">Предупреждение!</string>
+    <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>
+    <string name="dialog_confirm">Удалить</string>
+    <string name="dialog_dismiss">Отмена</string>
 </resources>

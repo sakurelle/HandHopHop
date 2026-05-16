@@ -9,7 +9,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -38,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -45,11 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
-import ru.handhophop.feature.mash.MashModuleTopBar
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.R
 import ru.handhophop.feature.mash.loadBitmapFromUrl
 import ru.handhophop.feature.mash.selectPaletteForImage
@@ -58,8 +59,8 @@ import ru.handhophop.feature.mash.selectPaletteForImage
 internal fun MashCreateScreen(
     imageUrl: String?,
     suggestedProjectName: String = "",
-    onBackClick: () -> Unit = {},
     onCreateFinished: (MashCreateConfig) -> Unit = {},
+    onBackClick: () -> Unit = {},
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(suggestedProjectName)
@@ -147,21 +148,26 @@ private fun MashCreateContent(
     val dimensions = HandHopHopDesignSystem.dimensions
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            MashModuleTopBar(
-                title = stringResource(R.string.mash_create_screen_title),
-                onBackClick = onBackClick,
+    Scaffold(
+        topBar = {
+            TopBar(
+                state = TopBarState(
+                    titleRes = R.string.mash_create_screen_title,
+                    leftIconRes = R.drawable.arrow,
+                    rightIconRes = null,
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = { },
             )
-
+        },
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

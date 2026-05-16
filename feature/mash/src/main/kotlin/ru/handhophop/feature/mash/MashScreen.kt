@@ -14,13 +14,10 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -31,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,10 +57,11 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
@@ -71,11 +70,6 @@ private const val SWATCH_LIGHT_LUMINANCE_THRESHOLD = 0.65f
 private const val SCHEME_NUMBER_DARK_TEXT_THRESHOLD = 0.6f
 private const val SCHEME_MAJOR_GRID_STEP = 10
 private const val MASH_MAX_SCALE = 4f
-private const val MASH_SCHEME_BOTTOM_GAP_FRACTION = 0.03f
-
-private data class SchemeLayoutMetrics(
-    val resolvedHeight: androidx.compose.ui.unit.Dp,
-)
 
 @Composable
 internal fun MashScreen(
@@ -117,59 +111,38 @@ private fun CenterContentMash(
     val verticalPadding = dimensions.md
     val contentSpacing = dimensions.md
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(contentSpacing)
-        ) {
-            MashModuleTopBar(
-                title = title.ifBlank {
-                    stringResource(R.string.mash_workspace_title_fallback)
-                },
-                onBackClick = onBackClick,
+    Scaffold(
+        topBar = {
+            TopBar(
+                state = TopBarState(
+                    projectName = title.ifBlank {
+                        stringResource(R.string.mash_workspace_title_fallback)
+                    },
+                    leftIconRes = R.drawable.arrow,
+                    titleRes = null
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = { },
             )
-
-            BoxWithConstraints(
+        },
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .padding(top = contentSpacing),
+                verticalArrangement = Arrangement.spacedBy(contentSpacing)
             ) {
-                val schemeLayoutMetrics = remember(
-                    uiState.scheme,
-                    maxWidth,
-                    maxHeight,
-                    horizontalPadding,
-                    verticalPadding,
-                    dimensions.xl,
-                ) {
-                    val schemeAspectRatio = uiState.scheme?.let { scheme ->
-                        scheme.gridW.toFloat() / scheme.gridH.toFloat()
-                    } ?: 1f
-                    val availableSchemeWidth = (maxWidth - (horizontalPadding * 2))
-                        .coerceAtLeast(dimensions.xl * 8)
-                    val reservedBottomGap = maxHeight * MASH_SCHEME_BOTTOM_GAP_FRACTION
-                    val maxSchemeHeight = (maxHeight - reservedBottomGap - verticalPadding)
-                        .coerceAtLeast(dimensions.xl * 8)
-                    val resolvedSchemeHeight = if (uiState.scheme != null) {
-                        minOf(maxSchemeHeight, availableSchemeWidth / schemeAspectRatio)
-                    } else {
-                        maxSchemeHeight
-                    }
-
-                    SchemeLayoutMetrics(
-                        resolvedHeight = resolvedSchemeHeight,
-                    )
-                }
-
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 ) {
                     SchemeCard(
                         loading = uiState.isLoading,
@@ -180,40 +153,38 @@ private fun CenterContentMash(
                         onCellClick = onSchemeCellClick,
                         onBackgroundClick = onClearSelection,
                         modifier = Modifier
+                            .fillMaxSize()
                             .padding(
                                 start = horizontalPadding,
                                 end = horizontalPadding,
                                 top = verticalPadding
                             )
-                            .fillMaxWidth()
-                            .height(schemeLayoutMetrics.resolvedHeight)
-                            .defaultMinSize(minHeight = dimensions.xl * 8)
                     )
                 }
-            }
 
-            DownloadButton(
-                enabled = uiState.isDownloadButtonEnabled,
-                onClick = onDownloadClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding)
-            )
-
-            if (uiState.isPaletteVisible) {
-                PaletteBar(
-                    threads = uiState.visiblePalette,
-                    selectedPaletteIndex = uiState.selectedPaletteIndex,
-                    onPaletteColorClick = onHighlightColorToggle,
-                    onPaletteColorLongClick = onPaletteCompletionToggle,
+                DownloadButton(
+                    enabled = uiState.isDownloadButtonEnabled,
+                    onClick = onDownloadClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            start = horizontalPadding,
-                            end = horizontalPadding,
-                            bottom = verticalPadding
-                        )
+                        .padding(horizontal = horizontalPadding)
                 )
+
+                if (uiState.isPaletteVisible) {
+                    PaletteBar(
+                        threads = uiState.visiblePalette,
+                        selectedPaletteIndex = uiState.selectedPaletteIndex,
+                        onPaletteColorClick = onHighlightColorToggle,
+                        onPaletteColorLongClick = onPaletteCompletionToggle,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = horizontalPadding,
+                                end = horizontalPadding,
+                                bottom = verticalPadding
+                            )
+                    )
+                }
             }
         }
     }
@@ -294,7 +265,7 @@ private fun SchemeCard(
 
                 errorTextRes != null -> Text(
                     text = stringResource(errorTextRes),
-                    color = colors.textSecondary,
+                    color = colors.error,
                     modifier = Modifier.padding(contentPadding)
                 )
 
@@ -350,6 +321,7 @@ private fun DownloadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
     HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
@@ -475,7 +447,6 @@ private fun NumberedSchemeCanvas(
     var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableFloatStateOf(1f)
     }
-
     var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableStateOf<Offset?>(null)
     }

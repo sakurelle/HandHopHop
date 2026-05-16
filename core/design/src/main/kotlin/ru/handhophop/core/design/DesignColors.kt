@@ -12,9 +12,13 @@ data class DesignColors(
     val textAndIcons: Color = Color.Unspecified,
     val surfaceSoft: Color = Color.Unspecified,
     val outline: Color = Color.Unspecified,
+    val error: Color = Color.Unspecified,
+    val onError: Color = Color.Unspecified,
+    val shimmerBase: Color = Color.Unspecified,
+    val shimmerHighlight: Color = Color.Unspecified,
 ) {
     val background: Color
-        get() = notWhite
+        get() = surfaceSoft
 
     val topBar: Color
         get() = selection
@@ -32,13 +36,11 @@ data class DesignColors(
         get() = textAndIcons
 
     val textSecondary: Color
-        get() = button
+        get() = textAndIcons.copy(alpha = 0.72f)
 
     val onPrimaryAction: Color
         get() = notWhite
 
-    val floatingAction: Color
-        get() = textAndIcons
 }
 
 @Immutable
@@ -56,9 +58,26 @@ private val LightDesignColors = DesignColors(
 
     surfaceSoft = Color(0xFFE9DDD5),
     outline = Color(0xFFBD9C89),
+    error = Color(0xFF9F4B4B),
+    onError = Color(0xFFFBFBFB),
+    shimmerBase = Color(0xFFE4D7CE),
+    shimmerHighlight = Color(0xFFF7EEE7),
 )
 
-private val DarkDesignColors = LightDesignColors.copy()
+private val DarkDesignColors = DesignColors(
+    notWhite = Color(0xFFF7EDE3),
+    selection = Color(0xFF5B412E),
+    lightBrown = Color(0xFF644933),
+    button = Color(0xFF86684D),
+    textAndIcons = Color(0xFFF1E4D8),
+
+    surfaceSoft = Color(0xFF2A1E16),
+    outline = Color(0xFF8F6E52),
+    error = Color(0xFFC78778),
+    onError = Color(0xFF211915),
+    shimmerBase = Color(0xFF3B2B21),
+    shimmerHighlight = Color(0xFF6B503B),
+)
 
 internal val HandHopHopDesignColorScheme = DesignColorScheme(
     light = LightDesignColors,

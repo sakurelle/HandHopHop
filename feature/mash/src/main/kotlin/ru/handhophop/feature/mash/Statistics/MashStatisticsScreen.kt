@@ -21,22 +21,24 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.TopBar
+import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
-import ru.handhophop.feature.mash.MashModuleTopBar
 import ru.handhophop.feature.mash.MashUiState
 import ru.handhophop.feature.mash.R
 
@@ -54,26 +56,33 @@ internal fun MashStatisticsScreen(
     val contentPadding = dimensions.md
     val contentSpacing = dimensions.md
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        BackgroundPattern()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(contentSpacing),
-        ) {
-            MashModuleTopBar(
-                title = stringResource(R.string.mash_statistics_screen_title),
-                onBackClick = onBackClick,
+    Scaffold(
+        topBar = {
+            TopBar(
+                state = TopBarState(
+                    leftIconRes = R.drawable.arrow,
+                    titleRes = R.string.mash_statistics_screen_title
+                ),
+                onClickLeft = onBackClick,
+                onClickRight = { }
             )
-
+        },
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = contentPadding)
+                    .padding(
+                        start = contentPadding,
+                        top = contentSpacing,
+                        end = contentPadding,
+                    )
             ) {
                 when {
                     projectConfig == null -> {
@@ -111,6 +120,7 @@ internal fun MashStatisticsScreen(
                                 buttonText = stringResource(R.string.mash_home_new_project),
                                 onButtonClick = onCreateProjectClick,
                                 modifier = Modifier.fillMaxWidth(),
+                                descriptionColor = colors.error,
                             )
                         }
                     }
@@ -178,7 +188,7 @@ private fun MashStatisticsProjectCard(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-    val buttonCornerRadius = dimensions.md
+    dimensions.md
     MashStatisticsCard {
         Column(
             verticalArrangement = Arrangement.spacedBy(
@@ -500,6 +510,7 @@ private fun MashStatisticsStateCard(
     buttonText: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
+    descriptionColor: Color = HandHopHopDesignSystem.colors.textSecondary,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -518,7 +529,7 @@ private fun MashStatisticsStateCard(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colors.textSecondary,
+                color = descriptionColor,
             )
             HandHopHopButton(
                 onClick = onButtonClick,

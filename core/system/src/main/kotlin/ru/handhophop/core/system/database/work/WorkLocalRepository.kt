@@ -1,5 +1,9 @@
 package ru.handhophop.core.system.database.work
 
+import android.content.Context
+import androidx.sqlite.db.SimpleSQLiteQuery
+import java.io.File
+
 data class WorkLocalItem(
     val id: Long = 0,
     val url: String,
@@ -13,12 +17,73 @@ data class WorkLocalItem(
     val gridHeight: Int? = null,
     val gridRle: String? = null,
     val percentage: Int? = null,
-    val spendedTime: Long? = null,
-)
+    val spentTime: Long? = null,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as WorkLocalItem
+
+        if (id != other.id) return false
+        if (isFavorite != other.isFavorite) return false
+        if (colorCount != other.colorCount) return false
+        if (gridWidth != other.gridWidth) return false
+        if (gridHeight != other.gridHeight) return false
+        if (percentage != other.percentage) return false
+        if (spentTime != other.spentTime) return false
+        if (url != other.url) return false
+        if (!image.contentEquals(other.image)) return false
+        if (projectName != other.projectName) return false
+        if (schemeType != other.schemeType) return false
+        if (difficulty != other.difficulty) return false
+        if (gridRle != other.gridRle) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + isFavorite.hashCode()
+        result = 31 * result + (colorCount ?: 0)
+        result = 31 * result + (gridWidth ?: 0)
+        result = 31 * result + (gridHeight ?: 0)
+        result = 31 * result + (percentage ?: 0)
+        result = 31 * result + (spentTime?.hashCode() ?: 0)
+        result = 31 * result + url.hashCode()
+        result = 31 * result + (image?.contentHashCode() ?: 0)
+        result = 31 * result + (projectName?.hashCode() ?: 0)
+        result = 31 * result + (schemeType?.hashCode() ?: 0)
+        result = 31 * result + (difficulty?.hashCode() ?: 0)
+        result = 31 * result + (gridRle?.hashCode() ?: 0)
+        return result
+    }
+}
 
 class WorkLocalRepository(
     private val workDao: WorkDao,
 ) {
+
+    suspend fun clearAllWorks() {
+        workDao.deleteAll()
+        workDao.checkpoint(SimpleSQLiteQuery("VACUUM"))
+    }
+
+
+    fun getDatabaseSize(context: Context): Long {
+        val dbPath = context.getDatabasePath("hand_hop_hop.db").absolutePath
+        val files = listOf(
+            File(dbPath),
+            File("$dbPath-wal"),
+            File("$dbPath-shm")
+        )
+        return files.filter { it.exists() }.sumOf { it.length() }
+    }
+
+    suspend fun getWorkCount(): Int {
+        return workDao.getCount()
+    }
+
 
     suspend fun addFavorite(work: WorkLocalItem): Long {
         return upsert(work) { current ->
@@ -28,10 +93,6 @@ class WorkLocalRepository(
                 isFavorite = true,
             )
         }
-    }
-
-    suspend fun removeFavorite(url: String) {
-        workDao.deleteByUrl(url)
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
@@ -47,7 +108,7 @@ class WorkLocalRepository(
                 gridHeight = work.gridHeight,
                 gridRle = work.gridRle,
                 percentage = work.percentage,
-                spendedTime = work.spendedTime,
+                spendedTime = work.spentTime,
             )
         }
     }
@@ -104,7 +165,7 @@ fun WorkLocalItem.hasStartedWork(): Boolean {
             gridHeight != null ||
             gridRle != null ||
             percentage != null ||
-            spendedTime != null
+            spentTime != null
 }
 
 private fun WorkLocalItem.toEntity(): WorkEntity {
@@ -121,7 +182,7 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
         gridHeight = gridHeight,
         gridRle = gridRle,
         percentage = percentage,
-        spendedTime = spendedTime,
+        spendedTime = spentTime,
     )
 }
 
@@ -139,7 +200,7 @@ private fun WorkEntity.toLocalItem(): WorkLocalItem {
         gridHeight = gridHeight,
         gridRle = gridRle,
         percentage = percentage,
-        spendedTime = spendedTime,
+        spentTime = spendedTime,
     )
 }
 
