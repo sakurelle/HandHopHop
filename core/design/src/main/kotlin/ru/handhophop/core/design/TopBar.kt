@@ -46,6 +46,7 @@ fun TopBar(
             contentAlignment = Alignment.Center
         ) {
             SimpleTopBar(
+                modifier = Modifier,
                 state = state,
                 onClickRight = onClickRight,
                 onClickLeft = onClickLeft

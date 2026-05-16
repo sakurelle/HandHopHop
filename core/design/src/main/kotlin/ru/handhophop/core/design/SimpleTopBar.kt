@@ -25,6 +25,7 @@ import ru.handhophop.design.R
 
 @Composable
 fun SimpleTopBar(
+    modifier: Modifier = Modifier,
     state: TopBarState,
     onClickRight: () -> Unit,
     onClickLeft: () -> Unit,
@@ -119,6 +120,7 @@ fun ExposableTopBar1(
 ) {
     HandHopHopDesignTheme {
         SimpleTopBar(
+            modifier = Modifier,
             TopBarState(R.string.Download, R.drawable.arrow, null),
             {},
             {}

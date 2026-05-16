@@ -165,8 +165,8 @@ fun SettingScreen(
                     leftIconRes = null,
                     rightIconRes = null,
                 ),
-                { },
-                { },
+                onClickRight = {},
+                onClickLeft = {},
             )
 
             Box(
