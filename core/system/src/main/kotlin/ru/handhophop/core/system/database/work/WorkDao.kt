@@ -37,6 +37,27 @@ data class WorkUrlPreview(
     val spendedTime: Long?,
 )
 
+data class WorkDetailsPreview(
+    val id: Long,
+    @androidx.room.ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean,
+    @androidx.room.ColumnInfo(name = "project_name")
+    val projectName: String?,
+    @androidx.room.ColumnInfo(name = "scheme_type")
+    val schemeType: String?,
+    @androidx.room.ColumnInfo(name = "color_count")
+    val colorCount: Int?,
+    val difficulty: String?,
+    val url: String?,
+    @androidx.room.ColumnInfo(name = "grid_width")
+    val gridWidth: Int?,
+    @androidx.room.ColumnInfo(name = "grid_height")
+    val gridHeight: Int?,
+    val percentage: Int?,
+    @androidx.room.ColumnInfo(name = "spended_time")
+    val spendedTime: Long?,
+)
+
 @Dao
 interface WorkDao {
 
@@ -80,31 +101,37 @@ interface WorkDao {
 
     @Transaction
     suspend fun deleteByUrlWithProgress(url: String) {
-        getByUrl(url)?.let { deleteProgressChunks(it.id) }
+        getDetailsByUrl(url)?.let { deleteProgressChunks(it.id) }
         deleteByUrl(url)
     }
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image,
-            grid_width, grid_height, grid_rle, percentage, spended_time
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+            grid_width, grid_height, percentage, spended_time
         FROM work
         WHERE id = :workId
         """,
     )
-    suspend fun getById(workId: Long): WorkEntity?
+    suspend fun getDetailsById(workId: Long): WorkDetailsPreview?
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image,
-            grid_width, grid_height, grid_rle, percentage, spended_time
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+            grid_width, grid_height, percentage, spended_time
         FROM work
         WHERE url = :url
         ORDER BY id DESC
         LIMIT 1
         """,
     )
-    suspend fun getByUrl(url: String): WorkEntity?
+    suspend fun getDetailsByUrl(url: String): WorkDetailsPreview?
+
+    @Query("SELECT image FROM work WHERE id = :workId")
+    suspend fun getImageById(workId: Long): ByteArray?
+
+    @Query("SELECT grid_rle FROM work WHERE id = :workId")
+    suspend fun getLegacyGridRleById(workId: Long): String?
 
     @Query(
         """
@@ -124,13 +151,13 @@ interface WorkDao {
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image,
-            grid_width, grid_height, NULL AS grid_rle, percentage, spended_time
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+            grid_width, grid_height, percentage, spended_time
         FROM work
         ORDER BY id DESC
         """,
     )
-    suspend fun getAll(): List<WorkEntity>
+    suspend fun getAll(): List<WorkDetailsPreview>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProgressChunks(chunks: List<WorkProgressChunkEntity>)

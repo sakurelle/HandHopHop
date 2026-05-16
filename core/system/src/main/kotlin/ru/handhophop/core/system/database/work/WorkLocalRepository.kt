@@ -97,11 +97,15 @@ class WorkLocalRepository(
         }
     }
 
+    suspend fun removeFavorite(url: String) {
+        workDao.deleteByUrlWithProgress(url)
+    }
+
     suspend fun addWork(work: WorkLocalItem): Long {
         return upsert(
             work = work.copy(gridRle = null),
             progressRle = work.gridRle,
-            replaceProgress = true,
+            replaceProgress = work.gridRle != null,
         ) { current ->
             current.copy(
                 url = work.url,
@@ -124,7 +128,7 @@ class WorkLocalRepository(
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
-        return workDao.getAll().map(WorkEntity::toLocalItem)
+        return workDao.getAll().map(WorkDetailsPreview::toLocalItem)
     }
 
     suspend fun getFavoriteWorks(): List<WorkLocalItem> {
@@ -132,7 +136,7 @@ class WorkLocalRepository(
     }
 
     suspend fun getWorkByUrl(url: String): WorkLocalItem? {
-        return workDao.getByUrl(url)?.toLocalItemWithProgress()
+        return workDao.getDetailsByUrl(url)?.toLocalItemWithProgress()
     }
 
     suspend fun isFavorite(url: String): Boolean {
@@ -145,7 +149,7 @@ class WorkLocalRepository(
     }
 
     suspend fun getWorkById(id: Long): WorkLocalItem? {
-        return workDao.getById(id)?.toLocalItemWithProgress()
+        return workDao.getDetailsById(id)?.toLocalItemWithProgress()
     }
 
     private suspend fun upsert(
@@ -154,10 +158,13 @@ class WorkLocalRepository(
         replaceProgress: Boolean = false,
         updateCurrent: (WorkEntity) -> WorkEntity,
     ): Long {
-        val current = when {
-            work.id > 0 -> workDao.getById(work.id)
-            else -> workDao.getByUrl(work.url)
+        val currentDetails = when {
+            work.id > 0 -> workDao.getDetailsById(work.id)
+            else -> workDao.getDetailsByUrl(work.url)
         }
+        val current = currentDetails?.toEntity(
+            image = workDao.getImageById(currentDetails.id),
+        )
 
         val progressChunks = progressRle.toProgressChunks()
 
@@ -183,32 +190,36 @@ class WorkLocalRepository(
         }
     }
 
-    private suspend fun WorkEntity.toLocalItemWithProgress(): WorkLocalItem {
+    private suspend fun WorkDetailsPreview.toLocalItemWithProgress(): WorkLocalItem {
         val chunkedProgress = workDao.getProgressChunks(id)
             .takeIf { it.isNotEmpty() }
             ?.joinToString(separator = "")
+        val legacyProgress = if (chunkedProgress == null) {
+            workDao.getLegacyGridRleById(id)
+        } else {
+            null
+        }
 
-        val progressRle = chunkedProgress ?: gridRle
+        val progressRle = chunkedProgress ?: legacyProgress
 
-        if (chunkedProgress == null && !gridRle.isNullOrBlank()) {
-            workDao.replaceProgressChunks(id, gridRle.toProgressChunks())
+        if (chunkedProgress == null && !legacyProgress.isNullOrBlank()) {
+            workDao.replaceProgressChunks(id, legacyProgress.toProgressChunks())
             workDao.clearLegacyProgress(id)
         }
 
-        return toLocalItem(progressRle = progressRle)
+        return toLocalItem(
+            image = workDao.getImageById(id),
+            progressRle = progressRle,
+        )
     }
 }
 
-fun WorkLocalItem.hasCreatedWork(): Boolean {
+fun WorkLocalItem.hasCreatedWorkConfig(): Boolean {
     return !projectName.isNullOrBlank() &&
             !schemeType.isNullOrBlank() &&
             colorCount != null &&
             colorCount > 0 &&
-            !difficulty.isNullOrBlank() &&
-            gridWidth != null &&
-            gridWidth > 0 &&
-            gridHeight != null &&
-            gridHeight > 0
+            !difficulty.isNullOrBlank()
 }
 
 fun WorkLocalItem.hasProgress(): Boolean {
@@ -237,8 +248,9 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
     )
 }
 
-private fun WorkEntity.toLocalItem(
-    progressRle: String? = gridRle,
+private fun WorkDetailsPreview.toLocalItem(
+    image: ByteArray? = null,
+    progressRle: String? = null,
 ): WorkLocalItem {
     return WorkLocalItem(
         id = id,
@@ -254,6 +266,27 @@ private fun WorkEntity.toLocalItem(
         gridRle = progressRle,
         percentage = percentage,
         spentTime = spendedTime,
+    )
+}
+
+private fun WorkDetailsPreview.toEntity(
+    image: ByteArray? = null,
+    progressRle: String? = null,
+): WorkEntity {
+    return WorkEntity(
+        id = id,
+        isFavorite = isFavorite,
+        projectName = projectName,
+        schemeType = schemeType,
+        colorCount = colorCount,
+        difficulty = difficulty,
+        url = url,
+        image = image,
+        gridWidth = gridWidth,
+        gridHeight = gridHeight,
+        gridRle = progressRle,
+        percentage = percentage,
+        spendedTime = spendedTime,
     )
 }
 

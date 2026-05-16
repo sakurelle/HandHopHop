@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
-import ru.handhophop.core.system.database.work.hasCreatedWork
+import ru.handhophop.core.system.database.work.hasCreatedWorkConfig
 import ru.handhophop.feature.mash.MashCreate.FeedPopupScreen
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
@@ -182,7 +182,7 @@ fun MashEntryPoint(
 
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
 
-            if (persistedWork != null && persistedConfig != null && persistedWork.hasCreatedWork()) {
+            if (persistedWork != null && persistedConfig != null) {
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
                 createdConfig = persistedConfig
@@ -201,7 +201,7 @@ fun MashEntryPoint(
             }
         } else if (createdConfig == null) {
             val persistedWorkSummary = repository.getAllWorks()
-                .firstOrNull { it.hasCreatedWork() }
+                .firstOrNull { it.hasCreatedWorkConfig() }
             val persistedWork = persistedWorkSummary
                 ?.let { repository.getWorkById(it.id) }
                 ?: persistedWorkSummary
