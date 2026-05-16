@@ -2,6 +2,7 @@ package ru.handhophop.feature.settings
 
 import android.content.Context
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +17,7 @@ class SettingViewModel(
     private val _storageText = mutableStateOf("0 mb")
     val storageText: State<String> = _storageText
 
-    private val _storageProgress = mutableStateOf(0f)
+    private val _storageProgress = mutableFloatStateOf(0f)
     val storageProgress: State<Float> = _storageProgress
 
     private val MAX_SIZE_MB = 512f
@@ -38,7 +39,7 @@ class SettingViewModel(
             }
 
             val progress = (megabytes.toFloat() / MAX_SIZE_MB).coerceIn(0f, 1f)
-            _storageProgress.value = if (count == 0) 0f else progress
+            _storageProgress.floatValue = if (count == 0) 0f else progress
         }
     }
 

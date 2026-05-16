@@ -6,10 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -65,7 +62,7 @@ fun ExposableTopBar(
                         isExposed = !isExposed
                         onChanged(isExposed)
                     },
-                    onClickLeft = { Unit }
+                    onClickLeft = { }
                 )
                 if (isExposed) {
                     content {

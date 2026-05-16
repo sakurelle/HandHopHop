@@ -89,8 +89,8 @@ private fun BookmarkScreen(
                 state = TopBarState(
                     titleRes = R.string.bookmark_highlight_title,
                 ),
-                { Unit },
-                { Unit },
+                { },
+                { },
             )
         },
         containerColor = Color.Transparent,

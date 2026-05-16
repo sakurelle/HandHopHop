@@ -2,27 +2,19 @@ package ru.handhophop.feature.mash
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,14 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
@@ -52,7 +41,6 @@ import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.Statistics.MashProjectMetrics
 import ru.handhophop.feature.mash.Statistics.toProjectMetrics
-import ru.handhophop.design.R as DesignR
 
 @Composable
 internal fun MashHomeScreen(
@@ -82,7 +70,7 @@ internal fun MashHomeScreen(
 
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { },
             modifier = Modifier.border(
                 width = border * 2,
                 color = colors.button,
@@ -107,7 +95,6 @@ internal fun MashHomeScreen(
                 TextButton(
                     onClick = {
                         onDeleteSheme()
-                        showDialog = false
                     }
                 ) {
                     Text(
@@ -120,7 +107,7 @@ internal fun MashHomeScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showDialog = false }
+                    onClick = { }
                 ) {
                     Text(
                         modifier = Modifier,
@@ -143,8 +130,8 @@ internal fun MashHomeScreen(
                     leftIconRes = null,
                     rightIconRes = if (projectConfig != null) ru.handhophop.design.R.drawable.delete else null
                 ),
-                { showDialog = true },
-                { Unit }
+                { },
+                { }
             )
         },
         containerColor = Color.Transparent,
@@ -208,13 +195,6 @@ internal fun MashHomeScreen(
 }
 
 @Composable
-private fun SpacerSlot(
-    sideWidth: androidx.compose.ui.unit.Dp,
-) {
-    Box(modifier = Modifier.size(sideWidth))
-}
-
-@Composable
 private fun MashCurrentWorkCard(
     projectConfig: MashCreateConfig,
     metrics: MashProjectMetrics,
@@ -224,7 +204,6 @@ private fun MashCurrentWorkCard(
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val cardCornerRadius = dimensions.lg
-    val buttonCornerRadius = dimensions.md
     val borderWidth = dimensions.xs / 4
     val imageModifier = Modifier
         .fillMaxWidth(0.52f)
@@ -410,7 +389,7 @@ private fun MashHomeStateCard(
     description: String,
     buttonText: String,
     onButtonClick: () -> Unit,
-    descriptionColor: androidx.compose.ui.graphics.Color = HandHopHopDesignSystem.colors.textSecondary,
+    descriptionColor: Color = HandHopHopDesignSystem.colors.textSecondary,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions

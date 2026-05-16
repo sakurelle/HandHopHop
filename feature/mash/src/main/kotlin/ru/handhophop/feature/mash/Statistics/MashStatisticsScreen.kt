@@ -64,7 +64,7 @@ internal fun MashStatisticsScreen(
                     titleRes = R.string.mash_statistics_screen_title
                 ),
                 onClickLeft = onBackClick,
-                onClickRight = { Unit }
+                onClickRight = { }
             )
         },
         containerColor = Color.Transparent,
@@ -188,7 +188,7 @@ private fun MashStatisticsProjectCard(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-    val buttonCornerRadius = dimensions.md
+    dimensions.md
     MashStatisticsCard {
         Column(
             verticalArrangement = Arrangement.spacedBy(
@@ -510,7 +510,7 @@ private fun MashStatisticsStateCard(
     buttonText: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
-    descriptionColor: androidx.compose.ui.graphics.Color = HandHopHopDesignSystem.colors.textSecondary,
+    descriptionColor: Color = HandHopHopDesignSystem.colors.textSecondary,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions

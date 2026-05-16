@@ -2,6 +2,7 @@ package ru.handhophop
 
 import android.content.Context
 import ru.handhophop.core.design.ThemeMode
+import androidx.core.content.edit
 
 private const val THEME_PREFS_NAME = "theme_preferences"
 private const val THEME_MODE_KEY = "theme_mode"
@@ -17,8 +18,8 @@ class ThemePreferences(context: Context) {
     }
 
     fun setThemeMode(themeMode: ThemeMode) {
-        preferences.edit()
-            .putString(THEME_MODE_KEY, themeMode.name)
-            .apply()
+        preferences.edit {
+            putString(THEME_MODE_KEY, themeMode.name)
+        }
     }
 }

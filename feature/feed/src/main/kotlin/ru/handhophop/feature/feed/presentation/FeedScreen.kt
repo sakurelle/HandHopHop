@@ -165,7 +165,7 @@ private fun FeedErrorState(
 private fun FeedLoadingSkeleton(
     modifier: Modifier = Modifier,
 ) {
-    val colors = HandHopHopDesignSystem.colors
+    HandHopHopDesignSystem.colors
     val shimmerBrush = rememberShimmerBrush()
     val recommendedPlaceholders = List(4) { it }
     val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
