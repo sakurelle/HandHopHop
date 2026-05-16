@@ -2,6 +2,8 @@ package ru.handhophop.feature.mash
 
 import android.app.Application
 import android.graphics.Bitmap
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
@@ -10,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashThread
@@ -26,6 +29,9 @@ private const val DEFAULT_MASH_IMAGE_URL =
 internal class MashViewModel(
     application: Application
 ) : AndroidViewModel(application) {
+
+
+
 
     private val _uiState = MutableStateFlow(MashUiState())
     val uiState: StateFlow<MashUiState> = _uiState.asStateFlow()

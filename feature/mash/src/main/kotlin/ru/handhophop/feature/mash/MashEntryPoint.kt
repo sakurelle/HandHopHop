@@ -51,6 +51,8 @@ fun MashEntryPoint(
         )
     }
     val viewModel: MashViewModel = viewModel()
+
+
     val uiState by viewModel.uiState.collectAsState()
     val cachedWork = remember(initialWorkId, initialImageUrl) {
         if (initialWorkId == null && initialImageUrl == null) {
@@ -257,14 +259,6 @@ fun MashEntryPoint(
                     }
                 )
             }
-            /*MashCreateScreen(
-                imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
-                onBackClick = { destination = MashDestination.HOME },
-                onCreateFinished = { newConfig ->
-                    createdConfig = newConfig
-                    destination = MashDestination.WORKSPACE
-                }
-            )*/
         }
 
         MashDestination.WORKSPACE -> {

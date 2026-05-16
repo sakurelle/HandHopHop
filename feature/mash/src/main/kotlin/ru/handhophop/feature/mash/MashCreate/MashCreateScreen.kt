@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,12 +50,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.mash.R
 import ru.handhophop.feature.mash.loadBitmapFromUrl
 import ru.handhophop.feature.mash.selectPaletteForImage
@@ -545,10 +550,12 @@ private fun MashCreateDifficultySection(
     difficulty: MashCreateDifficulty,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val difficultySteps = MashCreateDifficulty.entries.size - 2
     val difficultyLastIndex = MashCreateDifficulty.entries.lastIndex
+    val isPremium = PremiumProvider.isPremium()
 
     Column(
         verticalArrangement = Arrangement.spacedBy(
@@ -564,23 +571,54 @@ private fun MashCreateDifficultySection(
             style = MaterialTheme.typography.titleMedium,
             color = colors.textPrimary,
         )
-
-        Slider(
-            value = difficulty.ordinal.toFloat(),
-            onValueChange = { value ->
-                val newDifficulty =
-                    MashCreateDifficulty.entries[value.roundToInt().coerceIn(0, difficultyLastIndex)]
-                onDifficultyChanged(newDifficulty)
-            },
-            valueRange = 0f..difficultyLastIndex.toFloat(),
-            steps = difficultySteps,
-            colors = SliderDefaults.colors(
-                thumbColor = colors.primaryAction,
-                activeTrackColor = colors.primaryAction,
-                inactiveTrackColor = colors.surfaceSoft,
-            )
+        Box(
+            modifier = Modifier
+                .wrapContentSize(),
+            contentAlignment = Alignment.CenterEnd
         )
-
+        {
+            Slider(
+                value = difficulty.ordinal.toFloat(),
+                onValueChange = { value ->
+                    val newIndex = value.roundToInt()
+                    if (!isPremium && newIndex == difficultyLastIndex) {
+                        onDifficultyChanged(MashCreateDifficulty.entries[difficultyLastIndex - 1])
+                    } else {
+                        onDifficultyChanged(
+                            MashCreateDifficulty.entries[newIndex.coerceIn(
+                                0,
+                                difficultyLastIndex
+                            )]
+                        )
+                    }
+                },
+                valueRange = 0f..difficultyLastIndex.toFloat(),
+                steps = difficultySteps,
+                colors = SliderDefaults.colors(
+                    thumbColor = colors.primaryAction,
+                    activeTrackColor = colors.primaryAction,
+                    inactiveTrackColor = colors.surfaceSoft,
+                )
+            )
+            if (!isPremium) {
+                androidx.compose.material3.Icon(
+                    modifier = Modifier
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            android.widget.Toast.makeText(
+                                context,
+                                context.getString(R.string.premium_required_toast), // Добавьте эту строку в strings.xml
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_lock),
+                    contentDescription = "Locked",
+                    tint = colors.textSecondary,
+                    )
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

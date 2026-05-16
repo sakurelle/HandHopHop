@@ -96,4 +96,5 @@
     <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>
     <string name="dialog_confirm">Удалить</string>
     <string name="dialog_dismiss">Отмена</string>
+    <string name="premium_required_toast">Премиум не активен! Активируйте премиум для доступа ко всем функйиям</string>
 </resources>

@@ -47,11 +47,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-
+    implementation(libs.kotlinx.datetime)
 
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(project(":core:design"))
     implementation(project(":core:system"))
+    implementation(project(":core:session"))
+    implementation(project(":core:network"))
+
 }

@@ -32,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,7 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
@@ -64,6 +66,7 @@ import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.mash.MashCreate.MashThread
 
 private const val SCHEME_DEFAULT_FILL_ALPHA = 0.18f
@@ -83,6 +86,7 @@ internal fun MashScreen(
     onHighlightColorToggle: (Int) -> Unit,
     onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
+
 ) {
     CenterContentMash(
         title = title,
@@ -93,6 +97,7 @@ internal fun MashScreen(
         onHighlightColorToggle = onHighlightColorToggle,
         onPaletteCompletionToggle = onPaletteCompletionToggle,
         onClearSelection = onClearSelection,
+
     )
 }
 
@@ -106,12 +111,15 @@ private fun CenterContentMash(
     onHighlightColorToggle: (Int) -> Unit,
     onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
+
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val horizontalPadding = dimensions.md
     val verticalPadding = dimensions.md
     val contentSpacing = dimensions.md
+    val isPremium = PremiumProvider.isPremium()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -164,13 +172,43 @@ private fun CenterContentMash(
                     )
                 }
 
-                DownloadButton(
-                    enabled = uiState.isDownloadButtonEnabled,
-                    onClick = onDownloadClick,
+
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding)
-                )
+                        .padding(horizontal = horizontalPadding),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    DownloadButton(
+
+                        enabled = uiState.isDownloadButtonEnabled,
+                        onClick = {
+                            if (isPremium) {
+                                onDownloadClick()
+                            } else {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    context.getString(R.string.premium_required_toast),
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+
+                    if (!isPremium) {
+                        androidx.compose.material3.Icon(
+                            painter = painterResource(id = R.drawable.ic_lock),
+                            contentDescription = null,
+                            tint = colors.notWhite,
+                            modifier = Modifier
+                                .padding(end = dimensions.md)
+                                .size(dimensions.md)
+                        )
+                    }
+                }
 
                 if (uiState.isPaletteVisible) {
                     PaletteBar(
@@ -325,14 +363,13 @@ private fun DownloadButton(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
-
     HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier,
         size = ButtonState.Size.FILL,
         textColor = ButtonState.Color.White,
-        buttonColor = ButtonState.Color.Button,
+        buttonColor = ButtonState.Color.Button
     ) {
         Text(
             text = stringResource(R.string.mash_download_scheme),
@@ -539,7 +576,11 @@ private fun NumberedSchemeCanvas(
                         val event = awaitPointerEvent()
                         val pressed = event.changes.any { it.pressed }
                         val pressedPointers = event.changes.count { it.pressed }
-                        val currentOffset = offset ?: centeredOffset(size.width.toFloat(), size.height.toFloat(), scale)
+                        val currentOffset = offset ?: centeredOffset(
+                            size.width.toFloat(),
+                            size.height.toFloat(),
+                            scale
+                        )
 
                         if (pressedPointers > 1) {
                             tapCandidate = false
@@ -564,9 +605,12 @@ private fun NumberedSchemeCanvas(
 
                         if (!pressed) {
                             if (tapCandidate) {
-                                val cell = baseCell(size.width.toFloat(), size.height.toFloat()) * scale
-                                val column = floor((lastPointerPosition.x - currentOffset.x) / cell).toInt()
-                                val row = floor((lastPointerPosition.y - currentOffset.y) / cell).toInt()
+                                val cell =
+                                    baseCell(size.width.toFloat(), size.height.toFloat()) * scale
+                                val column =
+                                    floor((lastPointerPosition.x - currentOffset.x) / cell).toInt()
+                                val row =
+                                    floor((lastPointerPosition.y - currentOffset.y) / cell).toInt()
 
                                 if (column in 0 until scheme.gridW && row in 0 until scheme.gridH) {
                                     val cellIndex = row * scheme.gridW + column

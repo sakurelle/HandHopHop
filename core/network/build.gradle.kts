@@ -22,4 +22,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.serialization.converter)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
 }

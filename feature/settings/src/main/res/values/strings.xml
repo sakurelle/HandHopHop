@@ -19,4 +19,19 @@
     <string name="dialog_warning_message">Вы уверены, что хотите очистить все данные? Это действие нельзя будет отменить.</string>
     <string name="dialog_confirm">Очистить</string>
     <string name="dialog_dismiss">Отмена</string>
+    <string name="btn_start_work">Начать работу</string>
+    <string name="btn_close">Закрыть</string>
+    <string name="premium_voucher_title">Активация премиума</string>
+    <string name="premium_voucher_placeholder">Введите код ваучера</string>
+    <string name="premium_voucher_confirm">Активировать</string>
+    <string name="premium_is_active">Премиум активен</string>
+    <string name="premium_get_button">Получить премиум</string>
+    <string name="error_invalid_voucher">Неверный код ваучера</string>
+    <string name="zero_mb">0 mb</string>
+    <string name="size_format_precise">%.1f mb</string>
+    <string name="size_format_standard">%.2f mb</string>
+    <string name="error_empty_voucher">Введите код ваучера</string>
+    <string name="premium_remaining_format">Осталось %1$d д. %2$d ч.</string>
+    <string name="premium_expired">Подписка истекла</string>
+    <string name="no_premium">Нет подписки</string>
 </resources>
