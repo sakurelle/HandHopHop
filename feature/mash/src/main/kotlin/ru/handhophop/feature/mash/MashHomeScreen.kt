@@ -44,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -148,16 +147,14 @@ internal fun MashHomeScreen(
                 { Unit }
             )
         },
-        containerColor = colors.background,
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colors.background)
                 .padding(paddingValues)
         ) {
-            BackgroundPattern()
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()

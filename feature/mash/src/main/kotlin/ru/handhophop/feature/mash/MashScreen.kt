@@ -52,18 +52,13 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -132,16 +127,14 @@ private fun CenterContentMash(
                 onClickRight = { Unit },
             )
         },
-        containerColor = colors.background,
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colors.background)
                 .padding(paddingValues)
         ) {
-            BackgroundPattern()
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()

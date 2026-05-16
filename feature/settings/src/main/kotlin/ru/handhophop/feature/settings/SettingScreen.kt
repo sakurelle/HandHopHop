@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -151,12 +150,9 @@ fun SettingScreen(
 
     Box(
         modifier = modifier
-            .fillMaxSize()
-            .background(colors.background),
+            .fillMaxSize(),
         contentAlignment = Alignment.TopCenter,
     ) {
-        BackgroundPattern()
-
         Column(
             modifier = Modifier
                 .fillMaxHeight()

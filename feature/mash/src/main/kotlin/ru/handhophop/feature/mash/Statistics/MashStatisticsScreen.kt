@@ -27,11 +27,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -67,16 +67,14 @@ internal fun MashStatisticsScreen(
                 onClickRight = { Unit }
             )
         },
-        containerColor = colors.background,
+        containerColor = Color.Transparent,
+        contentColor = colors.textPrimary,
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colors.background)
                 .padding(paddingValues)
         ) {
-            BackgroundPattern()
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()

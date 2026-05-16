@@ -27,7 +27,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.design.R as DesignR
 
@@ -47,11 +46,8 @@ internal fun SettingsScreen(
     val infoSpacing = dimensionResource(DesignR.dimen.profile_info_spacing)
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
+        modifier = Modifier.fillMaxSize()
     ) {
-        BackgroundPattern()
         Column(
             modifier = Modifier
                 .fillMaxWidth()

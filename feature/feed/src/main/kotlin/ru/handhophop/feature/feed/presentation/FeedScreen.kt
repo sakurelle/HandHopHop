@@ -42,7 +42,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ExposableTopBar
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.HandHopHopDesignTheme
@@ -60,7 +59,6 @@ internal fun FeedScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val colors = HandHopHopDesignSystem.colors
     val successState = uiState as? FeedUiState.Success
 
     val spacing = dimensionResource(DesignR.dimen.feed_spacing)
@@ -69,12 +67,8 @@ internal fun FeedScreen(
         .calculateTopPadding() + dimensionResource(DesignR.dimen.top_spacing)
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
+        modifier = Modifier.fillMaxSize(),
     ) {
-        BackgroundPattern()
-
         when (val state = uiState) {
             is FeedUiState.Loading -> {
                 FeedLoadingSkeleton(
@@ -156,8 +150,7 @@ private fun FeedErrorState(
 
     Box(
         modifier = modifier
-            .fillMaxSize()
-            .background(colors.background),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -179,8 +172,7 @@ private fun FeedLoadingSkeleton(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .background(colors.background),
+            .fillMaxSize(),
     ) {
         Column(
             modifier = Modifier
