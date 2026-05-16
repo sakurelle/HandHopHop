@@ -122,7 +122,9 @@ class WorkLocalRepository(
     }
 
     suspend fun getFavoriteWorks(): List<WorkLocalItem> {
-        return workDao.getFavorites().map(WorkFavoritePreview::toLocalItem)
+        return workDao.getFavorites()
+            .map(WorkFavoritePreview::toLocalItem)
+            .distinctBy { it.url }
     }
 
     suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {

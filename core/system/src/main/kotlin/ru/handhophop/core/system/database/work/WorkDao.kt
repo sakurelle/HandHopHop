@@ -180,10 +180,46 @@ interface WorkDao {
 
     @Query(
         """
-    SELECT id, url, NULL AS image
-    FROM work
-    WHERE is_favorite = 1
-    ORDER BY id DESC
+    SELECT w.id, w.url, NULL AS image
+    FROM work AS w
+    WHERE w.is_favorite = 1
+        AND w.url IS NOT NULL
+        AND w.url != ''
+        AND w.id = (
+            SELECT w2.id
+            FROM work AS w2
+            WHERE w2.url = w.url
+                AND w2.is_favorite = 1
+            ORDER BY
+                CASE
+                    WHEN w2.project_name IS NOT NULL
+                        AND w2.project_name != ''
+                        AND w2.scheme_type IS NOT NULL
+                        AND w2.scheme_type != ''
+                        AND w2.color_count IS NOT NULL
+                        AND w2.color_count > 0
+                        AND w2.difficulty IS NOT NULL
+                        AND w2.difficulty != ''
+                    THEN 0
+                    ELSE 1
+                END,
+                CASE
+                    WHEN w2.percentage IS NOT NULL
+                        AND w2.percentage > 0
+                    THEN 0
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM work_progress_chunk
+                        WHERE work_progress_chunk.work_id = w2.id
+                        LIMIT 1
+                    )
+                    THEN 0
+                    ELSE 1
+                END,
+                w2.id DESC
+            LIMIT 1
+        )
+    ORDER BY w.id DESC
     """,
     )
     suspend fun getFavorites(): List<WorkFavoritePreview>
