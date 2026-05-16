@@ -1,11 +1,8 @@
 package ru.handhophop.core.design
 
-import androidx.annotation.ColorRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.colorResource
-import ru.handhophop.design.R
 
 @Immutable
 abstract class ButtonState(
@@ -19,19 +16,19 @@ abstract class ButtonState(
 
 
     sealed class Color(
-        @param:ColorRes val colorRes: Int
+        private val resolver: @Composable (DesignColors) -> androidx.compose.ui.graphics.Color
     ) {
 
-        object Button : Color(R.color.button)
-        object Background : Color(R.color.main_color)
+        object Button : Color({ it.primaryAction })
+        object Background : Color({ it.surface })
 
-        object White : Color(R.color.white)
+        object White : Color({ it.onPrimaryAction })
 
-        object BottomBar : Color(R.color.bottom_bar)
+        object BottomBar : Color({ it.bottomBar })
 
 
         @Composable
-        fun getColor() = colorResource(this.colorRes)
+        fun getColor() = resolver(HandHopHopDesignSystem.colors)
     }
 
     enum class Size {

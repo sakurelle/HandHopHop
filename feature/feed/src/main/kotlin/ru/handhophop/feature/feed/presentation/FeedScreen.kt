@@ -1,5 +1,6 @@
 package ru.handhophop.feature.feed.presentation
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -11,23 +12,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -38,11 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.ExposableTopBar
+import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.core.design.HandHopHopDesignTheme
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.design.R as DesignR
 
@@ -55,65 +58,38 @@ internal fun FeedScreen(
     LaunchedEffect(viewModel) {
         viewModel.handleAction(FeedUiAction.LoadPhotos)
     }
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val layoutDirection = LocalLayoutDirection.current
 
-    Scaffold(
-        topBar = {
-            ExposableTopBar(
-                state = TopBarState(
-                    titleRes = DesignR.string.feed_title,
-                    leftIconRes = null,
-                    rightIconRes = (uiState as? FeedUiState.Success)?.let {
-                        if (it.isFilterVisible) DesignR.drawable.open_filter else DesignR.drawable.filter
-                    }
-                ),
-                onChanged = { isVisible ->
-                    viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
-                }
-            ) { onDismiss ->
-                (uiState as? FeedUiState.Success)?.let {
-                    FeedFilterSheet(
-                        sections = it.filterSections,
-                        onOptionSelected = { sectionId, optionId ->
-                            viewModel.handleAction(
-                                FeedUiAction.ApplyFilter(sectionId, optionId)
-                            )
-                        },
-                        onDismiss = onDismiss
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
-        val contentPadding = PaddingValues(
-            start = paddingValues.calculateStartPadding(layoutDirection),
-            top = paddingValues.calculateTopPadding(),
-            end = paddingValues.calculateEndPadding(layoutDirection),
-            bottom = 0.dp
-        )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = HandHopHopDesignSystem.colors
+    val successState = uiState as? FeedUiState.Success
+
+    val spacing = dimensionResource(DesignR.dimen.feed_spacing)
+    val topPadding = WindowInsets.statusBars
+        .asPaddingValues()
+        .calculateTopPadding() + dimensionResource(DesignR.dimen.top_spacing)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background),
+    ) {
+        BackgroundPattern()
 
         when (val state = uiState) {
             is FeedUiState.Loading -> {
                 FeedLoadingSkeleton(
-                    modifier = Modifier.padding(contentPadding)
+                    modifier = Modifier.padding(
+                        top = topPadding,
+                        bottom = spacing,
+                    ),
                 )
             }
 
             is FeedUiState.Error -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Button(
-                        onClick = {
-                            viewModel.handleAction(FeedUiAction.Refresh)
-                        }
-                    ) {
-                        Text("Перезагрузить")
-                    }
-                }
+                FeedErrorState(
+                    message = state.msg,
+                    modifier = Modifier.padding(top = topPadding),
+                )
             }
 
             is FeedUiState.Success -> {
@@ -122,34 +98,94 @@ internal fun FeedScreen(
                     onRefresh = {
                         viewModel.handleAction(FeedUiAction.Refresh)
                     },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(contentPadding)
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     FeedGrid(
+                        modifier = Modifier.fillMaxSize(),
                         state = state,
                         onPhotoClicked = onPhotoSelected,
-                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) }
+                        onLoadMore = {
+                            viewModel.handleAction(FeedUiAction.LoadNextPage)
+                        },
+                        contentPadding = PaddingValues(
+                            top = topPadding,
+                            bottom = spacing,
+                        ),
                     )
                 }
+            }
+        }
+
+        ExposableTopBar(
+            state = TopBarState(
+                titleRes = DesignR.string.feed_title,
+                leftIconRes = null,
+                rightIconRes = successState?.let {
+                    if (it.isFilterVisible) {
+                        DesignR.drawable.open_filter
+                    } else {
+                        DesignR.drawable.filter
+                    }
+                },
+            ),
+            onChanged = { isVisible ->
+                viewModel.handleAction(FeedUiAction.SetFilterVisibility(isVisible))
+            },
+        ) { onDismiss ->
+            successState?.let { state ->
+                FeedFilterSheet(
+                    sections = state.filterSections,
+                    onOptionSelected = { sectionId, optionId ->
+                        viewModel.handleAction(
+                            FeedUiAction.ApplyFilter(sectionId, optionId),
+                        )
+                    },
+                    onDismiss = onDismiss,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun FeedLoadingSkeleton(
-    modifier: Modifier = Modifier
+private fun FeedErrorState(
+    message: String,
+    modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.background),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "Error: $message",
+            color = colors.error,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
+private fun FeedLoadingSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    val colors = HandHopHopDesignSystem.colors
     val shimmerBrush = rememberShimmerBrush()
     val recommendedPlaceholders = List(4) { it }
     val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.background),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -157,19 +193,19 @@ private fun FeedLoadingSkeleton(
                     .width(160.dp)
                     .height(24.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(shimmerBrush)
+                    .background(shimmerBrush),
             )
 
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(recommendedPlaceholders.size) {
                     Box(
                         modifier = Modifier
                             .size(100.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(shimmerBrush)
+                            .background(shimmerBrush),
                     )
                 }
             }
@@ -181,7 +217,7 @@ private fun FeedLoadingSkeleton(
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalItemSpacing = 8.dp,
-            userScrollEnabled = false
+            userScrollEnabled = false,
         ) {
             items(gridHeights) { itemHeight ->
                 Box(
@@ -189,7 +225,7 @@ private fun FeedLoadingSkeleton(
                         .fillMaxWidth()
                         .height(itemHeight)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(shimmerBrush)
+                        .background(shimmerBrush),
                 )
             }
         }
@@ -198,26 +234,46 @@ private fun FeedLoadingSkeleton(
 
 @Composable
 private fun rememberShimmerBrush(): Brush {
-    val baseColor = MaterialTheme.colorScheme.surfaceVariant
-    val highlightColor = Color.White.copy(alpha = 0.6f)
+    val colors = HandHopHopDesignSystem.colors
+    val baseColor = colors.shimmerBase
+    val highlightColor = colors.shimmerHighlight
+
     val transition = rememberInfiniteTransition(label = "feed_shimmer")
     val translateX by transition.animateFloat(
         initialValue = -400f,
         targetValue = 1200f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "feed_shimmer_translate"
+        label = "feed_shimmer_translate",
     )
 
     return Brush.linearGradient(
         colors = listOf(
             baseColor.copy(alpha = 0.9f),
             highlightColor,
-            baseColor.copy(alpha = 0.9f)
+            baseColor.copy(alpha = 0.9f),
         ),
         start = Offset(translateX - 300f, 0f),
-        end = Offset(translateX, 300f)
+        end = Offset(translateX, 300f),
     )
+}
+
+@Preview(name = "Feed Loading Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Feed Loading Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun FeedLoadingSkeletonPreview() {
+    HandHopHopDesignTheme {
+        FeedLoadingSkeleton()
+    }
+}
+
+@Preview(name = "Feed Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Feed Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun FeedErrorStatePreview() {
+    HandHopHopDesignTheme {
+        FeedErrorState(message = "Network unavailable")
+    }
 }

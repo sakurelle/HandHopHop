@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.design.R
 
 @Composable
@@ -32,10 +32,11 @@ fun FeedPopupScreen(
 ) {
 
     var isSaved by remember { mutableStateOf(false) }
+    val colors = HandHopHopDesignSystem.colors
 
-    val mainAcsent = colorResource(R.color.bottom_bar)
-    val mainColor = colorResource(R.color.main_color)
-    val buttonColor = colorResource(R.color.button)
+    val mainAccent = colors.bottomBar
+    val mainColor = colors.surface
+    val buttonColor = colors.primaryAction
 
     val radius = dimensionResource(R.dimen.main_radius)
     val padding = dimensionResource(R.dimen.main_padding)
@@ -81,7 +82,7 @@ fun FeedPopupScreen(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .background(
-                                    color = Color.Black.copy(alpha = 0.3f),
+                                    color = colors.textPrimary.copy(alpha = 0.3f),
                                     shape = RoundedCornerShape(
                                         topStart = radius,
                                         bottomStart = 0.dp,
@@ -95,7 +96,7 @@ fun FeedPopupScreen(
                                     id = if (isSaved) R.drawable.active_save else R.drawable.ic_save
                                 ),
                                 contentDescription = null,
-                                tint = Color.White
+                                tint = colors.onPrimaryAction
                             )
                         }
                     }
@@ -113,7 +114,7 @@ fun FeedPopupScreen(
                         Text(
                             text = stringResource(R.string.btn_start_work),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White,
+                            color = colors.onPrimaryAction,
                             fontSize = fontsize
                         )
                     }
@@ -127,7 +128,7 @@ fun FeedPopupScreen(
                             .height(buttonHeight)
                             .border(borderWidth, buttonColor, RoundedCornerShape(radius)),
                         shape = RoundedCornerShape(radius),
-                        colors = ButtonDefaults.buttonColors(containerColor = mainAcsent),
+                        colors = ButtonDefaults.buttonColors(containerColor = mainAccent),
                     ) {
                         Text(
                             text = stringResource(R.string.btn_close),

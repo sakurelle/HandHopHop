@@ -27,6 +27,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
+import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.design.R as DesignR
 
@@ -49,10 +50,12 @@ internal fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
-            .padding(screenPadding)
     ) {
+        BackgroundPattern()
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
