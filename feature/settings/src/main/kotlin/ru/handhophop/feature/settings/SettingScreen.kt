@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -26,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -78,17 +77,20 @@ fun SettingScreen(
     val dialogDismiss = stringResource(R.string.dialog_dismiss)
     val systemThemeButtonText = stringResource(R.string.system_theme_button)
     val currentThemeLabel = stringResource(R.string.current_theme_label)
+
     val currentThemeValue = when (currentThemeMode) {
         ThemeMode.SYSTEM -> stringResource(
             if (isDarkTheme) {
                 R.string.theme_mode_system_dark
             } else {
                 R.string.theme_mode_system_light
-            }
+            },
         )
+
         ThemeMode.DARK -> stringResource(R.string.theme_mode_dark)
         ThemeMode.LIGHT -> stringResource(R.string.theme_mode_light)
     }
+
     val themeDescription = if (currentThemeMode == ThemeMode.SYSTEM) {
         stringResource(R.string.theme_mode_follow_system_description)
     } else {
@@ -101,7 +103,7 @@ fun SettingScreen(
             modifier = Modifier.border(
                 width = border * 2,
                 color = colors.primaryAction,
-                shape = RoundedCornerShape(radius)
+                shape = RoundedCornerShape(radius),
             ),
             title = {
                 Text(
@@ -123,7 +125,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.clearDatabase()
                         showDialog.value = false
-                    }
+                    },
                 ) {
                     Text(
                         text = dialogConfirm,
@@ -134,7 +136,7 @@ fun SettingScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showDialog.value = false }
+                    onClick = { showDialog.value = false },
                 ) {
                     Text(
                         text = dialogDismiss,
@@ -151,23 +153,24 @@ fun SettingScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.background),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.TopCenter,
     ) {
         BackgroundPattern()
+
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             TopBar(
                 state = TopBarState(
-                    R.string.setting,
-                    null,
-                    null
+                    titleRes = R.string.setting,
+                    leftIconRes = null,
+                    rightIconRes = null,
                 ),
                 { Unit },
-                { Unit }
+                { Unit },
             )
 
             Box(
@@ -196,18 +199,20 @@ fun SettingScreen(
                         fontSize = fontSize,
                         color = colors.textPrimary,
                     )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Text(
                                 text = currentThemeLabel,
                                 fontSize = fontSize * 0.75f,
                                 color = colors.textSecondary,
                             )
+
                             Text(
                                 text = currentThemeValue,
                                 fontSize = fontSize * 0.85f,
@@ -219,7 +224,11 @@ fun SettingScreen(
                             checked = isDarkTheme,
                             onCheckedChange = { checked ->
                                 onThemeModeChange(
-                                    if (checked) ThemeMode.DARK else ThemeMode.LIGHT
+                                    if (checked) {
+                                        ThemeMode.DARK
+                                    } else {
+                                        ThemeMode.LIGHT
+                                    },
                                 )
                             },
                             colors = SwitchDefaults.colors(
@@ -247,7 +256,7 @@ fun SettingScreen(
                         size = ButtonState.Size.WRAPCONTENT,
                         textColor = ButtonState.Color.Button,
                         buttonColor = ButtonState.Color.Background,
-                        modifier = Modifier.widthIn(min = width / 2)
+                        modifier = Modifier.widthIn(min = width / 2),
                     ) {
                         Text(
                             text = systemThemeButtonText,
@@ -267,17 +276,17 @@ fun SettingScreen(
                     .border(
                         border,
                         colors.primaryAction,
-                        shape = RoundedCornerShape(radius)
+                        shape = RoundedCornerShape(radius),
                     )
                     .background(
                         color = colors.topBar,
-                        shape = RoundedCornerShape(radius)
+                        shape = RoundedCornerShape(radius),
                     ),
             ) {
                 Column(
                     modifier = Modifier
                         .wrapContentHeight()
-                        .padding(dimensions.md)
+                        .padding(dimensions.md),
                 ) {
                     Text(
                         text = memory,

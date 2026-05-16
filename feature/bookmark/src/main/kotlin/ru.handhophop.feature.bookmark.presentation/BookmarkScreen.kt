@@ -1,7 +1,6 @@
 package ru.handhophop.feature.bookmark.presentation
 
 import android.graphics.BitmapFactory
-import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -26,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,9 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import androidx.compose.ui.tooling.preview.Preview
-import ru.handhophop.core.design.HandHopHopDesignTheme
-import ru.handhophop.core.design.BackgroundPattern
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
@@ -84,41 +80,47 @@ private fun BookmarkScreen(
     onPhotoSelected: (Long, String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val colors = HandHopHopDesignSystem.colors
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
-    ) {
-        BackgroundPattern()
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
+    Scaffold(
+        topBar = {
             TopBar(
                 state = TopBarState(
-                    titleRes = R.string.bookmark_highlight_title
+                    titleRes = R.string.bookmark_highlight_title,
                 ),
                 { Unit },
-                { Unit }
+                { Unit },
             )
-
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
             when (val state = uiState) {
-                BookmarkUiState.Loading -> BookmarkLoadingSkeleton(
-                    modifier = Modifier.weight(1f),
-                )
-                is BookmarkUiState.Error -> BookmarkErrorState(
-                    message = state.message,
-                    modifier = Modifier.weight(1f),
-                )
+                BookmarkUiState.Loading -> {
+                    BookmarkLoadingSkeleton(
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
+                is BookmarkUiState.Error -> {
+                    BookmarkErrorState(
+                        message = state.message,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
                 is BookmarkUiState.Success -> {
                     if (state.photos.isEmpty()) {
-                        BookmarkEmptyState(modifier = Modifier.weight(1f))
+                        BookmarkEmptyState(
+                            modifier = Modifier.fillMaxSize(),
+                        )
                     } else {
                         BookmarkGrid(
                             state = state,
                             onPhotoSelected = onPhotoSelected,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 }
@@ -301,20 +303,20 @@ private fun rememberShimmerBrush(): Brush {
     )
 }
 
-@Preview(name = "Bookmark Empty Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview(name = "Bookmark Empty Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun BookmarkEmptyStatePreview() {
-    HandHopHopDesignTheme {
-        BookmarkEmptyState()
-    }
-}
-
-@Preview(name = "Bookmark Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview(name = "Bookmark Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun BookmarkErrorStatePreview() {
-    HandHopHopDesignTheme {
-        BookmarkErrorState(message = "Failed to load favorites")
-    }
-}
+//@Preview(name = "Bookmark Empty Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Preview(name = "Bookmark Empty Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//private fun BookmarkEmptyStatePreview() {
+//    HandHopHopDesignTheme {
+//        BookmarkEmptyState()
+//    }
+//}
+//
+//@Preview(name = "Bookmark Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Preview(name = "Bookmark Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//private fun BookmarkErrorStatePreview() {
+//    HandHopHopDesignTheme {
+//        BookmarkErrorState(message = "Failed to load favorites")
+//    }
+//}

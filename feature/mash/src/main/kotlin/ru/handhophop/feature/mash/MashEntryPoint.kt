@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import ru.handhophop.core.design.Route
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
@@ -35,11 +36,12 @@ private enum class MashDestination {
 fun MashEntryPoint(
     initialWorkId: Long? = null,
     initialImageUrl: String? = null,
+    onOpenFeed: () -> Unit,
     backgroundContent: @Composable () -> Unit,
     onBack: () -> Unit,
     onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
 ) {
-    var showPopup by rememberSaveable { mutableStateOf(true) }
+    var showPopup by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val context = LocalContext.current
@@ -220,6 +222,9 @@ fun MashEntryPoint(
                             MashWorkCache.currentWork = null
                         }
                     }
+                },
+                onSearchFeedClick = {
+                    onOpenFeed()
                 }
             )
         }
@@ -234,7 +239,7 @@ fun MashEntryPoint(
                         showPopup = false
                     },
                     onClose = {
-                        onBack()
+                        showPopup = false
                     },
                     onSave = {
 
