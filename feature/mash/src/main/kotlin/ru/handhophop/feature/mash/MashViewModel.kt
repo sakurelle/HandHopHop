@@ -1,56 +1,55 @@
 package ru.handhophop.feature.mash
 
-import android.app.Application
 import android.graphics.Bitmap
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ru.handhophop.feature.mash.MashCreate.MashCreateData
+import kotlinx.coroutines.withContext
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
+import ru.handhophop.feature.mash.MashCreate.MashCreateData
 import ru.handhophop.feature.mash.MashCreate.MashThread
 import ru.handhophop.feature.mash.Statistics.buildPaletteProgress
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 private const val DEFAULT_TRANSPARENT_ALPHA_THRESHOLD = 40
 private const val DEFAULT_FALLBACK_GRID_SIZE = 128
-private const val DEFAULT_MASH_IMAGE_URL =
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDqAZfJ7DSp_ML801Txp-yEJ5zTXIDtbM9AQ&s"
 
-internal class MashViewModel(
-    application: Application
-) : AndroidViewModel(application) {
+internal sealed interface MashEvent {
 
-    internal sealed interface Event {
+    data class ExportPdf(
+        val projectTitle: String,
+        val scheme: SchemeData,
+    ) : MashEvent
+}
 
-        data class ExportPdf(
-            val projectTitle: String,
-            val scheme: SchemeData,
-        ) : Event
-    }
+internal class MashViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(MashUiState())
     val uiState: StateFlow<MashUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<Event>()
-    val events: SharedFlow<Event> = _events.asSharedFlow()
+    private val _events = MutableSharedFlow<MashEvent>()
+    val events: SharedFlow<MashEvent> = _events.asSharedFlow()
 
     internal fun handleAction(action: UiAction) {
         when (action) {
             is ClickDownloadsAction -> requestPdfExport(action.projectTitle)
+
             is GenerateSchemeAction -> generateScheme(
                 config = action.config,
                 imageBytes = action.imageBytes,
             )
+
             is ClickSchemeCellAction -> handleSchemeCellClick(action.cellIndex)
 
             is TogglePaletteHighlightAction -> {
@@ -60,13 +59,13 @@ internal class MashViewModel(
                         null
                     } else {
                         action.paletteIndex
-                    }
+                    },
                 )
             }
 
             is ClearPaletteHighlightAction -> {
                 _uiState.value = _uiState.value.copy(
-                    selectedPaletteIndex = null
+                    selectedPaletteIndex = null,
                 )
             }
 
@@ -82,6 +81,7 @@ internal class MashViewModel(
 
     internal fun restoreCompletedCells(completedCellIndices: Set<Int>) {
         val currentScheme = _uiState.value.scheme ?: return
+
         val sanitizedIndices = completedCellIndices.filterTo(linkedSetOf()) { index ->
             index in currentScheme.indices.indices
         }
@@ -94,24 +94,29 @@ internal class MashViewModel(
     private fun handleSchemeCellClick(cellIndex: Int) {
         val currentState = _uiState.value
         val currentScheme = currentState.scheme ?: return
+
         if (cellIndex !in currentScheme.indices.indices) {
             return
         }
 
         val paletteIndex = currentScheme.indices[cellIndex]
+
         if (currentState.selectedPaletteIndex != paletteIndex) {
-            _uiState.value = currentState.copy(selectedPaletteIndex = paletteIndex)
+            _uiState.value = currentState.copy(
+                selectedPaletteIndex = paletteIndex,
+            )
             return
         }
 
         val completedCells = currentState.completedCellIndices.toMutableSet()
         val isCompleted = completedCells.add(cellIndex)
+
         if (!isCompleted) {
             completedCells.remove(cellIndex)
         }
 
         _uiState.value = currentState.copy(
-            completedCellIndices = completedCells
+            completedCellIndices = completedCells,
         ).withDerivedPaletteState()
     }
 
@@ -121,6 +126,7 @@ internal class MashViewModel(
 
         val cellIndices = currentScheme.indices.indices
             .filter { currentScheme.indices[it] == paletteIndex }
+
         if (cellIndices.isEmpty()) {
             return
         }
@@ -137,7 +143,7 @@ internal class MashViewModel(
         }
 
         _uiState.value = currentState.copy(
-            completedCellIndices = completedCells
+            completedCellIndices = completedCells,
         ).withDerivedPaletteState()
     }
 
@@ -158,22 +164,17 @@ internal class MashViewModel(
                 completedCellIndices = emptySet(),
             )
 
-            val context = getApplication<Application>().applicationContext
-
-            val bitmap = imageBytes
-                ?.let(::byteArrayToBitmap)
-                ?: loadBitmapFromUrl(
-                    context = context,
-                    url = config.imageUrl ?: DEFAULT_MASH_IMAGE_URL
-                )
-
-            val scheme = bitmap?.let {
-                buildScheme(
-                    source = it,
-                    minSideCells = config.difficulty.minSidePx,
-                    availablePalette = MashCreateData.allThreads,
-                    maxColors = config.colorCount,
-                )
+            val scheme = withContext(Dispatchers.Default) {
+                imageBytes
+                    ?.let(::byteArrayToBitmap)
+                    ?.let { bitmap ->
+                        buildScheme(
+                            source = bitmap,
+                            minSideCells = config.difficulty.minSidePx,
+                            availablePalette = MashCreateData.allThreads,
+                            maxColors = config.colorCount,
+                        )
+                    }
             }
 
             _uiState.value = if (scheme != null) {
@@ -200,6 +201,19 @@ internal class MashViewModel(
         }
     }
 
+    private fun requestPdfExport(projectTitle: String) {
+        val currentScheme = _uiState.value.scheme ?: return
+
+        viewModelScope.launch {
+            _events.emit(
+                MashEvent.ExportPdf(
+                    projectTitle = projectTitle,
+                    scheme = currentScheme,
+                ),
+            )
+        }
+    }
+
     private fun MashUiState.withDerivedPaletteState(): MashUiState {
         val currentScheme = scheme ?: return copy(
             visiblePalette = emptyList(),
@@ -209,6 +223,7 @@ internal class MashViewModel(
         )
 
         val currentPaletteProgress = currentScheme.buildPaletteProgress(completedCellIndices)
+
         val paletteWithCompletion = currentScheme.palette.mapIndexed { index, thread ->
             thread.copy(
                 isCompleted = currentPaletteProgress.getOrNull(index)?.isCompleted == true,
@@ -221,19 +236,6 @@ internal class MashViewModel(
             isPaletteVisible = paletteWithCompletion.isNotEmpty(),
             isDownloadButtonEnabled = true,
         )
-    }
-
-    private fun requestPdfExport(projectTitle: String) {
-        val currentScheme = _uiState.value.scheme ?: return
-
-        viewModelScope.launch {
-            _events.emit(
-                Event.ExportPdf(
-                    projectTitle = projectTitle,
-                    scheme = currentScheme,
-                ),
-            )
-        }
     }
 }
 
@@ -249,11 +251,13 @@ private fun buildScheme(
         availablePalette = availablePalette,
         maxColors = maxColors,
     )
+
     val (gridWidth, gridHeight) = calcGridSize(
         w = source.width,
         h = source.height,
-        minSide = minSideCells
+        minSide = minSideCells,
     )
+
     val scaledBitmap = source.scale(gridWidth, gridHeight, false)
     val selectedPaletteInts = selectedPalette.map { it.color.toArgbInt() }
     val indices = IntArray(gridWidth * gridHeight)
@@ -263,12 +267,11 @@ private fun buildScheme(
             val color = scaledBitmap[x, y]
             val alpha = (color ushr 24) and 0xFF
 
-            indices[y * gridWidth + x] =
-                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
-                    nearestColorIndex(0xFFFFFFFF.toInt(), selectedPaletteInts)
-                } else {
-                    nearestColorIndex(color, selectedPaletteInts)
-                }
+            indices[y * gridWidth + x] = if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
+                nearestColorIndex(0xFFFFFFFF.toInt(), selectedPaletteInts)
+            } else {
+                nearestColorIndex(color, selectedPaletteInts)
+            }
         }
     }
 
@@ -276,7 +279,7 @@ private fun buildScheme(
         gridW = gridWidth,
         gridH = gridHeight,
         palette = selectedPalette,
-        indices = indices
+        indices = indices,
     )
 }
 
@@ -289,8 +292,9 @@ internal fun selectPaletteForImage(
     val (gridWidth, gridHeight) = calcGridSize(
         w = source.width,
         h = source.height,
-        minSide = minSideCells
+        minSide = minSideCells,
     )
+
     val scaledBitmap = source.scale(gridWidth, gridHeight, false)
     val paletteInts = availablePalette.map { it.color.toArgbInt() }
     val paletteUsage = IntArray(availablePalette.size)
@@ -300,22 +304,23 @@ internal fun selectPaletteForImage(
             val color = scaledBitmap[x, y]
             val alpha = (color ushr 24) and 0xFF
 
-            val nearestIndex =
-                if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
-                    nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
-                } else {
-                    nearestColorIndex(color, paletteInts)
-                }
+            val nearestIndex = if (alpha < DEFAULT_TRANSPARENT_ALPHA_THRESHOLD) {
+                nearestColorIndex(0xFFFFFFFF.toInt(), paletteInts)
+            } else {
+                nearestColorIndex(color, paletteInts)
+            }
+
             paletteUsage[nearestIndex]++
         }
     }
 
     val normalizedMaxColors = maxColors.coerceIn(1, availablePalette.size)
+
     val selectedPaletteSourceIndices = paletteUsage.indices
         .filter { paletteUsage[it] > 0 }
         .sortedWith(
             compareByDescending<Int> { paletteUsage[it] }
-                .thenBy { it }
+                .thenBy { it },
         )
         .take(normalizedMaxColors)
         .sorted()
@@ -330,9 +335,10 @@ internal fun selectPaletteForImage(
 private fun calcGridSize(
     w: Int,
     h: Int,
-    minSide: Int
+    minSide: Int,
 ): Pair<Int, Int> {
     val minDim = min(w, h)
+
     if (minDim <= 0) {
         return DEFAULT_FALLBACK_GRID_SIZE to DEFAULT_FALLBACK_GRID_SIZE
     }

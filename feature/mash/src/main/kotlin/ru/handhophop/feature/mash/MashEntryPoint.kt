@@ -1,9 +1,13 @@
 package ru.handhophop.feature.mash
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,22 +18,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.core.system.database.work.hasStartedWork
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
-import android.widget.Toast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import androidx.compose.ui.res.stringResource
 import java.util.Locale
-import android.annotation.SuppressLint
-import android.content.Context
+
+private const val DEFAULT_MASH_IMAGE_URL =
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDqAZfJ7DSp_ML801Txp-yEJ5zTXIDtbM9AQ&s"
 
 private enum class MashDestination {
     HOME,
@@ -47,13 +50,16 @@ fun MashEntryPoint(
     val context = LocalContext.current
     val pdfSavedMessageTemplate = stringResource(R.string.mash_pdf_saved)
     val pdfFailedMessage = stringResource(R.string.mash_pdf_failed)
+
     val repository = remember(context) {
         WorkLocalRepository(
             workDao = HandHopHopDatabaseProvider.get(context).workDao(),
         )
     }
+
     val viewModel: MashViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
+
     val cachedWork = remember(initialWorkId, initialImageUrl) {
         if (initialWorkId == null && initialImageUrl == null) {
             MashWorkCache.currentWork
@@ -61,38 +67,43 @@ fun MashEntryPoint(
             null
         }
     }
+
     var workImageBytes by remember { mutableStateOf<ByteArray?>(null) }
     var currentWorkId by remember { mutableStateOf<Long?>(null) }
     var createdConfig by remember { mutableStateOf(cachedWork?.config) }
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
     var pendingCompletedCells by remember { mutableStateOf<Set<Int>?>(null) }
     var pendingDownloadTitle by remember { mutableStateOf<String?>(null) }
+
     var destination by rememberSaveable {
         mutableStateOf(
             if (initialWorkId != null || initialImageUrl != null) {
                 MashDestination.CREATE
             } else {
                 MashDestination.HOME
-            }
+            },
         )
     }
+
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { _ ->
-        pendingDownloadTitle?.let { projectTitle ->
+        val projectTitle = pendingDownloadTitle
+        pendingDownloadTitle = null
+
+        projectTitle?.let {
             viewModel.handleAction(
                 ClickDownloadsAction(
-                    projectTitle = projectTitle,
+                    projectTitle = it,
                 ),
             )
         }
-        pendingDownloadTitle = null
     }
 
     LaunchedEffect(viewModel, context, pdfSavedMessageTemplate, pdfFailedMessage) {
         viewModel.events.collect { event ->
             when (event) {
-                is MashViewModel.Event.ExportPdf -> {
+                is MashEvent.ExportPdf -> {
                     val result = withContext(Dispatchers.IO) {
                         exportSchemePdf(
                             context = context,
@@ -126,15 +137,17 @@ fun MashEntryPoint(
         }
     }
 
-    LaunchedEffect(createdConfig) {
+    LaunchedEffect(createdConfig, workImageBytes) {
         val config = createdConfig ?: return@LaunchedEffect
+        val imageBytes = workImageBytes ?: return@LaunchedEffect
+
         if (config != lastGeneratedConfig) {
             lastGeneratedConfig = config
             viewModel.handleAction(
                 GenerateSchemeAction(
                     config = config,
-                    imageBytes = workImageBytes,
-                )
+                    imageBytes = imageBytes,
+                ),
             )
         }
     }
@@ -152,7 +165,9 @@ fun MashEntryPoint(
                 initialImageUrl != null -> repository.getWorkByUrl(initialImageUrl)
                 else -> null
             }
+
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
+
             if (persistedWork != null && persistedConfig != null && persistedWork.hasStartedWork()) {
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
@@ -163,6 +178,7 @@ fun MashEntryPoint(
                 if (persistedWork != null && persistedWork.hasStartedWork()) {
                     repository.removeWork(persistedWork.id)
                 }
+
                 createdConfig = null
                 currentWorkId = persistedWork?.id
                 workImageBytes = persistedWork?.image
@@ -172,7 +188,9 @@ fun MashEntryPoint(
         } else if (createdConfig == null) {
             val persistedWork = repository.getAllWorks()
                 .firstOrNull { it.hasStartedWork() }
+
             val persistedConfig = persistedWork?.toMashCreateConfigOrNull()
+
             if (persistedWork != null && persistedConfig != null) {
                 currentWorkId = persistedWork.id
                 workImageBytes = persistedWork.image
@@ -186,8 +204,15 @@ fun MashEntryPoint(
     }
 
     LaunchedEffect(createdConfig?.imageUrl, workImageBytes) {
-        val imageUrl = createdConfig?.imageUrl?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
-        if (workImageBytes != null) return@LaunchedEffect
+        val config = createdConfig ?: return@LaunchedEffect
+
+        if (workImageBytes != null) {
+            return@LaunchedEffect
+        }
+
+        val imageUrl = config.imageUrl
+            ?.takeIf { it.isNotBlank() }
+            ?: DEFAULT_MASH_IMAGE_URL
 
         val bitmap = loadBitmapFromUrl(
             context = context,
@@ -220,7 +245,7 @@ fun MashEntryPoint(
                 url = url,
                 image = workImageBytes,
                 isFavorite = true,
-            )
+            ),
         )
     }
 
@@ -234,13 +259,16 @@ fun MashEntryPoint(
                 image = workImageBytes,
                 isFavorite = repository.getWorkByUrl(url)?.isFavorite == true,
                 uiState = uiState,
-            )
+            ),
         )
     }
 
     LaunchedEffect(uiState.scheme, pendingCompletedCells) {
         val restoredCompletedCells = pendingCompletedCells ?: return@LaunchedEffect
-        if (uiState.scheme == null) return@LaunchedEffect
+
+        if (uiState.scheme == null) {
+            return@LaunchedEffect
+        }
 
         viewModel.restoreCompletedCells(restoredCompletedCells)
         pendingCompletedCells = null
@@ -266,19 +294,25 @@ fun MashEntryPoint(
                 imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
                 onBackClick = { destination = MashDestination.HOME },
                 onCreateFinished = { newConfig ->
+                    if (createdConfig?.imageUrl != newConfig.imageUrl) {
+                        workImageBytes = null
+                    }
+
+                    lastGeneratedConfig = null
                     createdConfig = newConfig
                     destination = MashDestination.WORKSPACE
-                }
+                },
             )
         }
 
         MashDestination.WORKSPACE -> {
             MashScreen(
-                title = createdConfig?.projectName ?: "",
+                title = createdConfig?.projectName.orEmpty(),
                 uiState = uiState,
                 onBackClick = { destination = MashDestination.HOME },
                 onDownloadClick = {
                     val projectTitle = createdConfig?.projectName.orEmpty()
+
                     if (needsNotificationPermission(context)) {
                         pendingDownloadTitle = projectTitle
                         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
