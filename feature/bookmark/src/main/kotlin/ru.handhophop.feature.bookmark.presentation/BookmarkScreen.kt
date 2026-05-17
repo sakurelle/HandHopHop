@@ -1,13 +1,12 @@
 package ru.handhophop.feature.bookmark.presentation
 
-import android.graphics.BitmapFactory
+import java.io.File
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -36,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -59,6 +57,7 @@ fun BookmarkEntryPoint(
     val repository = remember(context) {
         WorkLocalRepository(
             workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+            appContext = context.applicationContext,
         )
     }
     val viewModel: BookmarkViewModel = viewModel(
@@ -201,27 +200,20 @@ private fun BookmarkPhoto(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val bitmap = remember(photo.imageBytes) {
-        photo.imageBytes?.let { imageBytes ->
-            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        }
+    val model = remember(photo.imagePath, photo.photoUrl) {
+        photo.imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::File)
+            ?.takeIf(File::exists)
+            ?: photo.photoUrl
     }
 
-    if (bitmap == null) {
-        AsyncImage(
-            model = photo.photoUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.clickable(onClick = onClick),
-        )
-    } else {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.clickable(onClick = onClick),
-        )
-    }
+    AsyncImage(
+        model = model,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.clickable(onClick = onClick),
+    )
 }
 
 @Composable

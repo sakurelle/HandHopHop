@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
+import ru.handhophop.core.system.database.work.WorkActivityStats
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.core.system.database.work.hasCreatedWorkConfig
@@ -65,6 +66,7 @@ fun MashEntryPoint(
     val repository = remember(context) {
         WorkLocalRepository(
             workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+            appContext = context.applicationContext,
         )
     }
 
@@ -80,9 +82,11 @@ fun MashEntryPoint(
     }
 
     var workImageBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var currentWorkImagePath by remember { mutableStateOf<String?>(null) }
     var currentWorkId by remember { mutableStateOf<Long?>(null) }
     var createdConfig by remember { mutableStateOf(cachedWork?.config) }
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
+    var imageLoadAttemptKey by remember { mutableStateOf<String?>(null) }
 
     var isRestoringPersistedProgress by rememberSaveable {
         mutableStateOf(false)
@@ -95,7 +99,10 @@ fun MashEntryPoint(
     var pendingDownloadTitle by remember { mutableStateOf<String?>(null) }
     var spentTimeBaseMillis by rememberSaveable { mutableStateOf(0L) }
     var workspaceStartedAtMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var lastActivitySavedAtMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pendingActivityEndMillis by rememberSaveable { mutableStateOf<Long?>(null) }
     var spentTimeSaveTick by remember { mutableStateOf(0) }
+    var activityStats by remember { mutableStateOf(WorkActivityStats()) }
 
     var destination by rememberSaveable {
         mutableStateOf(
@@ -159,9 +166,16 @@ fun MashEntryPoint(
         }
     }
 
-    LaunchedEffect(createdConfig, workImageBytes, pendingCompletedCells) {
+    LaunchedEffect(createdConfig, currentWorkImagePath, workImageBytes, imageLoadAttemptKey, pendingCompletedCells) {
         val config = createdConfig ?: return@LaunchedEffect
-        val imageBytes = workImageBytes ?: return@LaunchedEffect
+        val loadKey = buildImageLoadKey(
+            imagePath = currentWorkImagePath,
+            imageUrl = config.imageUrl,
+        )
+
+        if (workImageBytes == null && imageLoadAttemptKey != loadKey) {
+            return@LaunchedEffect
+        }
 
         if (config != lastGeneratedConfig) {
             val completedCellsForRestore = pendingCompletedCells.orEmpty()
@@ -172,7 +186,7 @@ fun MashEntryPoint(
             viewModel.handleAction(
                 GenerateSchemeAction(
                     config = config,
-                    imageBytes = imageBytes,
+                    imageBytes = workImageBytes,
                     initialCompletedCellIndices = completedCellsForRestore,
                 ),
             )
@@ -198,7 +212,9 @@ fun MashEntryPoint(
 
             if (persistedWork != null && persistedConfig != null) {
                 currentWorkId = persistedWork.id
-                workImageBytes = persistedWork.image
+                workImageBytes = null
+                currentWorkImagePath = persistedWork.imagePath
+                imageLoadAttemptKey = null
                 createdConfig = persistedConfig
 
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
@@ -206,17 +222,23 @@ fun MashEntryPoint(
 
                 spentTimeBaseMillis = persistedWork.spentTime ?: 0L
                 workspaceStartedAtMillis = null
+                lastActivitySavedAtMillis = null
+                pendingActivityEndMillis = null
                 destination = MashDestination.WORKSPACE
             } else {
                 createdConfig = null
                 currentWorkId = persistedWork?.id
-                workImageBytes = persistedWork?.image
+                workImageBytes = null
+                currentWorkImagePath = persistedWork?.imagePath
+                imageLoadAttemptKey = null
 
                 pendingCompletedCells = null
                 isRestoringPersistedProgress = false
 
                 spentTimeBaseMillis = persistedWork?.spentTime ?: 0L
                 workspaceStartedAtMillis = null
+                lastActivitySavedAtMillis = null
+                pendingActivityEndMillis = null
                 destination = MashDestination.CREATE
             }
         } else if (createdConfig == null) {
@@ -231,7 +253,9 @@ fun MashEntryPoint(
 
             if (persistedWork != null && persistedConfig != null) {
                 currentWorkId = persistedWork.id
-                workImageBytes = persistedWork.image
+                workImageBytes = null
+                currentWorkImagePath = persistedWork.imagePath
+                imageLoadAttemptKey = null
                 createdConfig = persistedConfig
 
                 pendingCompletedCells = persistedWork.decodeCompletedCells()
@@ -239,15 +263,35 @@ fun MashEntryPoint(
 
                 spentTimeBaseMillis = persistedWork.spentTime ?: 0L
                 workspaceStartedAtMillis = null
+                lastActivitySavedAtMillis = null
+                pendingActivityEndMillis = null
                 destination = MashDestination.HOME
             }
         }
+    }
+
+    LaunchedEffect(currentWorkId) {
+        activityStats = currentWorkId
+            ?.takeIf { it > 0L }
+            ?.let { workId -> repository.getWorkActivityStats(workId) }
+            ?: WorkActivityStats()
     }
 
     LaunchedEffect(createdConfig, workImageBytes) {
         val config = createdConfig ?: return@LaunchedEffect
 
         if (workImageBytes != null) {
+            return@LaunchedEffect
+        }
+
+        val loadKey = buildImageLoadKey(
+            imagePath = currentWorkImagePath,
+            imageUrl = config.imageUrl,
+        )
+
+        readImageBytesFromFile(currentWorkImagePath)?.let { imageBytes ->
+            workImageBytes = imageBytes
+            imageLoadAttemptKey = loadKey
             return@LaunchedEffect
         }
 
@@ -258,9 +302,13 @@ fun MashEntryPoint(
         val bitmap = loadBitmapFromUrl(
             context = context,
             url = imageUrl,
-        ) ?: return@LaunchedEffect
+        )
 
-        workImageBytes = bitmapToByteArray(bitmap)
+        if (bitmap != null) {
+            workImageBytes = bitmapToByteArray(bitmap)
+        }
+
+        imageLoadAttemptKey = loadKey
     }
 
     LaunchedEffect(destination, showPopup) {
@@ -273,9 +321,11 @@ fun MashEntryPoint(
 
         if (destination == MashDestination.WORKSPACE && startedAt == null) {
             workspaceStartedAtMillis = now
+            lastActivitySavedAtMillis = now
         } else if (destination != MashDestination.WORKSPACE && startedAt != null) {
             spentTimeBaseMillis += now - startedAt
             workspaceStartedAtMillis = null
+            pendingActivityEndMillis = now
             spentTimeSaveTick++
         }
     }
@@ -283,8 +333,27 @@ fun MashEntryPoint(
     LaunchedEffect(destination, workspaceStartedAtMillis) {
         while (destination == MashDestination.WORKSPACE && workspaceStartedAtMillis != null) {
             delay(SPENT_TIME_SAVE_INTERVAL_MILLIS)
+            pendingActivityEndMillis = System.currentTimeMillis()
             spentTimeSaveTick++
         }
+    }
+
+    LaunchedEffect(currentWorkId, pendingActivityEndMillis) {
+        val workId = currentWorkId?.takeIf { it > 0L } ?: return@LaunchedEffect
+        val activityEndMillis = pendingActivityEndMillis ?: return@LaunchedEffect
+        val activityStartMillis = lastActivitySavedAtMillis ?: activityEndMillis
+
+        if (activityEndMillis > activityStartMillis) {
+            repository.addWorkActivityTime(
+                workId = workId,
+                startedAtMillis = activityStartMillis,
+                endedAtMillis = activityEndMillis,
+            )
+            activityStats = repository.getWorkActivityStats(workId)
+            lastActivitySavedAtMillis = activityEndMillis
+        }
+
+        pendingActivityEndMillis = null
     }
 
     LaunchedEffect(createdConfig, uiState) {
@@ -361,10 +430,15 @@ fun MashEntryPoint(
                             currentWorkId = null
                             createdConfig = null
                             workImageBytes = null
+                            currentWorkImagePath = null
+                            imageLoadAttemptKey = null
                             pendingCompletedCells = null
                             isRestoringPersistedProgress = false
                             spentTimeBaseMillis = 0L
                             workspaceStartedAtMillis = null
+                            lastActivitySavedAtMillis = null
+                            pendingActivityEndMillis = null
+                            activityStats = WorkActivityStats()
 
                             viewModel.resetWork()
 
@@ -403,11 +477,16 @@ fun MashEntryPoint(
                     onCreateFinished = { newConfig ->
                         if (createdConfig?.imageUrl != newConfig.imageUrl) {
                             workImageBytes = null
+                            currentWorkImagePath = null
+                            imageLoadAttemptKey = null
                         }
 
                         if (createdConfig != newConfig) {
                             spentTimeBaseMillis = 0L
                             workspaceStartedAtMillis = null
+                            lastActivitySavedAtMillis = null
+                            pendingActivityEndMillis = null
+                            activityStats = WorkActivityStats()
                         }
 
                         lastGeneratedConfig = null
@@ -456,12 +535,20 @@ fun MashEntryPoint(
             MashStatisticsScreen(
                 projectConfig = createdConfig,
                 uiState = uiState,
+                activityStats = activityStats,
                 onBackClick = { destination = MashDestination.HOME },
                 onCreateProjectClick = { destination = MashDestination.CREATE },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
             )
         }
     }
+}
+
+private fun buildImageLoadKey(
+    imagePath: String?,
+    imageUrl: String?,
+): String {
+    return "${imagePath.orEmpty()}|${imageUrl.orEmpty()}"
 }
 
 private fun needsNotificationPermission(context: Context): Boolean {

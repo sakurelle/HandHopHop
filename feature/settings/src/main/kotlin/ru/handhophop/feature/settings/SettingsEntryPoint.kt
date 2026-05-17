@@ -22,7 +22,8 @@ fun SettingsEntryPoint(
 
     val repository = remember {
         WorkLocalRepository(
-            workDao = HandHopHopDatabaseProvider.get(appContext).workDao()
+            workDao = HandHopHopDatabaseProvider.get(appContext).workDao(),
+            appContext = appContext,
         )
     }
 

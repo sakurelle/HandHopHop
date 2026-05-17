@@ -22,5 +22,5 @@ internal sealed interface BookmarkUiState {
 internal data class BookmarkPhotoItem(
     val id: Long,
     val photoUrl: String,
-    val imageBytes: ByteArray? = null,
+    val imagePath: String? = null,
 )

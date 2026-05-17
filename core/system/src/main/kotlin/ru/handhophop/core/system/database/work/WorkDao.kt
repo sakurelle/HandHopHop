@@ -10,7 +10,9 @@ import androidx.room.Transaction
 data class WorkFavoritePreview(
     val id: Long,
     val url: String?,
-    val image: ByteArray?,
+
+    @ColumnInfo(name = "image_path")
+    val imagePath: String?,
 )
 
 data class WorkUrlPreview(
@@ -30,6 +32,9 @@ data class WorkUrlPreview(
 
     val difficulty: String?,
     val url: String?,
+
+    @ColumnInfo(name = "image_path")
+    val imagePath: String?,
 
     @ColumnInfo(name = "grid_width")
     val gridWidth: Int?,
@@ -61,6 +66,9 @@ data class WorkDetailsPreview(
     val difficulty: String?,
     val url: String?,
 
+    @ColumnInfo(name = "image_path")
+    val imagePath: String?,
+
     @ColumnInfo(name = "grid_width")
     val gridWidth: Int?,
 
@@ -71,6 +79,11 @@ data class WorkDetailsPreview(
 
     @ColumnInfo(name = "spended_time")
     val spendedTime: Long?,
+)
+
+data class WorkActivityStats(
+    val todaySpentTimeMillis: Long = 0L,
+    val weekSpentTimeMillisByDay: List<Long> = List(7) { 0L },
 )
 
 @Dao
@@ -85,8 +98,12 @@ interface WorkDao {
     @Query("DELETE FROM work_progress_chunk")
     suspend fun deleteAllProgressChunks()
 
+    @Query("DELETE FROM work_activity_day")
+    suspend fun deleteAllActivityDays()
+
     @Transaction
     suspend fun deleteAllWithProgress() {
+        deleteAllActivityDays()
         deleteAllProgressChunks()
         deleteAll()
     }
@@ -100,8 +117,12 @@ interface WorkDao {
     @Query("DELETE FROM work_progress_chunk WHERE work_id = :workId")
     suspend fun deleteProgressChunks(workId: Long)
 
+    @Query("DELETE FROM work_activity_day WHERE work_id = :workId")
+    suspend fun deleteActivityDaysByWorkId(workId: Long)
+
     @Transaction
     suspend fun deleteByIdWithProgress(workId: Long) {
+        deleteActivityDaysByWorkId(workId)
         deleteProgressChunks(workId)
         deleteById(workId)
     }
@@ -121,8 +142,21 @@ interface WorkDao {
     )
     suspend fun deleteProgressChunksByUrl(url: String)
 
+    @Query(
+        """
+        DELETE FROM work_activity_day
+        WHERE work_id IN (
+            SELECT id
+            FROM work
+            WHERE url = :url
+        )
+        """,
+    )
+    suspend fun deleteActivityDaysByUrl(url: String)
+
     @Transaction
     suspend fun deleteByUrlWithProgress(url: String) {
+        deleteActivityDaysByUrl(url)
         deleteProgressChunksByUrl(url)
         deleteByUrl(url)
     }
@@ -130,7 +164,7 @@ interface WorkDao {
     @Query(
         """
     SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-           grid_width, grid_height, percentage, spended_time
+           image_path, grid_width, grid_height, percentage, spended_time
     FROM work
     WHERE id = :workId
     """,
@@ -140,7 +174,7 @@ interface WorkDao {
     @Query(
         """
     SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-           grid_width, grid_height, percentage, spended_time
+           image_path, grid_width, grid_height, percentage, spended_time
     FROM work
     WHERE url = :url
     ORDER BY
@@ -156,31 +190,74 @@ interface WorkDao {
             THEN 0
             ELSE 1
         END,
+        CASE
+            WHEN percentage IS NOT NULL
+                AND percentage > 0
+            THEN 0
+            WHEN EXISTS (
+                SELECT 1
+                FROM work_progress_chunk
+                WHERE work_progress_chunk.work_id = work.id
+                LIMIT 1
+            )
+            THEN 0
+            ELSE 1
+        END,
         id DESC
     LIMIT 1
     """,
     )
     suspend fun getDetailsByUrl(url: String): WorkDetailsPreview?
 
-    @Query("SELECT image FROM work WHERE id = :workId")
-    suspend fun getImageById(workId: Long): ByteArray?
-
     @Query("SELECT grid_rle FROM work WHERE id = :workId")
     suspend fun getLegacyGridRleById(workId: Long): String?
 
     @Query(
         """
-        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               grid_width, grid_height, percentage, spended_time
-        FROM work
-        WHERE url IN (:urls)
+        SELECT w.id, w.is_favorite, w.project_name, w.scheme_type, w.color_count, w.difficulty,
+               w.url, w.image_path, w.grid_width, w.grid_height, w.percentage, w.spended_time
+        FROM work AS w
+        WHERE w.url IN (:urls)
+            AND w.id = (
+                SELECT w2.id
+                FROM work AS w2
+                WHERE w2.url = w.url
+                ORDER BY
+                    CASE
+                        WHEN w2.project_name IS NOT NULL
+                            AND w2.project_name != ''
+                            AND w2.scheme_type IS NOT NULL
+                            AND w2.scheme_type != ''
+                            AND w2.color_count IS NOT NULL
+                            AND w2.color_count > 0
+                            AND w2.difficulty IS NOT NULL
+                            AND w2.difficulty != ''
+                        THEN 0
+                        ELSE 1
+                    END,
+                    CASE
+                        WHEN w2.percentage IS NOT NULL
+                            AND w2.percentage > 0
+                        THEN 0
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM work_progress_chunk
+                            WHERE work_progress_chunk.work_id = w2.id
+                            LIMIT 1
+                        )
+                        THEN 0
+                        ELSE 1
+                    END,
+                    w2.id DESC
+                LIMIT 1
+            )
         """,
     )
     suspend fun getByUrls(urls: List<String>): List<WorkUrlPreview>
 
     @Query(
         """
-    SELECT w.id, w.url, NULL AS image
+    SELECT w.id, w.url, w.image_path
     FROM work AS w
     WHERE w.is_favorite = 1
         AND w.url IS NOT NULL
@@ -230,15 +307,72 @@ interface WorkDao {
     @Query(
         """
         SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               grid_width, grid_height, percentage, spended_time
+               image_path, grid_width, grid_height, percentage, spended_time
         FROM work
-        ORDER BY id DESC
+        ORDER BY
+            CASE
+                WHEN project_name IS NOT NULL
+                    AND project_name != ''
+                    AND scheme_type IS NOT NULL
+                    AND scheme_type != ''
+                    AND color_count IS NOT NULL
+                    AND color_count > 0
+                    AND difficulty IS NOT NULL
+                    AND difficulty != ''
+                THEN 0
+                ELSE 1
+            END,
+            CASE
+                WHEN percentage IS NOT NULL
+                    AND percentage > 0
+                THEN 0
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = work.id
+                    LIMIT 1
+                )
+                THEN 0
+                ELSE 1
+            END,
+            id DESC
         """,
     )
     suspend fun getAll(): List<WorkUrlPreview>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProgressChunks(chunks: List<WorkProgressChunkEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertActivityDay(activity: WorkActivityDayEntity): Long
+
+    @Query(
+        """
+        UPDATE work_activity_day
+        SET spent_time = spent_time + :spentTimeToAdd
+        WHERE work_id = :workId AND day = :day
+        """,
+    )
+    suspend fun addSpentTimeToActivityDay(
+        workId: Long,
+        day: String,
+        spentTimeToAdd: Long,
+    )
+
+    @Query(
+        """
+        SELECT *
+        FROM work_activity_day
+        WHERE work_id = :workId
+            AND day BETWEEN :startDay AND :endDay
+        ORDER BY day ASC
+        """,
+    )
+    suspend fun getActivityDays(
+        workId: Long,
+        startDay: String,
+        endDay: String,
+    ): List<WorkActivityDayEntity>
 
     @Query(
         """
@@ -252,6 +386,15 @@ interface WorkDao {
 
     @Query("UPDATE work SET grid_rle = NULL WHERE id = :workId")
     suspend fun clearLegacyProgress(workId: Long)
+
+    @Query("SELECT image_path FROM work WHERE id = :workId")
+    suspend fun getImagePathById(workId: Long): String?
+
+    @Query("SELECT image_path FROM work WHERE url = :url")
+    suspend fun getImagePathsByUrl(url: String): List<String?>
+
+    @Query("SELECT image_path FROM work WHERE image_path IS NOT NULL AND image_path != ''")
+    suspend fun getAllImagePaths(): List<String>
 
     @Transaction
     suspend fun replaceProgressChunks(
@@ -275,11 +418,39 @@ interface WorkDao {
         clearLegacyProgress(workId)
     }
 
+    @Transaction
+    suspend fun addWorkActivityTime(
+        workId: Long,
+        day: String,
+        spentTimeToAdd: Long,
+    ) {
+        if (spentTimeToAdd <= 0L) {
+            return
+        }
+
+        val inserted = insertActivityDay(
+            WorkActivityDayEntity(
+                workId = workId,
+                day = day,
+                spentTime = spentTimeToAdd,
+            ),
+        )
+
+        if (inserted == -1L) {
+            addSpentTimeToActivityDay(
+                workId = workId,
+                day = day,
+                spentTimeToAdd = spentTimeToAdd,
+            )
+        }
+    }
+
     @Query(
         """
         UPDATE work
         SET url = :url,
-            image = COALESCE(:image, image),
+            image = NULL,
+            image_path = COALESCE(:imagePath, image_path),
             is_favorite = 1
         WHERE id = :id
         """,
@@ -287,14 +458,15 @@ interface WorkDao {
     suspend fun updateFavoriteById(
         id: Long,
         url: String,
-        image: ByteArray?,
+        imagePath: String?,
     )
 
     @Query(
         """
         UPDATE work
         SET url = :url,
-            image = COALESCE(:image, image),
+            image = NULL,
+            image_path = COALESCE(:imagePath, image_path),
             project_name = :projectName,
             scheme_type = :schemeType,
             color_count = :colorCount,
@@ -310,7 +482,7 @@ interface WorkDao {
     suspend fun updateWorkById(
         id: Long,
         url: String,
-        image: ByteArray?,
+        imagePath: String?,
         projectName: String?,
         schemeType: String?,
         colorCount: Int?,

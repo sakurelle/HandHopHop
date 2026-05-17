@@ -2,13 +2,22 @@ package ru.handhophop.core.system.database.work
 
 import android.content.Context
 import java.io.File
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
-private const val PROGRESS_CHUNK_SIZE = 64 * 1024
+// Keep chunks small so each CursorWindow row stays safe.
+// 1024 chars per chunk is intentionally conservative.
+private const val PROGRESS_CHUNK_SIZE = 1024
+private const val WORK_IMAGES_DIRECTORY = "work_images"
+private val dayFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
 data class WorkLocalItem(
     val id: Long = 0,
     val url: String,
     val image: ByteArray? = null,
+    val imagePath: String? = null,
     val isFavorite: Boolean = false,
     val projectName: String? = null,
     val schemeType: String? = null,
@@ -23,9 +32,11 @@ data class WorkLocalItem(
 
 class WorkLocalRepository(
     private val workDao: WorkDao,
+    private val appContext: Context? = null,
 ) {
 
     suspend fun clearAllWorks() {
+        deleteImageFiles(workDao.getAllImagePaths())
         workDao.deleteAllWithProgress()
     }
 
@@ -45,14 +56,64 @@ class WorkLocalRepository(
         return workDao.getCount()
     }
 
+    suspend fun addWorkActivityTime(
+        workId: Long,
+        startedAtMillis: Long,
+        endedAtMillis: Long,
+    ) {
+        if (workId <= 0L || endedAtMillis <= startedAtMillis) {
+            return
+        }
+
+        splitByDay(startedAtMillis, endedAtMillis).forEach { (day, spentTimeMillis) ->
+            workDao.addWorkActivityTime(
+                workId = workId,
+                day = day,
+                spentTimeToAdd = spentTimeMillis,
+            )
+        }
+    }
+
+    suspend fun getWorkActivityStats(workId: Long): WorkActivityStats {
+        if (workId <= 0L) {
+            return WorkActivityStats()
+        }
+
+        val zoneId = ZoneId.systemDefault()
+        val today = LocalDate.now(zoneId)
+        val monday = today.minusDays(((today.dayOfWeek.value + 6) % 7).toLong())
+        val sunday = monday.plusDays(6)
+        val activityDays = workDao.getActivityDays(
+            workId = workId,
+            startDay = monday.format(dayFormatter),
+            endDay = sunday.format(dayFormatter),
+        ).associateBy(WorkActivityDayEntity::day)
+
+        val weekSpentTimeMillisByDay = (0..6).map { dayOffset ->
+            val day = monday.plusDays(dayOffset.toLong()).format(dayFormatter)
+            activityDays[day]?.spentTime ?: 0L
+        }
+
+        return WorkActivityStats(
+            todaySpentTimeMillis = activityDays[today.format(dayFormatter)]?.spentTime ?: 0L,
+            weekSpentTimeMillisByDay = weekSpentTimeMillisByDay,
+        )
+    }
+
     suspend fun addFavorite(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
+        val imagePath = persistImageIfNeeded(
+            url = work.url,
+            imageBytes = work.image,
+            currentImagePath = current?.imagePath,
+        )
 
         return if (current == null) {
             workDao.insert(
                 work.copy(
                     isFavorite = true,
                     image = null,
+                    imagePath = imagePath,
                     gridRle = null,
                 ).toEntity(),
             )
@@ -60,7 +121,7 @@ class WorkLocalRepository(
             workDao.updateFavoriteById(
                 id = current.id,
                 url = work.url,
-                image = null,
+                imagePath = imagePath,
             )
 
             current.id
@@ -68,17 +129,24 @@ class WorkLocalRepository(
     }
 
     suspend fun removeFavorite(url: String) {
+        deleteImageFiles(workDao.getImagePathsByUrl(url))
         workDao.deleteByUrlWithProgress(url)
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
         val progressChunks = work.gridRle.toProgressChunks()
+        val imagePath = persistImageIfNeeded(
+            url = work.url,
+            imageBytes = work.image,
+            currentImagePath = current?.imagePath,
+        )
 
         return if (current == null) {
             val insertedId = workDao.insert(
                 work.copy(
                     image = null,
+                    imagePath = imagePath,
                     gridRle = null,
                 ).toEntity(),
             )
@@ -93,7 +161,7 @@ class WorkLocalRepository(
             workDao.updateWorkById(
                 id = current.id,
                 url = work.url,
-                image = null,
+                imagePath = imagePath,
                 projectName = work.projectName,
                 schemeType = work.schemeType,
                 colorCount = work.colorCount,
@@ -114,7 +182,16 @@ class WorkLocalRepository(
     }
 
     suspend fun removeWork(id: Long) {
-        workDao.deleteByIdWithProgress(id)
+        val current = workDao.getDetailsById(id)
+
+        if (current?.url.isNullOrBlank()) {
+            deleteImageFile(workDao.getImagePathById(id))
+            workDao.deleteByIdWithProgress(id)
+            return
+        }
+
+        deleteImageFiles(workDao.getImagePathsByUrl(current.url.orEmpty()))
+        workDao.deleteByUrlWithProgress(current.url.orEmpty())
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
@@ -147,8 +224,8 @@ class WorkLocalRepository(
      * Используется при открытии работы из избранного/ленты.
      *
      * Важно:
-     * - не читает image из БД;
-     * - не вызывает getImageById();
+     * - не читает image BLOB из БД;
+     * - использует metadata + image_path/url;
      * - прогресс читает только из work_progress_chunk / legacy grid_rle;
      * - сначала пытается найти работу по id, потом по url;
      * - если по id пришла favorite-only запись без прогресса, а по url есть полноценная работа,
@@ -166,14 +243,12 @@ class WorkLocalRepository(
             ?.takeIf { it.isNotBlank() }
             ?.let { workDao.getDetailsByUrl(it)?.toLocalItemWithProgress() }
 
-        return when {
-            byUrl?.hasCreatedWorkConfig() == true && byUrl.hasProgress() -> byUrl
-            byId?.hasCreatedWorkConfig() == true && byId.hasProgress() -> byId
-            byUrl?.hasCreatedWorkConfig() == true -> byUrl
-            byId?.hasCreatedWorkConfig() == true -> byId
-            byId != null -> byId
-            else -> byUrl
-        }
+        return listOfNotNull(byId, byUrl)
+            .maxWithOrNull(
+                compareBy<WorkLocalItem> { it.openPriority() }
+                    .thenBy { if (it.id == byId?.id) 1 else 0 }
+                    .thenBy { it.id },
+            )
     }
 
     suspend fun isFavorite(url: String): Boolean {
@@ -214,6 +289,93 @@ class WorkLocalRepository(
             progressRle = chunkedProgress ?: legacyProgress,
         )
     }
+
+    private fun WorkLocalItem.openPriority(): Int {
+        return when {
+            hasCreatedWorkConfig() && hasProgress() -> 4
+            hasCreatedWorkConfig() -> 3
+            hasProgress() -> 2
+            hasTrackedTime() -> 1
+            else -> 0
+        }
+    }
+
+    private fun persistImageIfNeeded(
+        url: String,
+        imageBytes: ByteArray?,
+        currentImagePath: String?,
+    ): String? {
+        if (imageBytes == null || imageBytes.isEmpty()) {
+            return currentImagePath
+        }
+
+        val filesDirectory = appContext?.filesDir ?: return currentImagePath
+        val workImagesDirectory = File(filesDirectory, WORK_IMAGES_DIRECTORY)
+        if (!workImagesDirectory.exists()) {
+            workImagesDirectory.mkdirs()
+        }
+
+        val fileName = buildString {
+            append(url.hashCode().toUInt().toString(16))
+            append(".png")
+        }
+
+        val imageFile = File(workImagesDirectory, fileName)
+
+        return runCatching {
+            imageFile.writeBytes(imageBytes)
+            imageFile.absolutePath
+        }.getOrElse {
+            currentImagePath
+        }
+    }
+
+    private fun deleteImageFiles(paths: List<String?>) {
+        paths.filterNotNull()
+            .distinct()
+            .forEach(::deleteImageFile)
+    }
+
+    private fun deleteImageFile(path: String?) {
+        if (path.isNullOrBlank()) {
+            return
+        }
+
+        runCatching {
+            File(path).takeIf(File::exists)?.delete()
+        }
+    }
+
+    private fun splitByDay(
+        startedAtMillis: Long,
+        endedAtMillis: Long,
+    ): List<Pair<String, Long>> {
+        if (endedAtMillis <= startedAtMillis) {
+            return emptyList()
+        }
+
+        val zoneId = ZoneId.systemDefault()
+        val result = mutableListOf<Pair<String, Long>>()
+        var segmentStart = Instant.ofEpochMilli(startedAtMillis).atZone(zoneId)
+        val sessionEnd = Instant.ofEpochMilli(endedAtMillis).atZone(zoneId)
+
+        while (segmentStart.toInstant().toEpochMilli() < endedAtMillis) {
+            val nextDayStart = segmentStart.toLocalDate()
+                .plusDays(1)
+                .atStartOfDay(zoneId)
+            val segmentEnd = minOf(nextDayStart, sessionEnd)
+            val spentTimeMillis = segmentEnd.toInstant().toEpochMilli() -
+                segmentStart.toInstant().toEpochMilli()
+
+            if (spentTimeMillis > 0L) {
+                result += segmentStart.toLocalDate().format(dayFormatter) to spentTimeMillis
+            }
+
+            segmentStart = segmentEnd
+        }
+
+        return result
+    }
 }
 
 fun WorkLocalItem.hasCreatedWorkConfig(): Boolean {
@@ -251,8 +413,9 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
         url = url,
 
         // Не сохраняем картинку в БД, чтобы не ловить Row too big to fit into CursorWindow.
-        // Для восстановления схемы используется url.
+        // Для восстановления схемы используется image_path/url.
         image = null,
+        imagePath = imagePath,
 
         gridWidth = gridWidth,
         gridHeight = gridHeight,
@@ -270,9 +433,7 @@ private fun WorkFavoritePreview.toLocalItem(): WorkLocalItem {
     return WorkLocalItem(
         id = id,
         url = url.orEmpty(),
-
-        // Для экрана избранного image не читаем.
-        // UI должен загрузить превью по url.
+        imagePath = imagePath,
         image = null,
 
         isFavorite = true,
@@ -291,6 +452,7 @@ private fun WorkUrlPreview.toLocalItem(): WorkLocalItem {
         difficulty = difficulty,
         gridWidth = gridWidth,
         gridHeight = gridHeight,
+        imagePath = imagePath,
         percentage = percentage,
         spentTime = spendedTime,
     )
@@ -310,6 +472,7 @@ private fun WorkDetailsPreview.toLocalItem(
         difficulty = difficulty,
         gridWidth = gridWidth,
         gridHeight = gridHeight,
+        imagePath = imagePath,
         gridRle = progressRle,
         percentage = percentage,
         spentTime = spendedTime,

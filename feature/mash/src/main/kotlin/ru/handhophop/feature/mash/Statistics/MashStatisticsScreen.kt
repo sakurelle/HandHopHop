@@ -37,6 +37,7 @@ import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.core.system.database.work.WorkActivityStats
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
 import ru.handhophop.feature.mash.MashUiState
@@ -46,6 +47,7 @@ import ru.handhophop.feature.mash.R
 internal fun MashStatisticsScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
+    activityStats: WorkActivityStats,
     onBackClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
@@ -166,10 +168,12 @@ internal fun MashStatisticsScreen(
                             MashStatisticsProjectCard(
                                 projectConfig = projectConfig,
                                 metrics = metrics,
+                                todaySpentTimeMillis = activityStats.todaySpentTimeMillis,
                                 onOpenProjectClick = onOpenProjectClick,
                             )
                             MashStatisticsActivityCard(
-                                values = metrics.buildWeeklyActivity(projectConfig.difficulty),
+                                todaySpentTimeMillis = activityStats.todaySpentTimeMillis,
+                                weekSpentTimeMillisByDay = activityStats.weekSpentTimeMillisByDay,
                             )
                             MashStatisticsProgressCard(metrics = metrics)
                         }
@@ -184,6 +188,7 @@ internal fun MashStatisticsScreen(
 private fun MashStatisticsProjectCard(
     projectConfig: MashCreateConfig,
     metrics: MashProjectMetrics,
+    todaySpentTimeMillis: Long,
     onOpenProjectClick: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
@@ -215,6 +220,14 @@ private fun MashStatisticsProjectCard(
                 style = MaterialTheme.typography.labelLarge,
                 color = colors.primaryAction,
             )
+            Text(
+                text = stringResource(
+                    R.string.mash_statistics_today_subtitle,
+                    formatDuration(todaySpentTimeMillis),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+            )
 
             HandHopHopButton(
                 onClick = onOpenProjectClick,
@@ -230,12 +243,14 @@ private fun MashStatisticsProjectCard(
 
 @Composable
 private fun MashStatisticsActivityCard(
-    values: List<Int>,
+    todaySpentTimeMillis: Long,
+    weekSpentTimeMillisByDay: List<Long>,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val chartHeight = dimensions.xl * 5
     val chartBarWidth = dimensions.lg
+    val values = buildWeeklyActivityValues(weekSpentTimeMillisByDay)
     val dayLabels = listOf(
         stringResource(R.string.mash_weekday_mon),
         stringResource(R.string.mash_weekday_tue),
@@ -259,9 +274,17 @@ private fun MashStatisticsActivityCard(
                 color = colors.textPrimary,
             )
             Text(
-                text = stringResource(R.string.mash_statistics_activity_subtitle),
+                text = "График показывает реальное время работы по дням текущей недели.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
+            )
+            Text(
+                text = stringResource(
+                    R.string.mash_statistics_today_title,
+                    formatDuration(todaySpentTimeMillis),
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.primaryAction,
             )
 
             Row(
@@ -278,7 +301,7 @@ private fun MashStatisticsActivityCard(
                         )
                     ) {
                         Text(
-                            text = value.toString(),
+                            text = formatDurationShort(weekSpentTimeMillisByDay.getOrElse(index) { 0L }),
                             style = MaterialTheme.typography.labelMedium,
                             color = colors.textSecondary,
                         )
@@ -312,6 +335,38 @@ private fun MashStatisticsActivityCard(
                 }
             }
         }
+    }
+}
+
+private fun formatDuration(durationMillis: Long): String {
+    if (durationMillis <= 0L) {
+        return "0 мин"
+    }
+
+    val totalMinutes = durationMillis / 60_000L
+    val hours = totalMinutes / 60L
+    val minutes = totalMinutes % 60L
+
+    return when {
+        hours <= 0L -> "$minutes мин"
+        minutes == 0L -> "$hours ч"
+        else -> "$hours ч $minutes мин"
+    }
+}
+
+private fun formatDurationShort(durationMillis: Long): String {
+    if (durationMillis <= 0L) {
+        return "0м"
+    }
+
+    val totalMinutes = durationMillis / 60_000L
+    val hours = totalMinutes / 60L
+    val minutes = totalMinutes % 60L
+
+    return when {
+        hours <= 0L -> "${minutes}м"
+        minutes == 0L -> "${hours}ч"
+        else -> "${hours}ч ${minutes}м"
     }
 }
 

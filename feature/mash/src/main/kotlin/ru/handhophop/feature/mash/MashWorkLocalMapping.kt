@@ -19,6 +19,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
         id = id,
         url = imageUrl.orEmpty(),
         image = image,
+        imagePath = null,
         isFavorite = isFavorite,
         projectName = projectName,
         schemeType = schemeType.name,

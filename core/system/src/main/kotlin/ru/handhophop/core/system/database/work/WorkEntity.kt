@@ -27,6 +27,9 @@ data class WorkEntity(
     val url: String? = null,
     val image: ByteArray? = null,
 
+    @ColumnInfo(name = "image_path")
+    val imagePath: String? = null,
+
     @ColumnInfo(name = "grid_width")
     val gridWidth: Int? = null,
 
@@ -71,4 +74,30 @@ data class WorkProgressChunkEntity(
 
     @ColumnInfo(name = "rle_chunk")
     val rleChunk: String,
+)
+
+@Entity(
+    tableName = "work_activity_day",
+    primaryKeys = ["work_id", "day"],
+    foreignKeys = [
+        ForeignKey(
+            entity = WorkEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["work_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [
+        Index(value = ["work_id"]),
+    ],
+)
+data class WorkActivityDayEntity(
+    @ColumnInfo(name = "work_id")
+    val workId: Long,
+
+    @ColumnInfo(name = "day")
+    val day: String,
+
+    @ColumnInfo(name = "spent_time")
+    val spentTime: Long,
 )

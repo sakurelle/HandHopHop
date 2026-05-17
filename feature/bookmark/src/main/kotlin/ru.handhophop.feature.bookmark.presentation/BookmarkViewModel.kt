@@ -27,7 +27,7 @@ internal class BookmarkViewModel(
                         BookmarkPhotoItem(
                             id = work.id,
                             photoUrl = work.url,
-                            imageBytes = work.image,
+                            imagePath = work.imagePath,
                         )
                     }
                     .toList()

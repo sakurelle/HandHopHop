@@ -7,17 +7,21 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import ru.handhophop.core.system.database.work.WorkDao
+import ru.handhophop.core.system.database.work.WorkActivityDayEntity
 import ru.handhophop.core.system.database.work.WorkEntity
 import ru.handhophop.core.system.database.work.WorkProgressChunkEntity
 
-private const val PROGRESS_CHUNK_SIZE = 64 * 1024
+// Keep chunks small so each CursorWindow row stays safe.
+// 1024 chars per chunk is intentionally conservative.
+private const val PROGRESS_CHUNK_SIZE = 1024
 
 @Database(
     entities = [
         WorkEntity::class,
         WorkProgressChunkEntity::class,
+        WorkActivityDayEntity::class,
     ],
-    version = 4,
+    version = 6,
     exportSchema = false,
 )
 abstract class HandHopHopDatabase : RoomDatabase() {
@@ -35,45 +39,61 @@ object HandHopHopDatabaseProvider {
                 name = "hand_hop_hop.db",
             )
             .addMigrations(
-                MIGRATION_1_4,
-                MIGRATION_2_4,
-                MIGRATION_3_4,
+                MIGRATION_1_6,
+                MIGRATION_2_6,
+                MIGRATION_3_6,
+                MIGRATION_4_6,
+                MIGRATION_5_6,
             )
             .build()
 
         return checkNotNull(instance)
     }
 
-    private val MIGRATION_1_4 = object : Migration(1, 4) {
+    private val MIGRATION_1_6 = object : Migration(1, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            rebuildWorkTableAndCreateProgressChunks(db)
+            rebuildWorkTableAndCreateSupportTables(db)
         }
     }
 
-    private val MIGRATION_2_4 = object : Migration(2, 4) {
+    private val MIGRATION_2_6 = object : Migration(2, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            rebuildWorkTableAndCreateProgressChunks(db)
+            rebuildWorkTableAndCreateSupportTables(db)
         }
     }
 
-    private val MIGRATION_3_4 = object : Migration(3, 4) {
+    private val MIGRATION_3_6 = object : Migration(3, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            rebuildWorkTableAndCreateProgressChunks(db)
+            rebuildWorkTableAndCreateSupportTables(db)
+        }
+    }
+
+    private val MIGRATION_4_6 = object : Migration(4, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE work ADD COLUMN image_path TEXT")
+            createActivityDayTable(db)
+        }
+    }
+
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            createActivityDayTable(db)
         }
     }
 }
 
-private fun rebuildWorkTableAndCreateProgressChunks(db: SupportSQLiteDatabase) {
+private fun rebuildWorkTableAndCreateSupportTables(db: SupportSQLiteDatabase) {
     val columns = db.readTableColumns("work")
 
     db.execSQL("ALTER TABLE work RENAME TO work_legacy")
     createWorkTable(db)
     createProgressChunkTable(db)
+    createActivityDayTable(db)
 
     db.execSQL(
         """
         INSERT INTO work (
-            id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image,
+            id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image, image_path,
             grid_width, grid_height, grid_rle, percentage, spended_time
         )
         SELECT
@@ -85,6 +105,7 @@ private fun rebuildWorkTableAndCreateProgressChunks(db: SupportSQLiteDatabase) {
             ${columns.sqlValue("difficulty", "NULL")},
             ${columns.sqlValue("url", "NULL")},
             ${columns.sqlValue("image", "NULL")},
+            ${columns.sqlValue("image_path", "NULL")},
             ${columns.sqlValue("grid_width", "NULL")},
             ${columns.sqlValue("grid_height", "NULL")},
             ${columns.sqlValue("grid_rle", "NULL")},
@@ -113,6 +134,7 @@ private fun createWorkTable(db: SupportSQLiteDatabase) {
             difficulty TEXT,
             url TEXT,
             image BLOB,
+            image_path TEXT,
             grid_width INTEGER,
             grid_height INTEGER,
             grid_rle TEXT,
@@ -120,6 +142,23 @@ private fun createWorkTable(db: SupportSQLiteDatabase) {
             spended_time INTEGER
         )
         """.trimIndent(),
+    )
+}
+
+private fun createActivityDayTable(db: SupportSQLiteDatabase) {
+    db.execSQL(
+        """
+        CREATE TABLE IF NOT EXISTS work_activity_day (
+            work_id INTEGER NOT NULL,
+            day TEXT NOT NULL,
+            spent_time INTEGER NOT NULL,
+            PRIMARY KEY(work_id, day),
+            FOREIGN KEY(work_id) REFERENCES work(id) ON UPDATE NO ACTION ON DELETE CASCADE
+        )
+        """.trimIndent(),
+    )
+    db.execSQL(
+        "CREATE INDEX IF NOT EXISTS index_work_activity_day_work_id ON work_activity_day(work_id)",
     )
 }
 

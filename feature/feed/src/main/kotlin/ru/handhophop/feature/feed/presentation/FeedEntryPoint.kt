@@ -20,7 +20,8 @@ fun FeedEntryPoint(
         FeedRepository(
             apiService = FreepikNetwork.getApiService(),
             workLocalRepository = WorkLocalRepository(
-                workDao = HandHopHopDatabaseProvider.get(context).workDao()
+                workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+                appContext = context.applicationContext,
             )
         )
     }

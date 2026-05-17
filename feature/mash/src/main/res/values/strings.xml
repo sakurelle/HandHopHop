@@ -103,4 +103,6 @@
     <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>
     <string name="dialog_confirm">Удалить</string>
     <string name="dialog_dismiss">Отмена</string>
+    <string name="mash_statistics_today_title">Сегодня: %1$s</string>
+    <string name="mash_statistics_today_subtitle">Сегодня вышивали: %1$s</string>
 </resources>

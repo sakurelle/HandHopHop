@@ -11,6 +11,7 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.max
@@ -48,6 +49,16 @@ internal fun byteArrayToBitmap(
     bytes: ByteArray,
 ): Bitmap? = runCatching {
     BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}.getOrNull()
+
+internal fun readImageBytesFromFile(
+    imagePath: String?,
+): ByteArray? = runCatching {
+    imagePath
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::File)
+        ?.takeIf(File::exists)
+        ?.readBytes()
 }.getOrNull()
 
 private fun drawableToBitmap(drawable: Drawable): Bitmap? =
