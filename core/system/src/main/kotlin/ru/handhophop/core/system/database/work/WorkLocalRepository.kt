@@ -1,16 +1,17 @@
 package ru.handhophop.core.system.database.work
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// Keep chunks small so each CursorWindow row stays safe.
-// 1024 chars per chunk is intentionally conservative.
 private const val PROGRESS_CHUNK_SIZE = 1024
 private const val WORK_IMAGES_DIRECTORY = "work_images"
+@RequiresApi(Build.VERSION_CODES.O)
 private val dayFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
 data class WorkLocalItem(
@@ -28,7 +29,49 @@ data class WorkLocalItem(
     val gridRle: String? = null,
     val percentage: Int? = null,
     val spentTime: Long? = null,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as WorkLocalItem
+
+        if (id != other.id) return false
+        if (isFavorite != other.isFavorite) return false
+        if (colorCount != other.colorCount) return false
+        if (gridWidth != other.gridWidth) return false
+        if (gridHeight != other.gridHeight) return false
+        if (percentage != other.percentage) return false
+        if (spentTime != other.spentTime) return false
+        if (url != other.url) return false
+        if (!image.contentEquals(other.image)) return false
+        if (imagePath != other.imagePath) return false
+        if (projectName != other.projectName) return false
+        if (schemeType != other.schemeType) return false
+        if (difficulty != other.difficulty) return false
+        if (gridRle != other.gridRle) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + isFavorite.hashCode()
+        result = 31 * result + (colorCount ?: 0)
+        result = 31 * result + (gridWidth ?: 0)
+        result = 31 * result + (gridHeight ?: 0)
+        result = 31 * result + (percentage ?: 0)
+        result = 31 * result + (spentTime?.hashCode() ?: 0)
+        result = 31 * result + url.hashCode()
+        result = 31 * result + (image?.contentHashCode() ?: 0)
+        result = 31 * result + (imagePath?.hashCode() ?: 0)
+        result = 31 * result + (projectName?.hashCode() ?: 0)
+        result = 31 * result + (schemeType?.hashCode() ?: 0)
+        result = 31 * result + (difficulty?.hashCode() ?: 0)
+        result = 31 * result + (gridRle?.hashCode() ?: 0)
+        return result
+    }
+}
 
 class WorkLocalRepository(
     private val workDao: WorkDao,
@@ -56,6 +99,7 @@ class WorkLocalRepository(
         return workDao.getCount()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun addWorkActivityTime(
         workId: Long,
         startedAtMillis: Long,
@@ -74,6 +118,7 @@ class WorkLocalRepository(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getWorkActivityStats(workId: Long): WorkActivityStats {
         if (workId <= 0L) {
             return WorkActivityStats()
@@ -126,11 +171,6 @@ class WorkLocalRepository(
 
             current.id
         }
-    }
-
-    suspend fun removeFavorite(url: String) {
-        deleteImageFiles(workDao.getImagePathsByUrl(url))
-        workDao.deleteByUrlWithProgress(url)
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
@@ -190,8 +230,8 @@ class WorkLocalRepository(
             return
         }
 
-        deleteImageFiles(workDao.getImagePathsByUrl(current.url.orEmpty()))
-        workDao.deleteByUrlWithProgress(current.url.orEmpty())
+        deleteImageFiles(workDao.getImagePathsByUrl(current.url))
+        workDao.deleteByUrlWithProgress(current.url)
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
@@ -210,10 +250,6 @@ class WorkLocalRepository(
         }
 
         return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
-    }
-
-    suspend fun getWorkByUrl(url: String): WorkLocalItem? {
-        return workDao.getDetailsByUrl(url)?.toLocalItemWithProgress()
     }
 
     suspend fun getWorkById(id: Long): WorkLocalItem? {
@@ -346,6 +382,7 @@ class WorkLocalRepository(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun splitByDay(
         startedAtMillis: Long,
         endedAtMillis: Long,
@@ -384,14 +421,6 @@ fun WorkLocalItem.hasCreatedWorkConfig(): Boolean {
             colorCount != null &&
             colorCount > 0 &&
             !difficulty.isNullOrBlank()
-}
-
-fun WorkLocalItem.hasCreatedWork(): Boolean {
-    return hasCreatedWorkConfig()
-}
-
-fun WorkLocalItem.hasStartedWork(): Boolean {
-    return hasCreatedWorkConfig() || hasProgress() || hasTrackedTime()
 }
 
 fun WorkLocalItem.hasProgress(): Boolean {

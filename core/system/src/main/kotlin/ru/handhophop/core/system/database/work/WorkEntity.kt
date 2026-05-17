@@ -48,7 +48,49 @@ data class WorkEntity(
 
     @ColumnInfo(name = "spended_time")
     val spendedTime: Long? = null,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as WorkEntity
+
+        if (id != other.id) return false
+        if (isFavorite != other.isFavorite) return false
+        if (colorCount != other.colorCount) return false
+        if (gridWidth != other.gridWidth) return false
+        if (gridHeight != other.gridHeight) return false
+        if (percentage != other.percentage) return false
+        if (spendedTime != other.spendedTime) return false
+        if (projectName != other.projectName) return false
+        if (schemeType != other.schemeType) return false
+        if (difficulty != other.difficulty) return false
+        if (url != other.url) return false
+        if (!image.contentEquals(other.image)) return false
+        if (imagePath != other.imagePath) return false
+        if (gridRle != other.gridRle) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + isFavorite.hashCode()
+        result = 31 * result + (colorCount ?: 0)
+        result = 31 * result + (gridWidth ?: 0)
+        result = 31 * result + (gridHeight ?: 0)
+        result = 31 * result + (percentage ?: 0)
+        result = 31 * result + (spendedTime?.hashCode() ?: 0)
+        result = 31 * result + (projectName?.hashCode() ?: 0)
+        result = 31 * result + (schemeType?.hashCode() ?: 0)
+        result = 31 * result + (difficulty?.hashCode() ?: 0)
+        result = 31 * result + (url?.hashCode() ?: 0)
+        result = 31 * result + (image?.contentHashCode() ?: 0)
+        result = 31 * result + (imagePath?.hashCode() ?: 0)
+        result = 31 * result + (gridRle?.hashCode() ?: 0)
+        return result
+    }
+}
 
 @Entity(
     tableName = "work_progress_chunk",

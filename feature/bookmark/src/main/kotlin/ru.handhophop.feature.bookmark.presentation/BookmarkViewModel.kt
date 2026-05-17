@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 
+@Suppress("UNCHECKED_CAST")
 internal class BookmarkViewModel(
     private val repository: WorkLocalRepository,
 ) : ViewModel() {
