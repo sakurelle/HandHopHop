@@ -52,5 +52,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(project(":core:system"))
     implementation(project(":core:design"))
+    implementation(libs.runtime)
+    implementation(libs.androidx.ui)
+    implementation(libs.kotlinx.collections.immutable)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

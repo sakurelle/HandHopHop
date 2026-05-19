@@ -9,6 +9,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,12 +17,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,6 +40,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +55,7 @@ import ru.handhophop.core.design.TopBarState
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.bookmark.R
+import ru.handhophop.design.R as DesignR
 
 @Composable
 fun BookmarkEntryPoint(
@@ -73,7 +81,6 @@ fun BookmarkEntryPoint(
         onPhotoSelected = onPhotoSelected,
     )
 }
-
 @Composable
 private fun BookmarkScreen(
     viewModel: BookmarkViewModel,
@@ -95,10 +102,10 @@ private fun BookmarkScreen(
         containerColor = Color.Transparent,
         contentColor = colors.textPrimary,
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()),
         ) {
             when (val state = uiState) {
                 BookmarkUiState.Loading -> {
@@ -115,53 +122,82 @@ private fun BookmarkScreen(
                 }
 
                 is BookmarkUiState.Success -> {
+                    BookmarkFilterRow(
+                        selectedFilter = state.selectedFilter,
+                        onFilterSelected = viewModel::onFilterSelected,
+                    )
+
                     if (state.photos.isEmpty()) {
-                        BookmarkEmptyState(
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } else {
-                        BookmarkGrid(
-                            state = state,
-                            onPhotoSelected = onPhotoSelected,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
+                            BookmarkEmptyState(
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            BookmarkGrid(
+                                state = state,
+                                onPhotoSelected = onPhotoSelected,
+                                onFavoriteClick = viewModel::onFavoriteClick,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                 }
             }
         }
     }
 }
 
+@Composable
+private fun BookmarkTopBar() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(
+                RoundedCornerShape(
+                    bottomStart = dimensionResource(DesignR.dimen.main_radius),
+                    bottomEnd = dimensionResource(DesignR.dimen.main_radius),
+                )
+            )
+            .background(colorResource(DesignR.color.main_color))
+    ) {
+        Text(
+            text = stringResource(R.string.bookmark_highlight_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = colorResource(DesignR.color.black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(
+                    horizontal = dimensionResource(R.dimen.bookmark_topbar_horizontal_padding),
+                    vertical = dimensionResource(R.dimen.bookmark_topbar_vertical_padding),
+                ),
+        )
+    }
+}
 
 @Composable
 private fun BookmarkGrid(
     state: BookmarkUiState.Success,
     onPhotoSelected: (Long, String) -> Unit,
+    onFavoriteClick: (BookmarkPhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = HandHopHopDesignSystem.colors
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Fixed(integerResource(R.integer.bookmark_grid_columns)),
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+        contentPadding = PaddingValues(
+            start = dimensionResource(R.dimen.bookmark_grid_horizontal_padding),
+            end = dimensionResource(R.dimen.bookmark_grid_horizontal_padding),
+            top = dimensionResource(R.dimen.bookmark_grid_top_padding),
+            bottom = dimensionResource(R.dimen.bookmark_grid_bottom_padding),
+        ),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-        verticalItemSpacing = 8.dp,
+        verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
     ) {
         items(items = state.photos, key = { it.id }) { photo ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface,
-                ),
-            ) {
-                BookmarkPhoto(
-                    photo = photo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp)),
-                    onClick = { onPhotoSelected(photo.id, photo.photoUrl) },
-                )
-            }
+            BookmarkPhotoCard(
+                photo = photo,
+                onClick = { onPhotoSelected(photo.id, photo.photoUrl) },
+                onFavoriteClick = { onFavoriteClick(photo) }
+            )
         }
     }
 }
@@ -174,7 +210,7 @@ private fun BookmarkEmptyState(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = dimensionResource(R.dimen.bookmark_empty_state_horizontal_padding)),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -217,18 +253,128 @@ private fun BookmarkPhoto(
 }
 
 @Composable
+private fun BookmarkPhotoCard(
+    photo: BookmarkPhotoItem,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    onFavoriteClick: () -> Unit = {}
+) {
+    Card(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            BookmarkPhoto(
+                photo = photo,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(
+                        dimensionResource(R.dimen.bookmark_grid_card_corner_radius)
+                        )
+                    ),
+                onClick = onClick,
+            )
+
+            BookmarkButton(
+                isBookmarked = photo.isBookmarked,
+                onClick = onFavoriteClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+            )
+
+            if (photo.isStarted) {
+                BookmarkProgressBadge(
+                    progressPercentage = photo.progressPercentage,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BookmarkProgressBadge(
+    progressPercentage: Int,
+    modifier: Modifier = Modifier,
+) {
+    val minProgress = integerResource(R.integer.bookmark_progress_min)
+    val maxProgress = integerResource(R.integer.bookmark_progress_max)
+
+    val safeProgress = remember(progressPercentage) {
+        progressPercentage.coerceIn(minProgress, maxProgress)
+    }
+
+    val progressFraction = remember(safeProgress) {
+        safeProgress / 100f
+    }
+
+    val title = if (safeProgress >= maxProgress) {
+        stringResource(R.string.bookmark_progress_done)
+    } else {
+        stringResource(R.string.bookmark_progress_in_work, safeProgress)
+    }
+
+    Column(
+        modifier = modifier
+            .background(colorResource(R.color.bookmark_progress_badge_background))
+            .padding(horizontal = dimensionResource(R.dimen.bookmark_progress_horizontal_padding), vertical = dimensionResource(R.dimen.bookmark_progress_vertical_padding)),
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            style = MaterialTheme.typography.labelMedium,
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimensionResource(R.dimen.bookmark_progress_top_padding))
+                .height(dimensionResource(R.dimen.bookmark_progress_height))
+                .background(
+                    color = colorResource(R.color.bookmark_progress_track_color),
+                    shape = RoundedCornerShape(dimensionResource(R.dimen.bookmark_progress_corner_radius)),
+                ),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progressFraction)
+                    .height(dimensionResource(R.dimen.bookmark_progress_height))
+                    .background(
+                        color = colorResource(R.color.bookmark_progress_indicator_color),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.bookmark_progress_corner_radius)),
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
 private fun BookmarkLoadingSkeleton(
     modifier: Modifier = Modifier,
 ) {
     val shimmerBrush = rememberShimmerBrush()
-    val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
-
+    val gridHeights = listOf(
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_first),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_second),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_third),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_fourth),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_fifth),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_sixth),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_seventh),
+        dimensionResource(R.dimen.bookmark_loading_skeleton_height_eighth),
+    )
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Fixed(integerResource(R.integer.bookmark_grid_columns)),
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-        verticalItemSpacing = 8.dp,
+        contentPadding = PaddingValues(
+            horizontal = dimensionResource(R.dimen.bookmark_loading_skeleton_horizontal_padding),
+            vertical = dimensionResource(R.dimen.bookmark_loading_skeleton_vertical_padding),
+        ),
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.bookmark_grid_item_spacing),),
+        verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
         userScrollEnabled = false,
     ) {
         items(gridHeights) { itemHeight ->
@@ -236,8 +382,12 @@ private fun BookmarkLoadingSkeleton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(itemHeight)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(shimmerBrush),
+                    .background(
+                        brush = shimmerBrush,
+                        shape = RoundedCornerShape(
+                            dimensionResource(R.dimen.bookmark_loading_skeleton_corner_radius),
+                        ),
+                    ),
             )
         }
     }
@@ -252,7 +402,7 @@ private fun BookmarkErrorState(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = dimensionResource(R.dimen.bookmark_error_state_horizontal_padding)),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -273,46 +423,92 @@ private fun BookmarkErrorState(
 }
 
 @Composable
+private fun BookmarkButton(
+    isBookmarked: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val iconRes = if (isBookmarked) {
+        R.drawable.ic_bookmark_filled
+    } else {
+        R.drawable.ic_bookmark_outline
+    }
+
+    val contentDescription = if (isBookmarked) {
+        stringResource(R.string.bookmark_remove_from_favorites)
+    } else {
+        stringResource(R.string.bookmark_add_to_favorites)
+    }
+
+    Box(
+        modifier = modifier
+            .size(
+                width = dimensionResource(R.dimen.bookmark_button_width),
+                height = dimensionResource(R.dimen.bookmark_button_height),
+            )
+            .background(
+                color = colorResource(R.color.bookmark_button_background),
+                shape = RoundedCornerShape(
+                    topStart = dimensionResource(R.dimen.bookmark_button_top_start_radius),
+                    topEnd = dimensionResource(R.dimen.bookmark_button_top_end_radius),
+                    bottomStart = dimensionResource(R.dimen.bookmark_button_bottom_start_radius),
+                    bottomEnd = dimensionResource(R.dimen.bookmark_button_bottom_end_radius),
+                ),
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(
+                dimensionResource(R.dimen.bookmark_heart_icon_size)
+            ),
+            tint = if (isBookmarked) {
+                colorResource(R.color.bookmark_button_selected_icon_color)
+            } else {
+                colorResource(R.color.bookmark_button_unselected_icon_color)
+            },
+        )
+    }
+}
+
+@Composable
 private fun rememberShimmerBrush(): Brush {
     val colors = HandHopHopDesignSystem.colors
     val baseColor = colors.shimmerBase
     val highlightColor = colors.shimmerHighlight
-    val transition = rememberInfiniteTransition(label = "bookmark_shimmer")
+
+    val alphaDenominator = integerResource(R.integer.bookmark_alpha_denominator)
+    val baseAlpha = integerResource(R.integer.bookmark_shimmer_base_alpha_percent) /
+            alphaDenominator.toFloat()
+    val initialTranslateX = integerResource(R.integer.bookmark_shimmer_initial_translate_x).toFloat()
+    val targetTranslateX = integerResource(R.integer.bookmark_shimmer_target_translate_x).toFloat()
+    val shimmerDurationMillis = integerResource(R.integer.bookmark_shimmer_duration_millis)
+    val gradientOffset = integerResource(R.integer.bookmark_shimmer_gradient_offset).toFloat()
+    val gradientStartY = integerResource(R.integer.bookmark_shimmer_gradient_start_y).toFloat()
+    val gradientEndY = integerResource(R.integer.bookmark_shimmer_gradient_end_y).toFloat()
+
+
+    val transition = rememberInfiniteTransition(label = stringResource(R.string.bookmark_shimmer_label))
     val translateX by transition.animateFloat(
-        initialValue = -400f,
-        targetValue = 1200f,
+        initialValue = initialTranslateX,
+        targetValue = targetTranslateX,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            animation = tween(durationMillis = shimmerDurationMillis, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "bookmark_shimmer_translate",
+        label = stringResource(R.string.bookmark_shimmer_translate_label),
     )
 
     return Brush.linearGradient(
         colors = listOf(
-            baseColor.copy(alpha = 0.9f),
+            baseColor.copy(alpha = baseAlpha),
             highlightColor,
-            baseColor.copy(alpha = 0.9f),
+            baseColor.copy(alpha = baseAlpha),
         ),
-        start = Offset(translateX - 300f, 0f),
-        end = Offset(translateX, 300f),
+        start = Offset(translateX - gradientOffset, gradientStartY),
+        end = Offset(translateX, gradientEndY),
     )
 }
 
-//@Preview(name = "Bookmark Empty Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Preview(name = "Bookmark Empty Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//private fun BookmarkEmptyStatePreview() {
-//    HandHopHopDesignTheme {
-//        BookmarkEmptyState()
-//    }
-//}
-//
-//@Preview(name = "Bookmark Error Light", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Preview(name = "Bookmark Error Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//private fun BookmarkErrorStatePreview() {
-//    HandHopHopDesignTheme {
-//        BookmarkErrorState(message = "Failed to load favorites")
-//    }
-//}

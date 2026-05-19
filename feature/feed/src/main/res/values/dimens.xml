@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Progress circle -->
+    <dimen name="feed_progress_circle_size">36dp</dimen>
+    <dimen name="feed_progress_indicator_size">28dp</dimen>
+    <dimen name="feed_progress_indicator_stroke_width">3dp</dimen>
+    <dimen name="feed_progress_text_size">8sp</dimen>
+
+    <!-- Bookmark button -->
+    <dimen name="feed_bookmark_button_width">36dp</dimen>
+    <dimen name="feed_bookmark_button_height">32dp</dimen>
+    <dimen name="feed_bookmark_button_corner_zero">0dp</dimen>
+    <dimen name="feed_bookmark_button_bottom_start_radius">8dp</dimen>
+    <dimen name="feed_bookmark_icon_size">22dp</dimen>
+
+    <!-- Recommended row -->
+    <dimen name="feed_recommended_loading_height">100dp</dimen>
+    <dimen name="feed_recommended_row_horizontal_padding">8dp</dimen>
+    <dimen name="feed_recommended_item_spacing">12dp</dimen>
+    <dimen name="feed_recommended_item_size">100dp</dimen>
+    <dimen name="feed_recommended_item_corner_radius">8dp</dimen>
+    <dimen name="feed_recommended_progress_padding">4dp</dimen>
+
+    <!-- Feed grid -->
+    <dimen name="feed_grid_card_horizontal_padding">8dp</dimen>
+    <dimen name="feed_grid_loading_more_padding">16dp</dimen>
+    <dimen name="feed_grid_card_corner_radius">8dp</dimen>
+    <dimen name="feed_grid_progress_padding">8dp</dimen>
+
+    <!-- Feed loading skeleton -->
+    <dimen name="feed_loading_skeleton_vertical_padding">8dp</dimen>
+    <dimen name="feed_loading_skeleton_corner_radius">8dp</dimen>
+
+    <dimen name="feed_loading_header_horizontal_padding">8dp</dimen>
+    <dimen name="feed_loading_header_vertical_padding">4dp</dimen>
+    <dimen name="feed_loading_header_width">160dp</dimen>
+    <dimen name="feed_loading_header_height">24dp</dimen>
+
+    <dimen name="feed_loading_recommended_horizontal_padding">8dp</dimen>
+    <dimen name="feed_loading_recommended_item_spacing">8dp</dimen>
+    <dimen name="feed_loading_recommended_item_size">100dp</dimen>
+
+    <dimen name="feed_loading_grid_horizontal_padding">8dp</dimen>
+    <dimen name="feed_loading_grid_vertical_padding">4dp</dimen>
+    <dimen name="feed_loading_grid_item_spacing">8dp</dimen>
+    <dimen name="feed_loading_grid_card_corner_radius">12dp</dimen>
+
+    <dimen name="feed_loading_grid_height_first">180dp</dimen>
+    <dimen name="feed_loading_grid_height_second">240dp</dimen>
+    <dimen name="feed_loading_grid_height_third">220dp</dimen>
+    <dimen name="feed_loading_grid_height_fourth">160dp</dimen>
+    <dimen name="feed_loading_grid_height_fifth">260dp</dimen>
+    <dimen name="feed_loading_grid_height_sixth">190dp</dimen>
+    <dimen name="feed_loading_grid_height_seventh">210dp</dimen>
+    <dimen name="feed_loading_grid_height_eighth">250dp</dimen>
+
+</resources>

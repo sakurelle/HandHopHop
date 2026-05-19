@@ -3,4 +3,25 @@
     <string name="bookmark_empty_title">В избранном пока пусто</string>
     <string name="bookmark_empty_subtitle">Сохраняйте понравившиеся схемы, и они появятся здесь в удобной подборке.</string>
     <string name="bookmark_error_title">Не удалось открыть избранное</string>
+
+    <string name="bookmark_filter_all">Все</string>
+    <string name="bookmark_filter_works">Работы</string>
+    <string name="bookmark_filter_likes">Лайки</string>
+
+    <string name="bookmark_status_in_progress">В работе · %1$d%%</string>
+    <string name="bookmark_status_done">Готово</string>
+    <string name="bookmark_like_badge">♥</string>
+
+    <string name="bookmark_liked_content_description">Добавлено в избранное</string>
+    <string name="bookmark_started_content_description">Работа начата</string>
+    <string name="bookmark_progress_content_description">Прогресс работы %1$d процентов</string>
+
+    <string name="bookmark_add_to_favorites">Добавить в избранное</string>
+    <string name="bookmark_remove_from_favorites">Удалить из избранного</string>
+
+    <string name="bookmark_progress_done">Готово</string>
+    <string name="bookmark_progress_in_work">В работе · %1$d%%</string>
+
+    <string name="bookmark_shimmer_label">bookmark_shimmer</string>
+    <string name="bookmark_shimmer_translate_label">bookmark_shimmer_translate</string>
 </resources>

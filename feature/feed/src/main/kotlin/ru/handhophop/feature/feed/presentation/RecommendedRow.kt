@@ -23,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -34,6 +33,7 @@ import ru.handhophop.design.R as DesignR
 internal fun RecommendedRow(
     state: FeedUiState.Success,
     onPhotoClicked: (String) -> Unit,
+    onFavoriteClick: (FeedPhotoItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = HandHopHopDesignSystem.colors
@@ -56,7 +56,9 @@ internal fun RecommendedRow(
 
         if (state.isRecommendedLoading) {
             Box(
-                modifier = Modifier.fillMaxWidth().height(100.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(R.dimen.feed_recommended_loading_height)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = colors.primaryAction)
@@ -68,19 +70,39 @@ internal fun RecommendedRow(
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.feed_recommended_row_horizontal_padding)),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_recommended_item_spacing))
                 ) {
                     items(items = state.recommendedPhotos, key = {it.id}) { photo ->
-                        AsyncImage(
-                            model = photo.photoUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable {onPhotoClicked(photo.photoUrl)},
-                            contentScale = ContentScale.Crop
-                        )
+                        Box(
+                            modifier = Modifier.size(dimensionResource(R.dimen.feed_recommended_item_size))
+                        ) {
+                            AsyncImage(
+                                model = photo.photoUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_recommended_item_corner_radius)))
+                                    .clickable { onPhotoClicked(photo.photoUrl) },
+                                contentScale = ContentScale.Crop
+                            )
+
+                            FeedBookmarkButton(
+                                isBookmarked = photo.isBookmarked,
+                                onClick = { onFavoriteClick(photo) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                            )
+
+                            if (photo.isStarted) {
+                                FeedProgressCircle(
+                                    progressPercentage = photo.progressPercentage,
+                                    modifier = Modifier
+                                        .align(Alignment.TopStart)
+                                        .padding(dimensionResource(R.dimen.feed_recommended_progress_padding)),
+                                )
+                            }
+                        }
                     }
                 }
             }

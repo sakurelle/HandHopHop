@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter
 
 private const val PROGRESS_CHUNK_SIZE = 1024
 private const val WORK_IMAGES_DIRECTORY = "work_images"
+
 @RequiresApi(Build.VERSION_CODES.O)
 private val dayFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
@@ -173,6 +174,11 @@ class WorkLocalRepository(
         }
     }
 
+    suspend fun removeFavorite(url: String) {
+        deleteImageFiles(workDao.getImagePathsByUrl(url))
+        workDao.deleteByUrlWithProgress(url)
+    }
+
     suspend fun addWork(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
         val progressChunks = work.gridRle.toProgressChunks()
@@ -252,21 +258,22 @@ class WorkLocalRepository(
         return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
     }
 
+    suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta> {
+        if (urls.isEmpty()) {
+            return emptyList()
+        }
+
+        return workDao.getFeedMetaByUrls(urls)
+    }
+
+    suspend fun getBookmarkPreviews(): List<WorkBookmarkPreview> {
+        return workDao.getBookmarkPreviews()
+    }
+
     suspend fun getWorkById(id: Long): WorkLocalItem? {
         return workDao.getDetailsById(id)?.toLocalItemWithProgress()
     }
 
-    /**
-     * Используется при открытии работы из избранного/ленты.
-     *
-     * Важно:
-     * - не читает image BLOB из БД;
-     * - использует metadata + image_path/url;
-     * - прогресс читает только из work_progress_chunk / legacy grid_rle;
-     * - сначала пытается найти работу по id, потом по url;
-     * - если по id пришла favorite-only запись без прогресса, а по url есть полноценная работа,
-     *   возвращает полноценную работу по url.
-     */
     suspend fun getWorkForOpening(
         id: Long?,
         url: String?,
@@ -440,21 +447,13 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
         colorCount = colorCount,
         difficulty = difficulty,
         url = url,
-
-        // Не сохраняем картинку в БД, чтобы не ловить Row too big to fit into CursorWindow.
-        // Для восстановления схемы используется image_path/url.
         image = null,
         imagePath = imagePath,
-
         gridWidth = gridWidth,
         gridHeight = gridHeight,
-
-        // Новый RLE не пишем в work.grid_rle.
-        // Прогресс хранится чанками в work_progress_chunk.
         gridRle = null,
-
         percentage = percentage,
-        spendedTime = spentTime,
+        spentTime = spentTime,
     )
 }
 
@@ -464,7 +463,6 @@ private fun WorkFavoritePreview.toLocalItem(): WorkLocalItem {
         url = url.orEmpty(),
         imagePath = imagePath,
         image = null,
-
         isFavorite = true,
     )
 }

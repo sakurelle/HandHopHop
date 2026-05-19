@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,10 +20,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.feature.feed.R
 import ru.handhophop.design.R as DesignR
 
 @Composable
@@ -32,17 +34,19 @@ internal fun FeedGrid(
     modifier: Modifier = Modifier,
     state: FeedUiState.Success,
     onPhotoClicked: (String) -> Unit,
+    onFavoriteClick: (FeedPhotoItem) -> Unit,
     onLoadMore: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val colors = HandHopHopDesignSystem.colors
     val gridState = rememberLazyStaggeredGridState()
+    val loadMoreThreshold = integerResource(R.integer.feed_load_more_threshold)
 
     val needLoadMore = remember {
         derivedStateOf {
             val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val total = gridState.layoutInfo.totalItemsCount
-            lastVisible >= total - 3
+            lastVisible >= total - loadMoreThreshold
         }
     }
 
@@ -56,7 +60,7 @@ internal fun FeedGrid(
 
     LazyVerticalStaggeredGrid(
         modifier = modifier,
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Fixed(integerResource(R.integer.feed_grid_columns)),
         state = gridState,
         contentPadding = contentPadding,
         verticalItemSpacing = spacing,
@@ -65,30 +69,21 @@ internal fun FeedGrid(
             RecommendedRow(
                 state = state,
                 onPhotoClicked = onPhotoClicked,
+                onFavoriteClick = onFavoriteClick
             )
         }
 
-        itemsIndexed(
-            items = state.photos,
-            key = { _, photo -> photo.id },
-        ) { _, photo ->
-            Card(
+        itemsIndexed(items = state.photos, key = { _, it -> it.id }) { _, photo ->
+            FeedPhotoCard(
+                photo = photo,
+                onClick = { onPhotoClicked(photo.photoUrl) },
+                onFavoriteClick = { onFavoriteClick(photo) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface,
-                ),
-            ) {
-                AsyncImage(
-                    model = photo.photoUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onPhotoClicked(photo.photoUrl) },
-                )
-            }
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.feed_grid_card_horizontal_padding),
+                    ),
+            )
         }
 
         if (state.isLoadingMore) {
@@ -96,7 +91,7 @@ internal fun FeedGrid(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(dimensionResource(R.dimen.feed_grid_loading_more_padding)),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
@@ -107,3 +102,44 @@ internal fun FeedGrid(
         }
     }
 }
+@Composable
+private fun FeedPhotoCard(
+    photo: FeedPhotoItem,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(modifier = modifier) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            AsyncImage(
+                model = photo.photoUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(
+                        dimensionResource(R.dimen.feed_grid_card_corner_radius),
+                        ),
+                    )
+                    .clickable(onClick = onClick)
+            )
+
+            if (photo.isStarted) {
+                FeedProgressCircle(
+                    progressPercentage = photo.progressPercentage,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(dimensionResource(R.dimen.feed_grid_progress_padding)),
+                )
+            }
+
+            FeedBookmarkButton(
+                isBookmarked = photo.isBookmarked,
+                onClick = onFavoriteClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+            )
+        }
+    }
+}
+

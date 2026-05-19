@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FreepikResponse(
     @SerialName("data")
-    val data: List<FreepikPhoto>
+    val data: List<FreepikPhoto>,
 )
 
 @Serializable
@@ -16,17 +16,17 @@ data class FreepikPhoto(
     @SerialName("title")
     val title: String? = null,
     @SerialName("image")
-    val image: ImageResponse
+    val image: ImageResponse,
 ) {
     @Serializable
     data class ImageResponse(
         @SerialName("source")
-        val source: SourceResponse
+        val source: SourceResponse,
     )
 
     @Serializable
     data class SourceResponse(
         @SerialName("url")
-        val url: String
+        val url: String,
     )
 }

@@ -163,49 +163,49 @@ interface WorkDao {
 
     @Query(
         """
-    SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-           image_path, grid_width, grid_height, percentage, spended_time
-    FROM work
-    WHERE id = :workId
-    """,
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+               image_path, grid_width, grid_height, percentage, spended_time
+        FROM work
+        WHERE id = :workId
+        """,
     )
     suspend fun getDetailsById(workId: Long): WorkDetailsPreview?
 
     @Query(
         """
-    SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-           image_path, grid_width, grid_height, percentage, spended_time
-    FROM work
-    WHERE url = :url
-    ORDER BY
-        CASE
-            WHEN project_name IS NOT NULL
-                AND project_name != ''
-                AND scheme_type IS NOT NULL
-                AND scheme_type != ''
-                AND color_count IS NOT NULL
-                AND color_count > 0
-                AND difficulty IS NOT NULL
-                AND difficulty != ''
-            THEN 0
-            ELSE 1
-        END,
-        CASE
-            WHEN percentage IS NOT NULL
-                AND percentage > 0
-            THEN 0
-            WHEN EXISTS (
-                SELECT 1
-                FROM work_progress_chunk
-                WHERE work_progress_chunk.work_id = work.id
-                LIMIT 1
-            )
-            THEN 0
-            ELSE 1
-        END,
-        id DESC
-    LIMIT 1
-    """,
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+               image_path, grid_width, grid_height, percentage, spended_time
+        FROM work
+        WHERE url = :url
+        ORDER BY
+            CASE
+                WHEN project_name IS NOT NULL
+                    AND project_name != ''
+                    AND scheme_type IS NOT NULL
+                    AND scheme_type != ''
+                    AND color_count IS NOT NULL
+                    AND color_count > 0
+                    AND difficulty IS NOT NULL
+                    AND difficulty != ''
+                THEN 0
+                ELSE 1
+            END,
+            CASE
+                WHEN percentage IS NOT NULL
+                    AND percentage > 0
+                THEN 0
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = work.id
+                    LIMIT 1
+                )
+                THEN 0
+                ELSE 1
+            END,
+            id DESC
+        LIMIT 1
+        """,
     )
     suspend fun getDetailsByUrl(url: String): WorkDetailsPreview?
 
@@ -257,49 +257,199 @@ interface WorkDao {
 
     @Query(
         """
-    SELECT w.id, w.url, w.image_path
-    FROM work AS w
-    WHERE w.is_favorite = 1
-        AND w.url IS NOT NULL
-        AND w.url != ''
-        AND w.id = (
-            SELECT w2.id
-            FROM work AS w2
-            WHERE w2.url = w.url
-                AND w2.is_favorite = 1
-            ORDER BY
-                CASE
-                    WHEN w2.project_name IS NOT NULL
-                        AND w2.project_name != ''
-                        AND w2.scheme_type IS NOT NULL
-                        AND w2.scheme_type != ''
-                        AND w2.color_count IS NOT NULL
-                        AND w2.color_count > 0
-                        AND w2.difficulty IS NOT NULL
-                        AND w2.difficulty != ''
-                    THEN 0
-                    ELSE 1
-                END,
-                CASE
-                    WHEN w2.percentage IS NOT NULL
-                        AND w2.percentage > 0
-                    THEN 0
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM work_progress_chunk
-                        WHERE work_progress_chunk.work_id = w2.id
-                        LIMIT 1
-                    )
-                    THEN 0
-                    ELSE 1
-                END,
-                w2.id DESC
-            LIMIT 1
-        )
-    ORDER BY w.id DESC
-    """,
+        SELECT
+            w.url AS url,
+            w.is_favorite AS isFavorite,
+            CASE
+                WHEN (
+                    w.project_name IS NOT NULL
+                    AND w.project_name != ''
+                    AND w.scheme_type IS NOT NULL
+                    AND w.scheme_type != ''
+                    AND w.color_count IS NOT NULL
+                    AND w.color_count > 0
+                    AND w.difficulty IS NOT NULL
+                    AND w.difficulty != ''
+                )
+                OR (
+                    w.percentage IS NOT NULL
+                    AND w.percentage > 0
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = w.id
+                    LIMIT 1
+                )
+                THEN 1
+                ELSE 0
+            END AS isStarted,
+            w.percentage AS percentage,
+            w.project_name AS projectName
+        FROM work AS w
+        WHERE w.url IN (:urls)
+            AND w.id = (
+                SELECT w2.id
+                FROM work AS w2
+                WHERE w2.url = w.url
+                ORDER BY
+                    CASE
+                        WHEN w2.project_name IS NOT NULL
+                            AND w2.project_name != ''
+                            AND w2.scheme_type IS NOT NULL
+                            AND w2.scheme_type != ''
+                            AND w2.color_count IS NOT NULL
+                            AND w2.color_count > 0
+                            AND w2.difficulty IS NOT NULL
+                            AND w2.difficulty != ''
+                        THEN 0
+                        ELSE 1
+                    END,
+                    CASE
+                        WHEN w2.percentage IS NOT NULL
+                            AND w2.percentage > 0
+                        THEN 0
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM work_progress_chunk
+                            WHERE work_progress_chunk.work_id = w2.id
+                            LIMIT 1
+                        )
+                        THEN 0
+                        ELSE 1
+                    END,
+                    w2.id DESC
+                LIMIT 1
+            )
+        """,
+    )
+    suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta>
+
+    @Query(
+        """
+        SELECT w.id, w.url, w.image_path
+        FROM work AS w
+        WHERE w.is_favorite = 1
+            AND w.url IS NOT NULL
+            AND w.url != ''
+            AND w.id = (
+                SELECT w2.id
+                FROM work AS w2
+                WHERE w2.url = w.url
+                    AND w2.is_favorite = 1
+                ORDER BY
+                    CASE
+                        WHEN w2.project_name IS NOT NULL
+                            AND w2.project_name != ''
+                            AND w2.scheme_type IS NOT NULL
+                            AND w2.scheme_type != ''
+                            AND w2.color_count IS NOT NULL
+                            AND w2.color_count > 0
+                            AND w2.difficulty IS NOT NULL
+                            AND w2.difficulty != ''
+                        THEN 0
+                        ELSE 1
+                    END,
+                    CASE
+                        WHEN w2.percentage IS NOT NULL
+                            AND w2.percentage > 0
+                        THEN 0
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM work_progress_chunk
+                            WHERE work_progress_chunk.work_id = w2.id
+                            LIMIT 1
+                        )
+                        THEN 0
+                        ELSE 1
+                    END,
+                    w2.id DESC
+                LIMIT 1
+            )
+        ORDER BY w.id DESC
+        """,
     )
     suspend fun getFavorites(): List<WorkFavoritePreview>
+
+    @Query(
+        """
+        SELECT
+            w.id AS id,
+            w.url AS url,
+            w.image_path AS imagePath,
+            1 AS isFavorite,
+            CASE
+                WHEN (
+                    w.project_name IS NOT NULL
+                    AND w.project_name != ''
+                    AND w.scheme_type IS NOT NULL
+                    AND w.scheme_type != ''
+                    AND w.color_count IS NOT NULL
+                    AND w.color_count > 0
+                    AND w.difficulty IS NOT NULL
+                    AND w.difficulty != ''
+                )
+                OR (
+                    w.percentage IS NOT NULL
+                    AND w.percentage > 0
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = w.id
+                    LIMIT 1
+                )
+                THEN 1
+                ELSE 0
+            END AS isStarted,
+            w.percentage AS percentage,
+            w.project_name AS projectName
+        FROM work AS w
+        WHERE w.url IS NOT NULL
+            AND w.url != ''
+            AND EXISTS (
+                SELECT 1
+                FROM work AS wf
+                WHERE wf.url = w.url
+                    AND wf.is_favorite = 1
+            )
+            AND w.id = (
+                SELECT w2.id
+                FROM work AS w2
+                WHERE w2.url = w.url
+                ORDER BY
+                    CASE
+                        WHEN w2.project_name IS NOT NULL
+                            AND w2.project_name != ''
+                            AND w2.scheme_type IS NOT NULL
+                            AND w2.scheme_type != ''
+                            AND w2.color_count IS NOT NULL
+                            AND w2.color_count > 0
+                            AND w2.difficulty IS NOT NULL
+                            AND w2.difficulty != ''
+                        THEN 0
+                        ELSE 1
+                    END,
+                    CASE
+                        WHEN w2.percentage IS NOT NULL
+                            AND w2.percentage > 0
+                        THEN 0
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM work_progress_chunk
+                            WHERE work_progress_chunk.work_id = w2.id
+                            LIMIT 1
+                        )
+                        THEN 0
+                        ELSE 1
+                    END,
+                    w2.id DESC
+                LIMIT 1
+            )
+        ORDER BY w.id DESC
+        """,
+    )
+    suspend fun getBookmarkPreviews(): List<WorkBookmarkPreview>
 
     @Query("SELECT is_favorite FROM work WHERE url = :url ORDER BY id DESC LIMIT 1")
     suspend fun isFavoriteByUrl(url: String): Boolean?
@@ -376,11 +526,11 @@ interface WorkDao {
 
     @Query(
         """
-    SELECT rle_chunk
-    FROM work_progress_chunk
-    WHERE work_id = :workId
-    ORDER BY chunk_index ASC
-    """,
+        SELECT rle_chunk
+        FROM work_progress_chunk
+        WHERE work_id = :workId
+        ORDER BY chunk_index ASC
+        """,
     )
     suspend fun getProgressChunks(workId: Long): List<String>
 

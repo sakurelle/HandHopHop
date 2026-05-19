@@ -36,18 +36,13 @@ data class WorkEntity(
     @ColumnInfo(name = "grid_height")
     val gridHeight: Int? = null,
 
-    /**
-     * Legacy-поле.
-     * Новая логика не должна писать сюда длинный RLE.
-     * Новая логика пишет прогресс в work_progress_chunk.
-     */
     @ColumnInfo(name = "grid_rle")
     val gridRle: String? = null,
 
     val percentage: Int? = null,
 
-    @ColumnInfo(name = "spended_time")
-    val spendedTime: Long? = null,
+    @ColumnInfo(name = "spent_time")
+    val spentTime: Long? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -61,7 +56,7 @@ data class WorkEntity(
         if (gridWidth != other.gridWidth) return false
         if (gridHeight != other.gridHeight) return false
         if (percentage != other.percentage) return false
-        if (spendedTime != other.spendedTime) return false
+        if (spentTime != other.spentTime) return false
         if (projectName != other.projectName) return false
         if (schemeType != other.schemeType) return false
         if (difficulty != other.difficulty) return false
@@ -80,7 +75,7 @@ data class WorkEntity(
         result = 31 * result + (gridWidth ?: 0)
         result = 31 * result + (gridHeight ?: 0)
         result = 31 * result + (percentage ?: 0)
-        result = 31 * result + (spendedTime?.hashCode() ?: 0)
+        result = 31 * result + (spentTime?.hashCode() ?: 0)
         result = 31 * result + (projectName?.hashCode() ?: 0)
         result = 31 * result + (schemeType?.hashCode() ?: 0)
         result = 31 * result + (difficulty?.hashCode() ?: 0)

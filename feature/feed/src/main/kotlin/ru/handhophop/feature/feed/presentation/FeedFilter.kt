@@ -16,6 +16,7 @@ enum class AiGeneratedFilter(val id: Int, @StringRes val labelRes: Int) {
     ONLY(1,     R.string.ai_only_option),
     EXCLUDED(2, R.string.ai_excluded_option)
 }
+
 enum class ColorFilter(val id: Int, @StringRes val labelRes: Int) {
     ANY(0,     R.string.all_option),
     BLACK(1,   R.string.black_option),
@@ -38,4 +39,3 @@ enum class OrientationFilter(val id: Int, @StringRes val labelRes: Int) {
     SQUARE(3,    R.string.square_option),
     PANORAMIC(4, R.string.panoramic_option)
 }
-

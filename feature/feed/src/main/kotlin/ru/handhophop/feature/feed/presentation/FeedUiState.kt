@@ -39,5 +39,6 @@ internal data class FeedPhotoItem(
     val id: String,
     val photoUrl: String,
     val isBookmarked: Boolean = false,
+    val isStarted: Boolean = false,
     val progressPercentage: Int = 0
 )

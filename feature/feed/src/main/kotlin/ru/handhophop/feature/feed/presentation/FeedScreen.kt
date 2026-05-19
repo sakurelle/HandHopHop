@@ -39,6 +39,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,6 +48,7 @@ import ru.handhophop.core.design.ExposableTopBar
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.HandHopHopDesignTheme
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.feature.feed.R
 import ru.handhophop.design.R as DesignR
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,9 +101,10 @@ internal fun FeedScreen(
                         modifier = Modifier.fillMaxSize(),
                         state = state,
                         onPhotoClicked = onPhotoSelected,
-                        onLoadMore = {
-                            viewModel.handleAction(FeedUiAction.LoadNextPage)
+                        onFavoriteClick = {photo ->
+                            viewModel.handleAction(FeedUiAction.FavoriteClicked(photo))
                         },
+                        onLoadMore = { viewModel.handleAction(FeedUiAction.LoadNextPage) },
                         contentPadding = PaddingValues(
                             top = topPadding,
                             bottom = spacing,
@@ -154,7 +158,7 @@ private fun FeedErrorState(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Error: $message",
+            text = stringResource(R.string.feed_error_message, message),
             color = colors.error,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -177,26 +181,33 @@ private fun FeedLoadingSkeleton(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = dimensionResource(R.dimen.feed_loading_skeleton_vertical_padding)),
         ) {
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .width(160.dp)
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.feed_loading_header_horizontal_padding),
+                        vertical = dimensionResource(R.dimen.feed_loading_header_vertical_padding),
+                    )
+                    .width(dimensionResource(R.dimen.feed_loading_header_width))
+                    .height(dimensionResource(R.dimen.feed_loading_header_height))
+                    .clip(
+                        RoundedCornerShape(
+                            dimensionResource(R.dimen.feed_loading_skeleton_corner_radius),
+                        ),
+                    )
                     .background(shimmerBrush),
             )
 
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.feed_loading_recommended_horizontal_padding)),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_loading_recommended_item_spacing)),
             ) {
                 items(recommendedPlaceholders.size) {
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .size(dimensionResource(R.dimen.feed_loading_recommended_item_size))
+                            .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_loading_skeleton_corner_radius)))
                             .background(shimmerBrush),
                     )
                 }
@@ -204,11 +215,14 @@ private fun FeedLoadingSkeleton(
         }
 
         LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
+            columns = StaggeredGridCells.Fixed(integerResource(R.integer.feed_loading_grid_columns)),
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalItemSpacing = 8.dp,
+            contentPadding = PaddingValues(
+                horizontal = dimensionResource(R.dimen.feed_loading_grid_horizontal_padding),
+                vertical = dimensionResource(R.dimen.feed_loading_grid_vertical_padding),
+            ),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_loading_grid_item_spacing)),
+            verticalItemSpacing = dimensionResource(R.dimen.feed_loading_grid_item_spacing),
             userScrollEnabled = false,
         ) {
             items(gridHeights) { itemHeight ->
@@ -216,7 +230,7 @@ private fun FeedLoadingSkeleton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(itemHeight)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_loading_grid_card_corner_radius)))
                         .background(shimmerBrush),
                 )
             }
@@ -230,25 +244,35 @@ private fun rememberShimmerBrush(): Brush {
     val baseColor = colors.shimmerBase
     val highlightColor = colors.shimmerHighlight
 
+    val shimmerAlpha = integerResource(R.integer.feed_shimmer_base_alpha_percent).toFloat() /
+            integerResource(R.integer.feed_alpha_denominator).toFloat()
+    val initialTranslateX = integerResource(R.integer.feed_shimmer_initial_translate_x).toFloat()
+    val targetTranslateX = integerResource(R.integer.feed_shimmer_target_translate_x).toFloat()
+    val durationMillis = integerResource(R.integer.feed_shimmer_duration_millis)
+    val gradientOffset = integerResource(R.integer.feed_shimmer_gradient_offset).toFloat()
+    val gradientStartY = integerResource(R.integer.feed_shimmer_gradient_start_y).toFloat()
+    val gradientEndY = integerResource(R.integer.feed_shimmer_gradient_end_y).toFloat()
+
+
     val transition = rememberInfiniteTransition(label = "feed_shimmer")
     val translateX by transition.animateFloat(
-        initialValue = -400f,
-        targetValue = 1200f,
+        initialValue = initialTranslateX,
+        targetValue = targetTranslateX,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
+            animation = tween(durationMillis = durationMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
         ),
-        label = "feed_shimmer_translate",
+        label = "feed_shimmer_translate"
     )
 
     return Brush.linearGradient(
         colors = listOf(
-            baseColor.copy(alpha = 0.9f),
+            baseColor.copy(alpha = shimmerAlpha),
             highlightColor,
-            baseColor.copy(alpha = 0.9f),
+            baseColor.copy(alpha = shimmerAlpha)
         ),
-        start = Offset(translateX - 300f, 0f),
-        end = Offset(translateX, 300f),
+        start = Offset(translateX - gradientOffset, gradientStartY),
+        end = Offset(translateX, gradientEndY)
     )
 }
 
