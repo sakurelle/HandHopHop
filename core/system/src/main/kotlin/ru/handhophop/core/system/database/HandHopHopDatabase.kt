@@ -11,8 +11,6 @@ import ru.handhophop.core.system.database.work.WorkActivityDayEntity
 import ru.handhophop.core.system.database.work.WorkEntity
 import ru.handhophop.core.system.database.work.WorkProgressChunkEntity
 
-// Keep chunks small so each CursorWindow row stays safe.
-// 1024 chars per chunk is intentionally conservative.
 private const val PROGRESS_CHUNK_SIZE = 1024
 
 @Database(
@@ -94,7 +92,7 @@ private fun rebuildWorkTableAndCreateSupportTables(db: SupportSQLiteDatabase) {
         """
         INSERT INTO work (
             id, is_favorite, project_name, scheme_type, color_count, difficulty, url, image, image_path,
-            grid_width, grid_height, grid_rle, percentage, spended_time
+            grid_width, grid_height, grid_rle, percentage, spent_time
         )
         SELECT
             ${columns.sqlValue("id", "0")},
@@ -110,7 +108,7 @@ private fun rebuildWorkTableAndCreateSupportTables(db: SupportSQLiteDatabase) {
             ${columns.sqlValue("grid_height", "NULL")},
             ${columns.sqlValue("grid_rle", "NULL")},
             ${columns.sqlValue("percentage", "NULL")},
-            ${columns.sqlValue("spended_time", "NULL")}
+            ${columns.sqlValue("spent_time", "NULL")}
         FROM work_legacy
         """.trimIndent(),
     )
@@ -139,7 +137,7 @@ private fun createWorkTable(db: SupportSQLiteDatabase) {
             grid_height INTEGER,
             grid_rle TEXT,
             percentage INTEGER,
-            spended_time INTEGER
+            spent_time INTEGER
         )
         """.trimIndent(),
     )
