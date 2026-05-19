@@ -215,7 +215,7 @@ class WorkLocalRepository(
                 gridWidth = work.gridWidth,
                 gridHeight = work.gridHeight,
                 percentage = work.percentage,
-                spendedTime = work.spentTime,
+                spentTime = work.spentTime
             )
 
             workDao.replaceProgressChunks(
@@ -502,7 +502,7 @@ private fun WorkDetailsPreview.toLocalItem(
         imagePath = imagePath,
         gridRle = progressRle,
         percentage = percentage,
-        spentTime = spendedTime,
+        spentTime = spentTime,
     )
 }
 
