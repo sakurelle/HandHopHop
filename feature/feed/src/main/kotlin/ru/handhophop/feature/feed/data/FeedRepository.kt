@@ -1,13 +1,13 @@
 package ru.handhophop.feature.feed.data
 
 import android.util.Log
-import ru.handhophop.core.network.api.FreepikApiService
-import ru.handhophop.core.network.models.FreepikPhoto
+import ru.handhophop.core.network.api.WallhavenApiService
+import ru.handhophop.core.network.models.WallhavenPhoto
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 
 internal class FeedRepository(
-    private val apiService: FreepikApiService,
+    private val apiService: WallhavenApiService,
     private val workLocalRepository: WorkLocalRepository,
 ) {
     private companion object {
@@ -45,14 +45,16 @@ internal class FeedRepository(
     }
 
     private suspend fun fillPhotosWithLocalData(
-        photos: List<FreepikPhoto>,
+        photos: List<WallhavenPhoto>,
     ): List<FeedPhotoModel> {
         val normalizedPhotos = photos.map { photo ->
-            photo to photo.image.source.url.normalizePhotoUrl()
+            photo to photo.path.normalizePhotoUrl()
         }
 
+        val urls = normalizedPhotos.map { it.second }
+
         val worksByUrl = workLocalRepository
-            .getFeedMetaByUrls(normalizedPhotos.map { it.second })
+            .getFeedMetaByUrls(urls)
             .associateBy { it.url.orEmpty().normalizePhotoUrl() }
 
         return normalizedPhotos.map { (photo, normalizedUrl) ->
@@ -60,12 +62,12 @@ internal class FeedRepository(
             val hasStarted = localWork?.isStarted == true
 
             FeedPhotoModel(
-                id = photo.id.toString(),
+                id = photo.id,
                 photoUrl = normalizedUrl,
                 isBookmarked = localWork?.isFavorite == true,
                 isStarted = hasStarted,
                 progressPercentage = if (hasStarted) {
-                    localWork.percentage ?: 0
+                    localWork?.percentage ?: 0
                 } else {
                     0
                 },
@@ -78,48 +80,46 @@ internal class FeedRepository(
         count: Int = 10,
         orientationId: Int = 0,
         colorId: Int = 0,
-        aiId: Int = 0,
+        categoryCode: String = "100",
+        sorting: String = "random",
     ): Result<List<FeedPhotoModel>> {
         return runCatching {
             val colorParam = when (colorId) {
                 0 -> null
-                1 -> "black"
-                2 -> "blue"
-                3 -> "gray"
-                4 -> "green"
-                5 -> "orange"
-                6 -> "red"
-                7 -> "white"
-                8 -> "yellow"
-                9 -> "purple"
-                10 -> "cyan"
-                11 -> "pink"
+                1 -> "000000"
+                2 -> "0000ff"
+                3 -> "808080"
+                4 -> "008000"
+                5 -> "ffa500"
+                6 -> "ff0000"
+                7 -> "ffffff"
+                8 -> "ffff00"
+                9 -> "800080"
+                10 -> "00ffff"
+                11 -> "ffc0cb"
                 else -> null
             }
 
-            val landscape = if (orientationId == 1) 1 else null
-            val portrait = if (orientationId == 2) 1 else null
-            val square = if (orientationId == 3) 1 else null
-            val panoramic = if (orientationId == 4) 1 else null
-            val aiOnly = if (aiId == 1) 1 else null
-            val aiExcluded = if (aiId == 2) 1 else null
+            val ratios = when (orientationId) {
+                1 -> "landscape"
+                2 -> "portrait"
+                3 -> "1x1"
+                4 -> "21x9,32x9,48x9"
+                else -> null
+            }
 
-            val photos = apiService.getRandomPhotos(
+            val photos = apiService.searchWallpapers(
+                query = currentTerm,
+                categories = categoryCode,
+                purity = "100",
+                sorting = sorting,
+                ratios = ratios,
+                colors = colorParam,
                 page = page,
-                limit = count,
-                term = currentTerm,
-                photo = 1,
-                color = colorParam,
-                landscape = landscape,
-                portrait = portrait,
-                square = square,
-                panoramic = panoramic,
-                aiOnly = aiOnly,
-                aiExcluded = aiExcluded,
             ).data
 
-            val unique = photos.filter { it.id.toString() !in cachedIds }
-            cachedIds.addAll(unique.map { it.id.toString() })
+            val unique = photos.filter { it.id !in cachedIds }
+            cachedIds.addAll(unique.map { it.id })
             Log.d(TAG, "Received photos: total=${photos.size}, unique=${unique.size}, filter=$currentTerm")
             fillPhotosWithLocalData(unique)
         }.onFailure { error ->
@@ -130,10 +130,13 @@ internal class FeedRepository(
     suspend fun getRecommendedPhotos(): Result<List<FeedPhotoModel>> {
         return runCatching {
             Log.d(TAG, "Requesting recommended photos")
-            val photos = apiService.getRandomPhotos(
-                limit = 5,
-                photo = 1,
-            ).data
+            val photos = apiService.searchWallpapers(
+                query = null,
+                categories = "100",
+                purity = "100",
+                sorting = "random",
+                page = 1,
+            ).data.take(5)
             Log.d(TAG, "Received recommended photos, count=${photos.size}")
             fillPhotosWithLocalData(photos)
         }.onFailure { error ->

@@ -19,7 +19,8 @@ internal class FeedViewModel(
         const val TAG = "FeedViewModel"
         const val SECTION_ORIENTATION = 0
         const val SECTION_COLOR = 1
-        const val SECTION_AI = 2
+        const val SECTION_CATEGORY = 2
+        const val SECTION_SORTING = 3
     }
 
     private val curPage = AtomicInteger(1)
@@ -106,9 +107,13 @@ internal class FeedViewModel(
                 val color = ColorFilter.entries.first { it.id == optionId }
                 currentFilter.copy(color = color)
             }
-            SECTION_AI -> {
-                val ai = AiGeneratedFilter.entries.first { it.id == optionId }
-                currentFilter.copy(aiGenerated = ai)
+            SECTION_CATEGORY -> {
+                val category = CategoryFilter.entries.first { it.id == optionId }
+                currentFilter.copy(category = category)
+            }
+            SECTION_SORTING -> {
+                val sorting = SortingFilter.entries.first { it.id == optionId }
+                currentFilter.copy(sorting = sorting)
             }
             else -> currentFilter
         }
@@ -148,13 +153,24 @@ internal class FeedViewModel(
                 },
             ),
             FilterSectionState(
-                sectionId = SECTION_AI,
-                titleRes = R.string.ai_title,
-                options = AiGeneratedFilter.entries.map { entry ->
+                sectionId = SECTION_CATEGORY,
+                titleRes = R.string.category_title,
+                options = CategoryFilter.entries.map { entry ->
                     FilterOptionState(
                         textRes = entry.labelRes,
                         id = entry.id,
-                        isSelected = filter.aiGenerated == entry,
+                        isSelected = filter.category == entry,
+                    )
+                },
+            ),
+            FilterSectionState(
+                sectionId = SECTION_SORTING,
+                titleRes = R.string.sorting_title,
+                options = SortingFilter.entries.map { entry ->
+                    FilterOptionState(
+                        textRes = entry.labelRes,
+                        id = entry.id,
+                        isSelected = filter.sorting == entry,
                     )
                 },
             ),
@@ -198,7 +214,8 @@ internal class FeedViewModel(
             repository.getPhotos(
                 orientationId = filterCopy.orientation.id,
                 colorId = filterCopy.color.id,
-                aiId = filterCopy.aiGenerated.id,
+                categoryCode = filterCopy.category.code,
+                sorting = filterCopy.sorting.value,
             ).fold(
                 onSuccess = { photos ->
                     Log.d(TAG, "Main feed loaded successfully. count=${photos.size}")
@@ -287,7 +304,8 @@ internal class FeedViewModel(
                 count = 10,
                 orientationId = currentFilter.orientation.id,
                 colorId = currentFilter.color.id,
-                aiId = currentFilter.aiGenerated.id,
+                categoryCode = currentFilter.category.code,
+                sorting = currentFilter.sorting.value,
             ).fold(
                 onSuccess = { photos ->
                     Log.d(TAG, "Next page loaded successfully. page=$nextPage, count=${photos.size}")
@@ -321,13 +339,12 @@ internal class FeedViewModel(
         }
     }
 
-    private fun mapError(error: Throwable): FeedError = when (error) {
-        is java.net.UnknownHostException -> FeedError.NetworkUnavailable
-        is java.io.IOException -> FeedError.LoadingFailure
+    private fun mapError(error: Throwable): FeedError = when {
+        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
+        error is java.io.IOException -> FeedError.LoadingFailure
         else -> FeedError.Default
     }
 
-    @Suppress("UNCHECKED_CAST")
     class Factory(private val repository: FeedRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return FeedViewModel(repository) as T

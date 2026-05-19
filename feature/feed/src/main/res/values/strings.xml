@@ -4,10 +4,22 @@
 
     <string name="orientation_title">Ориентация картинок</string>
     <string name="color_title">Основной цвет</string>
-    <string name="ai_title">Чувствительность контента</string>
+    <string name="category_title">Категория</string>
+    <string name="sorting_title">Сортировка</string>
+
+    <string name="category_general">General</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_people">People</string>
+    <string name="category_all">Все категории</string>
+
+    <string name="sorting_random">Случайная</string>
+    <string name="sorting_relevance">По релевантности</string>
+    <string name="sorting_date_added">По дате добавления</string>
+    <string name="sorting_views">По просмотрам</string>
+    <string name="sorting_favorites">По избранному</string>
+    <string name="sorting_toplist">Топ лист</string>
 
     <string name="all_option">Все</string>
-    <string name="any_option">Любая</string>
     <string name="black_option">Черный</string>
     <string name="blue_option">Синий</string>
     <string name="gray_option">Серый</string>
@@ -24,9 +36,6 @@
     <string name="portrait_option">Портретная</string>
     <string name="square_option">Квадратная</string>
     <string name="panoramic_option">Панорамная</string>
-
-    <string name="ai_only_option">Только ИИ</string>
-    <string name="ai_excluded_option">Без ИИ</string>
 
     <string name="feed_bookmark_add_to_favorites">Добавить в избранное</string>
     <string name="feed_bookmark_remove_from_favorites">Удалить из избранного</string>
