@@ -345,6 +345,7 @@ internal class FeedViewModel(
         else -> FeedError.Default
     }
 
+    @Suppress("UNCHECKED_CAST")
     class Factory(private val repository: FeedRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return FeedViewModel(repository) as T
