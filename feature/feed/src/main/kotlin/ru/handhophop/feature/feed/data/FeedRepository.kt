@@ -65,7 +65,7 @@ internal class FeedRepository(
                 isBookmarked = localWork?.isFavorite == true,
                 isStarted = hasStarted,
                 progressPercentage = if (hasStarted) {
-                    localWork?.percentage ?: 0
+                    localWork.percentage ?: 0
                 } else {
                     0
                 },

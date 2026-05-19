@@ -44,8 +44,8 @@ data class WorkUrlPreview(
 
     val percentage: Int?,
 
-    @ColumnInfo(name = "spended_time")
-    val spendedTime: Long?,
+    @ColumnInfo(name = "spent_time")
+    val spentTime: Long?,
 )
 
 data class WorkDetailsPreview(
@@ -77,8 +77,8 @@ data class WorkDetailsPreview(
 
     val percentage: Int?,
 
-    @ColumnInfo(name = "spended_time")
-    val spendedTime: Long?,
+    @ColumnInfo(name = "spent_time")
+    val spentTime: Long?,
 )
 
 data class WorkActivityStats(
@@ -164,7 +164,7 @@ interface WorkDao {
     @Query(
         """
         SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               image_path, grid_width, grid_height, percentage, spended_time
+               image_path, grid_width, grid_height, percentage, spent_time
         FROM work
         WHERE id = :workId
         """,
@@ -174,7 +174,7 @@ interface WorkDao {
     @Query(
         """
         SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               image_path, grid_width, grid_height, percentage, spended_time
+               image_path, grid_width, grid_height, percentage, spent_time
         FROM work
         WHERE url = :url
         ORDER BY
@@ -215,7 +215,7 @@ interface WorkDao {
     @Query(
         """
         SELECT w.id, w.is_favorite, w.project_name, w.scheme_type, w.color_count, w.difficulty,
-               w.url, w.image_path, w.grid_width, w.grid_height, w.percentage, w.spended_time
+               w.url, w.image_path, w.grid_width, w.grid_height, w.percentage, w.spent_time
         FROM work AS w
         WHERE w.url IN (:urls)
             AND w.id = (
@@ -457,7 +457,7 @@ interface WorkDao {
     @Query(
         """
         SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
-               image_path, grid_width, grid_height, percentage, spended_time
+               image_path, grid_width, grid_height, percentage, spent_time
         FROM work
         ORDER BY
             CASE
@@ -625,7 +625,7 @@ interface WorkDao {
             grid_height = :gridHeight,
             grid_rle = NULL,
             percentage = :percentage,
-            spended_time = :spendedTime
+            spent_time = :spentTime
         WHERE id = :id
         """,
     )
@@ -640,6 +640,6 @@ interface WorkDao {
         gridWidth: Int?,
         gridHeight: Int?,
         percentage: Int?,
-        spendedTime: Long?,
+        spentTime: Long?,
     )
 }

@@ -321,12 +321,13 @@ internal class FeedViewModel(
         }
     }
 
-    private fun mapError(error: Throwable): FeedError = when {
-        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
-        error is java.io.IOException -> FeedError.LoadingFailure
+    private fun mapError(error: Throwable): FeedError = when (error) {
+        is java.net.UnknownHostException -> FeedError.NetworkUnavailable
+        is java.io.IOException -> FeedError.LoadingFailure
         else -> FeedError.Default
     }
 
+    @Suppress("UNCHECKED_CAST")
     class Factory(private val repository: FeedRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return FeedViewModel(repository) as T

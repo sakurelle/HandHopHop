@@ -481,7 +481,7 @@ private fun WorkUrlPreview.toLocalItem(): WorkLocalItem {
         gridHeight = gridHeight,
         imagePath = imagePath,
         percentage = percentage,
-        spentTime = spendedTime,
+        spentTime = spentTime,
     )
 }
 
