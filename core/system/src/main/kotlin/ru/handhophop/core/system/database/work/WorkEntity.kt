@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+
 @Entity(tableName = "work")
 data class WorkEntity(
     @PrimaryKey(autoGenerate = true)
@@ -36,9 +37,6 @@ data class WorkEntity(
     @ColumnInfo(name = "grid_height")
     val gridHeight: Int? = null,
 
-    @ColumnInfo(name = "grid_rle")
-    val gridRle: String? = null,
-
     val percentage: Int? = null,
 
     @ColumnInfo(name = "spent_time")
@@ -63,7 +61,6 @@ data class WorkEntity(
         if (url != other.url) return false
         if (!image.contentEquals(other.image)) return false
         if (imagePath != other.imagePath) return false
-        if (gridRle != other.gridRle) return false
 
         return true
     }
@@ -82,36 +79,9 @@ data class WorkEntity(
         result = 31 * result + (url?.hashCode() ?: 0)
         result = 31 * result + (image?.contentHashCode() ?: 0)
         result = 31 * result + (imagePath?.hashCode() ?: 0)
-        result = 31 * result + (gridRle?.hashCode() ?: 0)
         return result
     }
 }
-
-@Entity(
-    tableName = "work_progress_chunk",
-    primaryKeys = ["work_id", "chunk_index"],
-    foreignKeys = [
-        ForeignKey(
-            entity = WorkEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["work_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
-    indices = [
-        Index(value = ["work_id"]),
-    ],
-)
-data class WorkProgressChunkEntity(
-    @ColumnInfo(name = "work_id")
-    val workId: Long,
-
-    @ColumnInfo(name = "chunk_index")
-    val chunkIndex: Int,
-
-    @ColumnInfo(name = "rle_chunk")
-    val rleChunk: String,
-)
 
 @Entity(
     tableName = "work_activity_day",

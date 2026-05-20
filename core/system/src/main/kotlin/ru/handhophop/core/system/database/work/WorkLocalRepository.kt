@@ -315,22 +315,7 @@ class WorkLocalRepository(
             .takeIf { it.isNotEmpty() }
             ?.joinToString(separator = "")
 
-        val legacyProgress = if (chunkedProgress == null) {
-            workDao.getLegacyGridRleById(id)
-        } else {
-            null
-        }
-
-        if (chunkedProgress == null && !legacyProgress.isNullOrBlank()) {
-            workDao.replaceProgressChunks(
-                workId = id,
-                rleChunks = legacyProgress.toProgressChunks(),
-            )
-        }
-
-        return toLocalItem(
-            progressRle = chunkedProgress ?: legacyProgress,
-        )
+        return toLocalItem( progressRle = chunkedProgress )
     }
 
     private fun WorkLocalItem.openPriority(): Int {
@@ -451,7 +436,6 @@ private fun WorkLocalItem.toEntity(): WorkEntity {
         imagePath = imagePath,
         gridWidth = gridWidth,
         gridHeight = gridHeight,
-        gridRle = null,
         percentage = percentage,
         spentTime = spentTime,
     )

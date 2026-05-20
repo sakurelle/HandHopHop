@@ -209,9 +209,6 @@ interface WorkDao {
     )
     suspend fun getDetailsByUrl(url: String): WorkDetailsPreview?
 
-    @Query("SELECT grid_rle FROM work WHERE id = :workId")
-    suspend fun getLegacyGridRleById(workId: Long): String?
-
     @Query(
         """
         SELECT w.id, w.is_favorite, w.project_name, w.scheme_type, w.color_count, w.difficulty,
@@ -534,9 +531,6 @@ interface WorkDao {
     )
     suspend fun getProgressChunks(workId: Long): List<String>
 
-    @Query("UPDATE work SET grid_rle = NULL WHERE id = :workId")
-    suspend fun clearLegacyProgress(workId: Long)
-
     @Query("SELECT image_path FROM work WHERE id = :workId")
     suspend fun getImagePathById(workId: Long): String?
 
@@ -564,8 +558,6 @@ interface WorkDao {
                 },
             )
         }
-
-        clearLegacyProgress(workId)
     }
 
     @Transaction
@@ -623,7 +615,6 @@ interface WorkDao {
             difficulty = :difficulty,
             grid_width = :gridWidth,
             grid_height = :gridHeight,
-            grid_rle = NULL,
             percentage = :percentage,
             spent_time = :spentTime
         WHERE id = :id

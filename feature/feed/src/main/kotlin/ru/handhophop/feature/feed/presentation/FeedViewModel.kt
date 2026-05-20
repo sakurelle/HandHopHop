@@ -339,9 +339,9 @@ internal class FeedViewModel(
         }
     }
 
-    private fun mapError(error: Throwable): FeedError = when {
-        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
-        error is java.io.IOException -> FeedError.LoadingFailure
+    private fun mapError(error: Throwable): FeedError = when (error) {
+        is java.net.UnknownHostException -> FeedError.NetworkUnavailable
+        is java.io.IOException -> FeedError.LoadingFailure
         else -> FeedError.Default
     }
 

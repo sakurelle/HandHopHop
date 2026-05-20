@@ -86,17 +86,17 @@ internal class FeedRepository(
         return runCatching {
             val colorParam = when (colorId) {
                 0 -> null
-                1 -> "000000"
-                2 -> "0000ff"
-                3 -> "808080"
-                4 -> "008000"
-                5 -> "ffa500"
-                6 -> "ff0000"
-                7 -> "ffffff"
-                8 -> "ffff00"
-                9 -> "800080"
-                10 -> "00ffff"
-                11 -> "ffc0cb"
+                1  -> "000000"  // black
+                2  -> "0000ff"  // blue
+                3  -> "808080"  // gray
+                4  -> "008000"  // green
+                5  -> "ffa500"  // orange
+                6  -> "ff0000"  // red
+                7  -> "ffffff"  // white
+                8  -> "ffff00"  // yellow
+                9  -> "800080"  // purple
+                10 -> "00ffff"  // cyan
+                11 -> "ffc0cb"  // pink
                 else -> null
             }
 

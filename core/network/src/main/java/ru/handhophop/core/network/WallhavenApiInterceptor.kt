@@ -3,6 +3,11 @@ package ru.handhophop.core.network
 import okhttp3.Interceptor
 import okhttp3.Response
 
+/**
+ * API Key for Wallhaven API
+ * Get your API key from: https://wallhaven.cc/settings/account
+ * Note: API key is required for NSFW content and provides higher rate limits
+ */
 private const val API_KEY = "ZHm9y9Rpp1FUQhd5EX0UJqRslboeVdpZ"
 
 class WallhavenApiInterceptor : Interceptor {
@@ -10,6 +15,7 @@ class WallhavenApiInterceptor : Interceptor {
         val originalRequest = chain.request()
         val url = originalRequest.url
 
+        // Build new URL with API key as query parameter if needed
         val newUrl = if (API_KEY.isNotBlank() && API_KEY != "YOUR_API_KEY_HERE") {
             url.newBuilder()
                 .addQueryParameter("apikey", API_KEY)

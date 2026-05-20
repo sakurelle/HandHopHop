@@ -42,6 +42,7 @@ import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
 import ru.handhophop.feature.mash.MashUiState
 import ru.handhophop.feature.mash.R
+import androidx.compose.runtime.remember
 
 @Composable
 internal fun MashStatisticsScreen(
@@ -52,7 +53,9 @@ internal fun MashStatisticsScreen(
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
 ) {
-    val metrics = uiState.toProjectMetrics()
+    val metrics = remember(uiState.scheme, uiState.completedCellIndices) {
+        uiState.toProjectMetrics()
+    }
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md
@@ -193,6 +196,9 @@ private fun MashStatisticsProjectCard(
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
+    val todayDuration = remember(todaySpentTimeMillis) {
+        formatDuration(todaySpentTimeMillis)
+    }
     dimensions.md
     MashStatisticsCard {
         Column(
@@ -223,7 +229,7 @@ private fun MashStatisticsProjectCard(
             Text(
                 text = stringResource(
                     R.string.mash_statistics_today_subtitle,
-                    formatDuration(todaySpentTimeMillis),
+                    todayDuration,
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
@@ -250,7 +256,23 @@ private fun MashStatisticsActivityCard(
     val dimensions = HandHopHopDesignSystem.dimensions
     val chartHeight = dimensions.xl * 5
     val chartBarWidth = dimensions.lg
-    val values = buildWeeklyActivityValues(weekSpentTimeMillisByDay)
+    val values = remember(weekSpentTimeMillisByDay) {
+        buildWeeklyActivityValues(weekSpentTimeMillisByDay)
+    }
+
+    val maxValue = remember(values) {
+        (values.maxOrNull() ?: 0).coerceAtLeast(4)
+    }
+
+    val todayDuration = remember(todaySpentTimeMillis) {
+        formatDuration(todaySpentTimeMillis)
+    }
+
+    val weekDurationLabels = remember(weekSpentTimeMillisByDay) {
+        List(7) { index ->
+            formatDurationShort(weekSpentTimeMillisByDay.getOrElse(index) { 0L })
+        }
+    }
     val dayLabels = listOf(
         stringResource(R.string.mash_weekday_mon),
         stringResource(R.string.mash_weekday_tue),
@@ -274,14 +296,14 @@ private fun MashStatisticsActivityCard(
                 color = colors.textPrimary,
             )
             Text(
-                text = "График показывает реальное время работы по дням текущей недели.",
+                text = stringResource(R.string.mash_statistics_activity_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
             )
             Text(
                 text = stringResource(
                     R.string.mash_statistics_today_title,
-                    formatDuration(todaySpentTimeMillis),
+                    todayDuration,
                 ),
                 style = MaterialTheme.typography.labelLarge,
                 color = colors.primaryAction,
@@ -292,7 +314,6 @@ private fun MashStatisticsActivityCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-                val maxValue = (values.maxOrNull() ?: 0).coerceAtLeast(4)
                 values.forEachIndexed { index, value ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -301,7 +322,7 @@ private fun MashStatisticsActivityCard(
                         )
                     ) {
                         Text(
-                            text = formatDurationShort(weekSpentTimeMillisByDay.getOrElse(index) { 0L }),
+                            text = weekDurationLabels[index],
                             style = MaterialTheme.typography.labelMedium,
                             color = colors.textSecondary,
                         )
