@@ -105,4 +105,16 @@
     <string name="dialog_dismiss">Отмена</string>
     <string name="mash_statistics_today_title">Сегодня: %1$s</string>
     <string name="mash_statistics_today_subtitle">Сегодня вышивали: %1$s</string>
+
+    <string name="work_completed_title">Работа завершена</string>
+    <string name="work_completed_ready_title">Схема готова!</string>
+    <string name="work_completed_progress_text">Вы завершили работу на 100%</string>
+    <string name="work_completed_description">Можно скачать результат или начать новую работу</string>
+    <string name="work_completed_download_button">Скачать схему</string>
+    <string name="work_completed_open_button">Открыть работу</string>
+    <string name="work_completed_recommendations_title">Попробуйте дальше</string>
+    <string name="work_completed_see_all">Смотреть все</string>
+    <string name="work_completed_check_mark">✓</string>
+    <string name="work_completed_add_to_favorites">Добавить в избранное</string>
+    <string name="work_completed_remove_from_favorites">Удалить из избранного</string>
 </resources>

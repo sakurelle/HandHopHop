@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="work_completed_check_background">#69564B</color>
+    <color name="work_completed_check_color">#FFFFFFFF</color>
+
+    <color name="work_completed_bookmark_background">#8C000000</color>
+    <color name="work_completed_bookmark_selected_color">#FFFF5A5F</color>
+    <color name="work_completed_bookmark_unselected_color">#FFFFFFFF</color>
+
+    <color name="work_completed_accent_color">#69564B</color>
+    <color name="work_completed_hero_border_color">#69564B</color>
+    <color name="work_completed_secondary_button_border_color">#69564B</color>
+</resources>

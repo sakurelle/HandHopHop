@@ -34,6 +34,7 @@ import ru.handhophop.core.system.database.work.hasCreatedWorkConfig
 import ru.handhophop.feature.mash.MashCreate.FeedPopupScreen
 import ru.handhophop.feature.mash.MashCreate.MashCreateScreen
 import ru.handhophop.feature.mash.Statistics.MashStatisticsScreen
+import ru.handhophop.feature.mash.completed.WorkCompletedEntryPoint
 import java.util.Locale
 
 private const val DEFAULT_MASH_IMAGE_URL =
@@ -44,6 +45,7 @@ private enum class MashDestination {
     HOME,
     CREATE,
     WORKSPACE,
+    COMPLETED,
     STATISTICS,
 }
 
@@ -87,7 +89,13 @@ fun MashEntryPoint(
     var createdConfig by remember { mutableStateOf(cachedWork?.config) }
     var lastGeneratedConfig by remember { mutableStateOf(cachedWork?.config) }
     var imageLoadAttemptKey by remember { mutableStateOf<String?>(null) }
+    var selectedCreateImageUrl by rememberSaveable(initialImageUrl) {
+        mutableStateOf(initialImageUrl)
+    }
 
+    var forceOpenCompletedWorkspace by rememberSaveable {
+        mutableStateOf(false)
+    }
     var isRestoringPersistedProgress by rememberSaveable {
         mutableStateOf(false)
     }
@@ -410,8 +418,34 @@ fun MashEntryPoint(
         )
     }
 
+    LaunchedEffect(
+        destination,
+        uiState.scheme?.indices?.size,
+        uiState.completedCellIndices.size,
+        forceOpenCompletedWorkspace,
+    ) {
+        val totalCells = uiState.scheme?.indices?.size ?: 0
+        val completedCells = uiState.completedCellIndices.size
+        val isCompleted = totalCells > 0 && completedCells >= totalCells
+
+        if (!isCompleted) {
+            forceOpenCompletedWorkspace = false
+            return@LaunchedEffect
+        }
+
+        if (
+            destination == MashDestination.WORKSPACE &&
+            !forceOpenCompletedWorkspace
+        ) {
+            destination = MashDestination.COMPLETED
+        }
+    }
+
     BackHandler(enabled = destination != MashDestination.HOME) {
-        destination = MashDestination.HOME
+        destination = when (destination) {
+            MashDestination.COMPLETED -> MashDestination.HOME
+            else -> MashDestination.HOME
+        }
     }
 
     when (destination) {
@@ -457,7 +491,7 @@ fun MashEntryPoint(
             if (showPopup) {
                 backgroundContent()
                 FeedPopupScreen(
-                    imageUrl = initialImageUrl ?: createdConfig?.imageUrl ?: "",
+                    imageUrl = selectedCreateImageUrl ?: createdConfig?.imageUrl ?: "",
                     onStartWork = {
                         showPopup = false
                     },
@@ -470,11 +504,13 @@ fun MashEntryPoint(
                 )
             } else {
                 MashCreateScreen(
-                    imageUrl = initialImageUrl ?: createdConfig?.imageUrl,
+                    imageUrl = selectedCreateImageUrl ?: createdConfig?.imageUrl,
                     onBackClick = {
                         onBack()
                     },
                     onCreateFinished = { newConfig ->
+                        selectedCreateImageUrl = newConfig.imageUrl
+                        forceOpenCompletedWorkspace = false
                         if (createdConfig?.imageUrl != newConfig.imageUrl) {
                             workImageBytes = null
                             currentWorkImagePath = null
@@ -527,6 +563,61 @@ fun MashEntryPoint(
                 },
                 onClearSelection = {
                     viewModel.handleAction(ClearPaletteHighlightAction())
+                },
+            )
+        }
+
+        MashDestination.COMPLETED -> {
+            WorkCompletedEntryPoint(
+                imageUrl = createdConfig?.imageUrl,
+                imagePath = currentWorkImagePath,
+                projectTitle = createdConfig?.projectName.orEmpty(),
+                onBackClick = {
+                    destination = MashDestination.HOME
+                },
+                onDownloadClick = {
+                    val projectTitle = createdConfig?.projectName.orEmpty()
+
+                    if (needsNotificationPermission(context)) {
+                        pendingDownloadTitle = projectTitle
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        viewModel.handleAction(
+                            ClickDownloadsAction(
+                                projectTitle = projectTitle,
+                            ),
+                        )
+                    }
+                },
+                onOpenWorkClick = {
+                    forceOpenCompletedWorkspace = true
+                    destination = MashDestination.WORKSPACE
+                },
+                onRecommendationClick = { imageUrl ->
+                    selectedCreateImageUrl = imageUrl
+
+                    currentWorkId = null
+                    createdConfig = null
+                    lastGeneratedConfig = null
+                    workImageBytes = null
+                    currentWorkImagePath = null
+                    imageLoadAttemptKey = null
+                    pendingCompletedCells = null
+                    isRestoringPersistedProgress = false
+
+                    spentTimeBaseMillis = 0L
+                    workspaceStartedAtMillis = null
+                    lastActivitySavedAtMillis = null
+                    pendingActivityEndMillis = null
+                    activityStats = WorkActivityStats()
+
+                    forceOpenCompletedWorkspace = false
+                    viewModel.resetWork()
+
+                    destination = MashDestination.CREATE
+                },
+                onSeeAllClick = {
+                    onOpenFeed()
                 },
             )
         }
