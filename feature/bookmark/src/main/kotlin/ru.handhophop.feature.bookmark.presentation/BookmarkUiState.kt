@@ -23,17 +23,17 @@ internal sealed interface BookmarkUiState {
 }
 
 @Immutable
-internal enum class BookmarkFilter{
+internal enum class BookmarkFilter {
     ALL,
     WORKS,
-    LIKES
+    LIKES,
 }
 
 @Immutable
 internal data class BookmarkPhotoItem(
     val id: Long,
     val photoUrl: String,
-    val imageBytes: ByteArray? = null,
+    val imagePath: String? = null,
     val isBookmarked: Boolean = false,
     val isStarted: Boolean = false,
     val progressPercentage: Int = 0,

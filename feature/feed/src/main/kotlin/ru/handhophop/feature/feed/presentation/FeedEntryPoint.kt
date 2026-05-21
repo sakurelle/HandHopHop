@@ -20,7 +20,8 @@ fun FeedEntryPoint(
         FeedRepository(
             apiService = WallhavenNetwork.getApiService(),
             workLocalRepository = WorkLocalRepository(
-                workDao = HandHopHopDatabaseProvider.get(context).workDao()
+                workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+                appContext = context.applicationContext,
             )
         )
     }

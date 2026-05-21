@@ -1,9 +1,8 @@
 package ru.handhophop.feature.mash.Statistics
 
-import kotlin.math.roundToInt
-import ru.handhophop.feature.mash.MashCreate.MashCreateDifficulty
 import ru.handhophop.feature.mash.MashCreate.MashThread
 import ru.handhophop.feature.mash.MashUiState
+import kotlin.math.roundToInt
 
 internal data class MashPaletteUsage(
     val paletteIndex: Int,
@@ -66,25 +65,29 @@ internal fun MashUiState.toProjectMetrics(): MashProjectMetrics {
     )
 }
 
-internal fun MashProjectMetrics.buildWeeklyActivity(
-    difficulty: MashCreateDifficulty,
+internal fun buildWeeklyActivityValues(
+    weekSpentTimeMillisByDay: List<Long>,
 ): List<Int> {
-    if (!isReady) {
+    if (weekSpentTimeMillisByDay.isEmpty()) {
         return List(7) { 0 }
     }
 
-    val difficultyMultiplier = when (difficulty) {
-        MashCreateDifficulty.EASY -> 1.7f
-        MashCreateDifficulty.MEDIUM -> 2.2f
-        MashCreateDifficulty.HARD -> 2.8f
+    val normalizedDays = weekSpentTimeMillisByDay.take(7).let { days ->
+        if (days.size == 7) days else days + List(7 - days.size) { 0L }
+    }
+    val maxSpentTime = normalizedDays.maxOrNull() ?: 0L
+
+    if (maxSpentTime <= 0L) {
+        return List(7) { 0 }
     }
 
-    val pattern = listOf(0.56f, 0.7f, 0.64f, 0.82f, 1f, 0.9f, 0.74f)
-
-    return pattern.mapIndexed { index, weight ->
-        val colorBoost = if (index < completedUsedColors) 0.18f else 0f
-        ((progressFraction * difficultyMultiplier + colorBoost) * 4f * weight)
-            .roundToInt()
-            .coerceIn(0, 4)
+    return normalizedDays.map { spentTimeMillis ->
+        if (spentTimeMillis <= 0L) {
+            0
+        } else {
+            ((spentTimeMillis.toFloat() / maxSpentTime.toFloat()) * 100f)
+                .roundToInt()
+                .coerceIn(1, 100)
+        }
     }
 }

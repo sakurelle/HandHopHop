@@ -77,7 +77,7 @@
     <string name="mash_statistics_project_description_embroidery">Следите за палитрой нитей и отмечайте закрытые области по мере вышивки.</string>
     <string name="mash_statistics_colors_subtitle">%1$d из %2$d цветов уже в работе</string>
     <string name="mash_statistics_activity_title">Ритм работы</string>
-    <string name="mash_statistics_activity_subtitle">Пока без истории: график оценивает текущий темп по готовности проекта.</string>
+    <string name="mash_statistics_activity_subtitle">График показывает реальное время работы по дням текущей недели.</string>
     <string name="mash_statistics_progress_title">Вы закрасили</string>
     <string name="mash_statistics_progress_subtitle">%1$d из %2$d ячеек</string>
     <string name="mash_statistics_completion">%1$d%%</string>
@@ -103,4 +103,6 @@
     <string name="dialog_warning_message">Вы уверены, что хотите удалить схему? Это действие нельзя будет отменить.</string>
     <string name="dialog_confirm">Удалить</string>
     <string name="dialog_dismiss">Отмена</string>
+    <string name="mash_statistics_today_title">Сегодня: %1$s</string>
+    <string name="mash_statistics_today_subtitle">Сегодня вышивали: %1$s</string>
 </resources>

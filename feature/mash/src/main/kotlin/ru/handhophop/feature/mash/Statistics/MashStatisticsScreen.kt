@@ -37,20 +37,25 @@ import ru.handhophop.core.design.HandHopHopButton
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.core.system.database.work.WorkActivityStats
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.MashCreate.MashCreateSchemeType
 import ru.handhophop.feature.mash.MashUiState
 import ru.handhophop.feature.mash.R
+import androidx.compose.runtime.remember
 
 @Composable
 internal fun MashStatisticsScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
+    activityStats: WorkActivityStats,
     onBackClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
 ) {
-    val metrics = uiState.toProjectMetrics()
+    val metrics = remember(uiState.scheme, uiState.completedCellIndices) {
+        uiState.toProjectMetrics()
+    }
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md
@@ -166,10 +171,12 @@ internal fun MashStatisticsScreen(
                             MashStatisticsProjectCard(
                                 projectConfig = projectConfig,
                                 metrics = metrics,
+                                todaySpentTimeMillis = activityStats.todaySpentTimeMillis,
                                 onOpenProjectClick = onOpenProjectClick,
                             )
                             MashStatisticsActivityCard(
-                                values = metrics.buildWeeklyActivity(projectConfig.difficulty),
+                                todaySpentTimeMillis = activityStats.todaySpentTimeMillis,
+                                weekSpentTimeMillisByDay = activityStats.weekSpentTimeMillisByDay,
                             )
                             MashStatisticsProgressCard(metrics = metrics)
                         }
@@ -184,10 +191,14 @@ internal fun MashStatisticsScreen(
 private fun MashStatisticsProjectCard(
     projectConfig: MashCreateConfig,
     metrics: MashProjectMetrics,
+    todaySpentTimeMillis: Long,
     onOpenProjectClick: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
+    val todayDuration = remember(todaySpentTimeMillis) {
+        formatDuration(todaySpentTimeMillis)
+    }
     dimensions.md
     MashStatisticsCard {
         Column(
@@ -215,6 +226,14 @@ private fun MashStatisticsProjectCard(
                 style = MaterialTheme.typography.labelLarge,
                 color = colors.primaryAction,
             )
+            Text(
+                text = stringResource(
+                    R.string.mash_statistics_today_subtitle,
+                    todayDuration,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+            )
 
             HandHopHopButton(
                 onClick = onOpenProjectClick,
@@ -230,12 +249,30 @@ private fun MashStatisticsProjectCard(
 
 @Composable
 private fun MashStatisticsActivityCard(
-    values: List<Int>,
+    todaySpentTimeMillis: Long,
+    weekSpentTimeMillisByDay: List<Long>,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val chartHeight = dimensions.xl * 5
     val chartBarWidth = dimensions.lg
+    val values = remember(weekSpentTimeMillisByDay) {
+        buildWeeklyActivityValues(weekSpentTimeMillisByDay)
+    }
+
+    val maxValue = remember(values) {
+        (values.maxOrNull() ?: 0).coerceAtLeast(4)
+    }
+
+    val todayDuration = remember(todaySpentTimeMillis) {
+        formatDuration(todaySpentTimeMillis)
+    }
+
+    val weekDurationLabels = remember(weekSpentTimeMillisByDay) {
+        List(7) { index ->
+            formatDurationShort(weekSpentTimeMillisByDay.getOrElse(index) { 0L })
+        }
+    }
     val dayLabels = listOf(
         stringResource(R.string.mash_weekday_mon),
         stringResource(R.string.mash_weekday_tue),
@@ -263,13 +300,20 @@ private fun MashStatisticsActivityCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
             )
+            Text(
+                text = stringResource(
+                    R.string.mash_statistics_today_title,
+                    todayDuration,
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.primaryAction,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-                val maxValue = (values.maxOrNull() ?: 0).coerceAtLeast(4)
                 values.forEachIndexed { index, value ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -278,7 +322,7 @@ private fun MashStatisticsActivityCard(
                         )
                     ) {
                         Text(
-                            text = value.toString(),
+                            text = weekDurationLabels[index],
                             style = MaterialTheme.typography.labelMedium,
                             color = colors.textSecondary,
                         )
@@ -312,6 +356,38 @@ private fun MashStatisticsActivityCard(
                 }
             }
         }
+    }
+}
+
+private fun formatDuration(durationMillis: Long): String {
+    if (durationMillis <= 0L) {
+        return "0 мин"
+    }
+
+    val totalMinutes = durationMillis / 60_000L
+    val hours = totalMinutes / 60L
+    val minutes = totalMinutes % 60L
+
+    return when {
+        hours <= 0L -> "$minutes мин"
+        minutes == 0L -> "$hours ч"
+        else -> "$hours ч $minutes мин"
+    }
+}
+
+private fun formatDurationShort(durationMillis: Long): String {
+    if (durationMillis <= 0L) {
+        return "0м"
+    }
+
+    val totalMinutes = durationMillis / 60_000L
+    val hours = totalMinutes / 60L
+    val minutes = totalMinutes % 60L
+
+    return when {
+        hours <= 0L -> "${minutes}м"
+        minutes == 0L -> "${hours}ч"
+        else -> "${hours}ч ${minutes}м"
     }
 }
 

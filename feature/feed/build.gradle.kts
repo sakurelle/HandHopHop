@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "ru.handhophop.feature.feed"
-    compileSdk = 35
+    compileSdk = 36
 
     compileSdk {
         version = release(36)

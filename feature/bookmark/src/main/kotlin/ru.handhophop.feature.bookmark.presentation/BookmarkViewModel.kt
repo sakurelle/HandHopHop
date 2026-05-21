@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 
-
+@Suppress("UNCHECKED_CAST")
 internal class BookmarkViewModel(
     private val repository: WorkLocalRepository,
 ) : ViewModel() {
@@ -30,7 +30,7 @@ internal class BookmarkViewModel(
                         BookmarkPhotoItem(
                             id = work.id,
                             photoUrl = work.url.orEmpty(),
-                            imageBytes = null,
+                            imagePath = work.imagePath,
                             isBookmarked = work.isFavorite,
                             isStarted = work.isStarted,
                             progressPercentage = work.percentage ?: 0,
@@ -71,9 +71,8 @@ internal class BookmarkViewModel(
                         WorkLocalItem(
                             id = photo.id,
                             url = photo.photoUrl,
-                            image = photo.imageBytes,
                             isFavorite = true,
-                        )
+                        ),
                     )
                 } else {
                     repository.removeFavorite(photo.photoUrl)
@@ -91,14 +90,14 @@ internal class BookmarkViewModel(
         val currentState = _uiState.value as? BookmarkUiState.Success ?: return
         val allPhotos = currentState.allPhotos
 
-        val filterPhotos = when(filter) {
+        val filteredPhotos = when (filter) {
             BookmarkFilter.ALL -> allPhotos
-            BookmarkFilter.LIKES -> allPhotos.filter {it.isBookmarked}.toImmutableList()
+            BookmarkFilter.LIKES -> allPhotos.filter { it.isBookmarked }.toImmutableList()
             BookmarkFilter.WORKS -> allPhotos.filter { it.isStarted }.toImmutableList()
         }
 
         _uiState.value = currentState.copy(
-            photos = filterPhotos,
+            photos = filteredPhotos,
             selectedFilter = filter,
         )
     }

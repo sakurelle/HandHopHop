@@ -34,7 +34,7 @@ internal class FeedRepository(
         "desert",
         "river",
         "garden",
-        "birds"
+        "birds",
     )
 
     private var currentTerm: String = feedTerms.random()
@@ -45,7 +45,7 @@ internal class FeedRepository(
     }
 
     private suspend fun fillPhotosWithLocalData(
-        photos: List<WallhavenPhoto>
+        photos: List<WallhavenPhoto>,
     ): List<FeedPhotoModel> {
         val normalizedPhotos = photos.map { photo ->
             photo to photo.path.normalizePhotoUrl()
@@ -55,11 +55,10 @@ internal class FeedRepository(
 
         val worksByUrl = workLocalRepository
             .getFeedMetaByUrls(urls)
-            .associateBy{ it.url.orEmpty().normalizePhotoUrl() }
+            .associateBy { it.url.orEmpty().normalizePhotoUrl() }
 
         return normalizedPhotos.map { (photo, normalizedUrl) ->
             val localWork = worksByUrl[normalizedUrl]
-
             val hasStarted = localWork?.isStarted == true
 
             FeedPhotoModel(
@@ -67,11 +66,13 @@ internal class FeedRepository(
                 photoUrl = normalizedUrl,
                 isBookmarked = localWork?.isFavorite == true,
                 isStarted = hasStarted,
-                progressPercentage = if (hasStarted) { localWork.percentage ?: 0} else {0}
+                progressPercentage = if (hasStarted) {
+                    localWork.percentage ?: 0
+                } else {
+                    0
+                },
             )
-
         }
-
     }
 
     suspend fun getPhotos(
@@ -80,11 +81,11 @@ internal class FeedRepository(
         orientationId: Int = 0,
         colorId: Int = 0,
         categoryCode: String = "100",
-        sorting: String = "random"
+        sorting: String = "random",
     ): Result<List<FeedPhotoModel>> {
         return runCatching {
             val colorParam = when (colorId) {
-                0  -> null
+                0 -> null
                 1  -> "000000"  // black
                 2  -> "0000ff"  // blue
                 3  -> "808080"  // gray
@@ -99,24 +100,22 @@ internal class FeedRepository(
                 else -> null
             }
 
-            // Wallhaven uses ratios instead of orientation flags
-            // Supported ratios: 16x9, 16x10, 4x3, 3x2, 2x1, 21x9, 32x9, 48x9, 9x16, 10x16, etc.
             val ratios = when (orientationId) {
-                1 -> "landscape"      // landscape - 16x9, 16x10, 4x3, etc.
-                2 -> "portrait"       // portrait - 9x16, 10x16, etc.
-                3 -> "1x1"            // square
-                4 -> "21x9,32x9,48x9" // panoramic - ultra-wide ratios
+                1 -> "landscape"
+                2 -> "portrait"
+                3 -> "1x1"
+                4 -> "21x9,32x9,48x9"
                 else -> null
             }
 
             val photos = apiService.searchWallpapers(
                 query = currentTerm,
                 categories = categoryCode,
-                purity = "100",      // SFW only
+                purity = "100",
                 sorting = sorting,
                 ratios = ratios,
                 colors = colorParam,
-                page = page
+                page = page,
             ).data
 
             val unique = photos.filter { it.id !in cachedIds }
@@ -136,7 +135,7 @@ internal class FeedRepository(
                 categories = "100",
                 purity = "100",
                 sorting = "random",
-                page = 1
+                page = 1,
             ).data.take(5)
             Log.d(TAG, "Received recommended photos, count=${photos.size}")
             fillPhotosWithLocalData(photos)
@@ -156,7 +155,7 @@ internal class FeedRepository(
                 WorkLocalItem(
                     url = normalizedUrl,
                     isFavorite = true,
-                )
+                ),
             )
         } else {
             workLocalRepository.removeFavorite(normalizedUrl)

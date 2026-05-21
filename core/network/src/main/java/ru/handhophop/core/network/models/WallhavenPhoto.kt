@@ -8,7 +8,7 @@ data class WallhavenResponse(
     @SerialName("data")
     val data: List<WallhavenPhoto>,
     @SerialName("meta")
-    val meta: Meta? = null
+    val meta: Meta? = null,
 ) {
     @Serializable
     data class Meta(
@@ -23,7 +23,7 @@ data class WallhavenResponse(
         @SerialName("query")
         val query: String? = null,
         @SerialName("seed")
-        val seed: String? = null
+        val seed: String? = null,
     )
 }
 
@@ -64,7 +64,7 @@ data class WallhavenPhoto(
     @SerialName("path")
     val path: String,
     @SerialName("thumbs")
-    val thumbs: ThumbsResponse? = null
+    val thumbs: ThumbsResponse? = null,
 ) {
     @Serializable
     data class ThumbsResponse(
@@ -73,6 +73,6 @@ data class WallhavenPhoto(
         @SerialName("original")
         val original: String? = null,
         @SerialName("small")
-        val small: String
+        val small: String,
     )
 }

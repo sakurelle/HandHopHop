@@ -10,6 +10,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
     image: ByteArray? = null,
     isFavorite: Boolean = false,
     uiState: MashUiState? = null,
+    spentTimeMillis: Long? = null,
 ): WorkLocalItem {
     val scheme = uiState?.scheme
     val completedCells = uiState?.completedCellIndices.orEmpty()
@@ -18,6 +19,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
         id = id,
         url = imageUrl.orEmpty(),
         image = image,
+        imagePath = null,
         isFavorite = isFavorite,
         projectName = projectName,
         schemeType = schemeType.name,
@@ -33,6 +35,7 @@ internal fun MashCreateConfig.toWorkLocalItem(
             totalCells = scheme?.indices?.size ?: 0,
             completedCells = completedCells.size,
         ),
+        spentTime = spentTimeMillis,
     )
 }
 
@@ -55,9 +58,14 @@ internal fun WorkLocalItem.toMashCreateConfigOrNull(): MashCreateConfig? {
     )
 }
 
-internal fun WorkLocalItem.decodeCompletedCells(): Set<Int> {
+internal fun WorkLocalItem.decodeCompletedCells(
+    totalCellsOverride: Int? = null,
+): Set<Int> {
+    val totalCells = totalCellsOverride
+        ?: ((gridWidth ?: 0) * (gridHeight ?: 0))
+
     return decodeCompletedCellsRle(
-        totalCells = (gridWidth ?: 0) * (gridHeight ?: 0),
+        totalCells = totalCells,
         rle = gridRle,
     )
 }

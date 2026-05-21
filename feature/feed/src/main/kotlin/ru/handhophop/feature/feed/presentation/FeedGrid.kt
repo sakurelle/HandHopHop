@@ -102,7 +102,6 @@ internal fun FeedGrid(
         }
     }
 }
-
 @Composable
 private fun FeedPhotoCard(
     photo: FeedPhotoItem,

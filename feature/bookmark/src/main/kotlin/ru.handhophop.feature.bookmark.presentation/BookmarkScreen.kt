@@ -1,13 +1,12 @@
 package ru.handhophop.feature.bookmark.presentation
 
-import android.graphics.BitmapFactory
+import java.io.File
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -39,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -57,7 +54,6 @@ import ru.handhophop.core.design.TopBarState
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.bookmark.R
-import ru.handhophop.design.R as DesignR
 
 @Composable
 fun BookmarkEntryPoint(
@@ -67,6 +63,7 @@ fun BookmarkEntryPoint(
     val repository = remember(context) {
         WorkLocalRepository(
             workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+            appContext = context.applicationContext,
         )
     }
     val viewModel: BookmarkViewModel = viewModel(
@@ -82,7 +79,6 @@ fun BookmarkEntryPoint(
         onPhotoSelected = onPhotoSelected,
     )
 }
-
 @Composable
 private fun BookmarkScreen(
     viewModel: BookmarkViewModel,
@@ -148,34 +144,6 @@ private fun BookmarkScreen(
 }
 
 @Composable
-private fun BookmarkTopBar() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(
-                    bottomStart = dimensionResource(DesignR.dimen.main_radius),
-                    bottomEnd = dimensionResource(DesignR.dimen.main_radius),
-                )
-            )
-            .background(colorResource(DesignR.color.main_color))
-    ) {
-        Text(
-            text = stringResource(R.string.bookmark_highlight_title),
-            style = MaterialTheme.typography.titleLarge,
-            color = colorResource(DesignR.color.black),
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(
-                    horizontal = dimensionResource(R.dimen.bookmark_topbar_horizontal_padding),
-                    vertical = dimensionResource(R.dimen.bookmark_topbar_vertical_padding),
-                ),
-        )
-    }
-}
-
-@Composable
 private fun BookmarkGrid(
     state: BookmarkUiState.Success,
     onPhotoSelected: (Long, String) -> Unit,
@@ -191,7 +159,7 @@ private fun BookmarkGrid(
             top = dimensionResource(R.dimen.bookmark_grid_top_padding),
             bottom = dimensionResource(R.dimen.bookmark_grid_bottom_padding),
         ),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
     ) {
         items(items = state.photos, key = { it.id }) { photo ->
@@ -238,28 +206,20 @@ private fun BookmarkPhoto(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val bitmapDecodeOffset = integerResource(R.integer.bookmark_bitmap_decode_offset)
-    val bitmap = remember(photo.imageBytes, bitmapDecodeOffset) {
-        photo.imageBytes?.let { imageBytes ->
-            BitmapFactory.decodeByteArray(imageBytes, bitmapDecodeOffset, imageBytes.size)
-        }
+    val model = remember(photo.imagePath, photo.photoUrl) {
+        photo.imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::File)
+            ?.takeIf(File::exists)
+            ?: photo.photoUrl
     }
 
-    if (bitmap == null) {
-        AsyncImage(
-            model = photo.photoUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.clickable(onClick = onClick),
-        )
-    } else {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.clickable(onClick = onClick),
-        )
-    }
+    AsyncImage(
+        model = model,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.clickable(onClick = onClick),
+    )
 }
 
 @Composable
@@ -383,7 +343,7 @@ private fun BookmarkLoadingSkeleton(
             horizontal = dimensionResource(R.dimen.bookmark_loading_skeleton_horizontal_padding),
             vertical = dimensionResource(R.dimen.bookmark_loading_skeleton_vertical_padding),
         ),
-        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.bookmark_grid_item_spacing),),
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.bookmark_grid_item_spacing)),
         verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
         userScrollEnabled = false,
     ) {
@@ -521,5 +481,4 @@ private fun rememberShimmerBrush(): Brush {
         end = Offset(translateX, gradientEndY),
     )
 }
-
 
