@@ -70,7 +70,7 @@ internal fun MashHomeScreen(
 
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = {showDialog=false },
             modifier = Modifier.border(
                 width = border * 2,
                 color = colors.button,
@@ -95,6 +95,7 @@ internal fun MashHomeScreen(
                 TextButton(
                     onClick = {
                         onDeleteSheme()
+                        showDialog =false
                     }
                 ) {
                     Text(
@@ -107,7 +108,7 @@ internal fun MashHomeScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { }
+                    onClick = { showDialog=false}
                 ) {
                     Text(
                         modifier = Modifier,
@@ -130,7 +131,7 @@ internal fun MashHomeScreen(
                     leftIconRes = null,
                     rightIconRes = if (projectConfig != null) ru.handhophop.design.R.drawable.delete else null
                 ),
-                { },
+                {showDialog=true},
                 { }
             )
         },

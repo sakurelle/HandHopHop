@@ -403,7 +403,7 @@ fun SettingScreen(
                 Text(
                     text = clearData,
                     fontSize = fontSize,
-                    color = colors.primaryAction,
+                    color = colors.textSecondary,
                 )
             }
             HandHopHopButton(
