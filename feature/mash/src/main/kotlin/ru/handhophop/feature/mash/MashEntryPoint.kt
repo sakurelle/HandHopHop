@@ -71,6 +71,8 @@ fun MashEntryPoint(
     }
 
     val viewModel: MashViewModel = viewModel()
+
+
     val uiState by viewModel.uiState.collectAsState()
 
     val cachedWork = remember(initialWorkId, initialImageUrl) {

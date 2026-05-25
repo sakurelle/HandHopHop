@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +18,8 @@ import androidx.core.content.ContextCompat
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.HandHopHopDesignTheme
 import ru.handhophop.core.design.ThemeMode
+import ru.handhophop.core.network.voucher.VoucherNetworkService
+import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.bookmark.presentation.BookmarkEntryPoint
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint
 import ru.handhophop.feature.mash.MashEntryPoint
@@ -37,6 +40,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val themePreferences = ThemePreferences(applicationContext)
         setContent {
+            PremiumProvider.init(applicationContext)
             val systemIsDarkTheme = isSystemInDarkTheme()
             var themeMode by remember {
                 mutableStateOf(themePreferences.getThemeMode())
@@ -45,6 +49,10 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.SYSTEM -> systemIsDarkTheme
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
+            }
+            LaunchedEffect(Unit) {
+                PremiumProvider.ensureUserHashExists()
+                PremiumProvider.isPremium()
             }
 
             HandHopHopDesignTheme(isDarkTheme = isDarkTheme) {

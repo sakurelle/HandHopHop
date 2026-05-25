@@ -41,6 +41,7 @@ import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.ThemeMode
 import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
+import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.design.R as DesignR
 
 @Composable
@@ -55,9 +56,10 @@ fun SettingScreen(
     val dimensions = HandHopHopDesignSystem.dimensions
     val showDialog = remember { mutableStateOf(false) }
 
-    val storageText by viewModel.storageText
-    val storageProgress by viewModel.storageProgress
 
+    val uiState by viewModel.uiState
+
+    val premiumRemainingText = uiState.premiumRemainingText
     LaunchedEffect(Unit) {
         viewModel.updateStorageStats()
     }
@@ -94,6 +96,82 @@ fun SettingScreen(
         stringResource(R.string.theme_mode_follow_system_description)
     } else {
         stringResource(R.string.theme_mode_manual_description)
+    }
+
+    val showPremiumDialog = remember { mutableStateOf(false) }
+    val voucherText = remember { mutableStateOf("") }
+    val isPremium = uiState.isPremium
+    val storageText = uiState.storageText
+    val storageProgress = uiState.storageProgress
+
+    val premiumTitle = stringResource(R.string.premium_voucher_title)
+    val premiumPlaceholder = stringResource(R.string.premium_voucher_placeholder)
+    val premiumConfirm = stringResource(R.string.premium_voucher_confirm)
+    val getPremiumText = stringResource(R.string.premium_get_button)
+    val premiumActiveText = stringResource(R.string.premium_is_active)
+    val voucherError = uiState.voucherError
+
+
+    if (showPremiumDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showPremiumDialog.value = false },
+            modifier = Modifier.border(
+                width = border * 2,
+                color = colors.primaryAction,
+                shape = RoundedCornerShape(radius),
+            ),
+            title = {
+                Text(
+                    text = premiumTitle,
+                    fontFamily = FontFamily.Default,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textPrimary,
+                )
+            },
+            text = {
+                Column {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = voucherText.value,
+                        onValueChange = { voucherText.value = it },
+                        placeholder = { Text(premiumPlaceholder) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = voucherError != null,
+                        supportingText = {
+                            if (voucherError != null) {
+                                Text(text = voucherError!!, color = colors.error)
+                            }
+                        },
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colors.primaryAction,
+                            unfocusedBorderColor = colors.textSecondary
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.checkVoucher(voucherText.value)
+                        if (voucherError == null) showPremiumDialog.value = false
+                    },
+                ) {
+                    Text(
+                        text = premiumConfirm,
+                        fontFamily = FontFamily.Default,
+                        color = colors.primaryAction,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPremiumDialog.value = false }) {
+                    Text(text = dialogDismiss, color = colors.textSecondary)
+                }
+            },
+            containerColor = colors.topBar,
+            shape = RoundedCornerShape(radius),
+        )
     }
 
     if (showDialog.value) {
@@ -326,6 +404,41 @@ fun SettingScreen(
                     text = clearData,
                     fontSize = fontSize,
                     color = colors.primaryAction,
+                )
+            }
+            HandHopHopButton(
+                modifier = Modifier
+                    .padding(top = dimensions.md)
+                    .width(width),
+                onClick = {
+                    if (!isPremium) {
+                        showPremiumDialog.value = true
+                    }
+                },
+                size = ButtonState.Size.FIX,
+                textColor = ButtonState.Color.Button,
+                buttonColor = ButtonState.Color.BottomBar,
+            ) {
+                Text(
+                    text = if (isPremium) premiumActiveText else getPremiumText,
+                    fontSize = fontSize,
+                    color = if (isPremium) colors.textSecondary else colors.primaryAction,
+                )
+            }
+            Spacer(modifier = Modifier.height(dimensions.xs))
+            Text(
+                text = PremiumProvider.getUserHash(),
+                fontSize = fontSize,
+                color = if (isPremium) colors.textSecondary else colors.primaryAction,
+            )
+            if (isPremium && premiumRemainingText.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(dimensions.xs))
+                Text(
+                    text = premiumRemainingText,
+                    fontSize = fontSize * 0.7f,
+                    color = colors.textSecondary,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
             }
         }

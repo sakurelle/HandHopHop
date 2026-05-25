@@ -57,5 +57,8 @@ dependencies {
 
     implementation(project(":feature:feed"))
     implementation(project(":core:system"))
+    implementation(project(":core:session"))
+    implementation(project(":core:network"))
+
 
 }
