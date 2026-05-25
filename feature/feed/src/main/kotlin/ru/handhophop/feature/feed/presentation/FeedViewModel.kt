@@ -14,26 +14,30 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal class FeedViewModel(
     private val repository: FeedRepository,
-): ViewModel() {
+) : ViewModel() {
     private companion object {
         const val TAG = "FeedViewModel"
         const val SECTION_ORIENTATION = 0
         const val SECTION_COLOR = 1
-        const val SECTION_AI = 2
+        const val SECTION_CATEGORY = 2
+        const val SECTION_SORTING = 3
     }
+
     private val curPage = AtomicInteger(1)
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
     val uiState: StateFlow<FeedUiState> = _uiState
-    private val currentFilter: FeedFilter get() = (_uiState.value as? FeedUiState.Success)?.currentFilter?: FeedFilter()
+    private val currentFilter: FeedFilter
+        get() = (_uiState.value as? FeedUiState.Success)?.currentFilter ?: FeedFilter()
 
     fun handleAction(action: FeedUiAction) {
         when (action) {
             is FeedUiAction.LoadPhotos -> loadPhotosIfNeeded()
             is FeedUiAction.Refresh -> refreshPhotos()
             is FeedUiAction.LoadNextPage -> loadNextPage()
-            is FeedUiAction.PhotoClicked -> { /*какое-то действие, пока не трогаю*/ }
-            is FeedUiAction.ApplyFilter -> aplyFilter(action.sectionId, action.optionId)
+            is FeedUiAction.PhotoClicked -> { }
+            is FeedUiAction.ApplyFilter -> applyFilter(action.sectionId, action.optionId)
             is FeedUiAction.SetFilterVisibility -> setFilterVisibility(action.isVisible)
+            is FeedUiAction.FavoriteClicked -> onFavoriteClick(action.photo)
         }
     }
 
@@ -44,19 +48,72 @@ internal class FeedViewModel(
         }
     }
 
-    private fun aplyFilter(sectionId: Int, optionId: Int) {
+    private fun onFavoriteClick(photo: FeedPhotoItem) {
+        val newIsBookmarked = !photo.isBookmarked
+
+        updateFavoriteState(
+            photoUrl = photo.photoUrl,
+            isBookmarked = newIsBookmarked,
+        )
+
+        viewModelScope.launch {
+            runCatching {
+                repository.setFavorite(
+                    photoUrl = photo.photoUrl,
+                    isFavorite = newIsBookmarked,
+                )
+            }.onFailure {
+                updateFavoriteState(
+                    photoUrl = photo.photoUrl,
+                    isBookmarked = photo.isBookmarked,
+                )
+            }
+        }
+    }
+
+    private fun updateFavoriteState(
+        photoUrl: String,
+        isBookmarked: Boolean,
+    ) {
+        _uiState.update { current ->
+            if (current !is FeedUiState.Success) return@update current
+
+            current.copy(
+                photos = current.photos.map { photo ->
+                    if (photo.photoUrl == photoUrl) {
+                        photo.copy(isBookmarked = isBookmarked)
+                    } else {
+                        photo
+                    }
+                },
+                recommendedPhotos = current.recommendedPhotos.map { photo ->
+                    if (photo.photoUrl == photoUrl) {
+                        photo.copy(isBookmarked = isBookmarked)
+                    } else {
+                        photo
+                    }
+                },
+            )
+        }
+    }
+
+    private fun applyFilter(sectionId: Int, optionId: Int) {
         val newFilter = when (sectionId) {
             SECTION_ORIENTATION -> {
-                val orientation = OrientationFilter.entries.first {it.id == optionId}
-                currentFilter.copy(orientation=orientation)
+                val orientation = OrientationFilter.entries.first { it.id == optionId }
+                currentFilter.copy(orientation = orientation)
             }
             SECTION_COLOR -> {
-                val color = ColorFilter.entries.first {it.id == optionId}
+                val color = ColorFilter.entries.first { it.id == optionId }
                 currentFilter.copy(color = color)
             }
-            SECTION_AI -> {
-                val ai = AiGeneratedFilter.entries.first {it.id == optionId}
-                currentFilter.copy(aiGenerated = ai)
+            SECTION_CATEGORY -> {
+                val category = CategoryFilter.entries.first { it.id == optionId }
+                currentFilter.copy(category = category)
+            }
+            SECTION_SORTING -> {
+                val sorting = SortingFilter.entries.first { it.id == optionId }
+                currentFilter.copy(sorting = sorting)
             }
             else -> currentFilter
         }
@@ -80,11 +137,10 @@ internal class FeedViewModel(
                     FilterOptionState(
                         textRes = entry.labelRes,
                         id = entry.id,
-                        isSelected = filter.orientation == entry
+                        isSelected = filter.orientation == entry,
                     )
-                }
+                },
             ),
-
             FilterSectionState(
                 sectionId = SECTION_COLOR,
                 titleRes = R.string.color_title,
@@ -92,22 +148,32 @@ internal class FeedViewModel(
                     FilterOptionState(
                         textRes = entry.labelRes,
                         id = entry.id,
-                        isSelected = filter.color == entry
+                        isSelected = filter.color == entry,
                     )
-                }
+                },
             ),
-
             FilterSectionState(
-                sectionId = SECTION_AI,
-                titleRes = R.string.ai_title,
-                options = AiGeneratedFilter.entries.map { entry ->
+                sectionId = SECTION_CATEGORY,
+                titleRes = R.string.category_title,
+                options = CategoryFilter.entries.map { entry ->
                     FilterOptionState(
                         textRes = entry.labelRes,
                         id = entry.id,
-                        isSelected = filter.aiGenerated == entry
+                        isSelected = filter.category == entry,
                     )
-                }
-            )
+                },
+            ),
+            FilterSectionState(
+                sectionId = SECTION_SORTING,
+                titleRes = R.string.sorting_title,
+                options = SortingFilter.entries.map { entry ->
+                    FilterOptionState(
+                        textRes = entry.labelRes,
+                        id = entry.id,
+                        isSelected = filter.sorting == entry,
+                    )
+                },
+            ),
         )
     }
 
@@ -148,8 +214,9 @@ internal class FeedViewModel(
             repository.getPhotos(
                 orientationId = filterCopy.orientation.id,
                 colorId = filterCopy.color.id,
-                aiId = filterCopy.aiGenerated.id
-                ).fold(
+                categoryCode = filterCopy.category.code,
+                sorting = filterCopy.sorting.value,
+            ).fold(
                 onSuccess = { photos ->
                     Log.d(TAG, "Main feed loaded successfully. count=${photos.size}")
                     val items = photos.map {
@@ -157,7 +224,8 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
-                            progressPercentage = it.progressPercentage
+                            isStarted = it.isStarted,
+                            progressPercentage = it.progressPercentage,
                         )
                     }
                     _uiState.value = FeedUiState.Success(
@@ -166,26 +234,25 @@ internal class FeedViewModel(
                         hasNext = items.isNotEmpty(),
                         filterSections = setFilterSections(filterCopy),
                         currentFilter = filterCopy,
-                        isRefreshing = false
+                        isRefreshing = false,
                     )
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Main feed load failed", error)
                     _uiState.update { current ->
                         if (current is FeedUiState.Success) {
-                            current.copy(isRefreshing =false)
+                            current.copy(isRefreshing = false)
                         } else {
                             FeedUiState.Error(
                                 reason = mapError(error),
-                                msg = error.message ?: "Unknown error"
+                                msg = error.message ?: "Unknown error",
                             )
                         }
                     }
-                }
+                },
             )
 
             repository.getRecommendedPhotos().fold(
-
                 onSuccess = { photos ->
                     Log.d(TAG, "Recommended photos loaded successfully. count=${photos.size}")
                     val items = photos.map {
@@ -193,17 +260,17 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
-                            progressPercentage = it.progressPercentage
+                            isStarted = it.isStarted,
+                            progressPercentage = it.progressPercentage,
                         )
                     }
                     _uiState.update { current ->
                         if (current !is FeedUiState.Success) return@update current
                         current.copy(
                             recommendedPhotos = items,
-                            isRecommendedLoading = false
+                            isRecommendedLoading = false,
                         )
                     }
-
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Recommended photos load failed", error)
@@ -211,11 +278,11 @@ internal class FeedViewModel(
                         if (current !is FeedUiState.Success) return@update current
                         current.copy(isRecommendedLoading = false)
                     }
-                }
+                },
             )
-
         }
     }
+
     private fun loadNextPage() {
         var nextPage = -1
 
@@ -237,8 +304,9 @@ internal class FeedViewModel(
                 count = 10,
                 orientationId = currentFilter.orientation.id,
                 colorId = currentFilter.color.id,
-                aiId = currentFilter.aiGenerated.id
-                ).fold(
+                categoryCode = currentFilter.category.code,
+                sorting = currentFilter.sorting.value,
+            ).fold(
                 onSuccess = { photos ->
                     Log.d(TAG, "Next page loaded successfully. page=$nextPage, count=${photos.size}")
                     val newPhotos = photos.map {
@@ -246,7 +314,8 @@ internal class FeedViewModel(
                             id = it.id,
                             photoUrl = it.photoUrl,
                             isBookmarked = it.isBookmarked,
-                            progressPercentage = it.progressPercentage
+                            isStarted = it.isStarted,
+                            progressPercentage = it.progressPercentage,
                         )
                     }
 
@@ -255,11 +324,9 @@ internal class FeedViewModel(
                         current.copy(
                             photos = current.photos + newPhotos,
                             hasNext = newPhotos.isNotEmpty(),
-                            isLoadingMore = false
+                            isLoadingMore = false,
                         )
                     }
-
-
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Next page load failed. page=$nextPage", error)
@@ -267,17 +334,18 @@ internal class FeedViewModel(
                         if (current !is FeedUiState.Success) return@update current
                         current.copy(isLoadingMore = false)
                     }
-                }
+                },
             )
         }
     }
 
-    private fun mapError(error: Throwable): FeedError = when {
-        error is java.net.UnknownHostException -> FeedError.NetworkUnavailable
-        error is java.io.IOException -> FeedError.LoadingFailure
+    private fun mapError(error: Throwable): FeedError = when (error) {
+        is java.net.UnknownHostException -> FeedError.NetworkUnavailable
+        is java.io.IOException -> FeedError.LoadingFailure
         else -> FeedError.Default
     }
 
+    @Suppress("UNCHECKED_CAST")
     class Factory(private val repository: FeedRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return FeedViewModel(repository) as T

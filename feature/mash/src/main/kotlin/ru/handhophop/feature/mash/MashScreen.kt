@@ -86,7 +86,6 @@ internal fun MashScreen(
     onHighlightColorToggle: (Int) -> Unit,
     onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
-
 ) {
     CenterContentMash(
         title = title,
@@ -97,7 +96,6 @@ internal fun MashScreen(
         onHighlightColorToggle = onHighlightColorToggle,
         onPaletteCompletionToggle = onPaletteCompletionToggle,
         onClearSelection = onClearSelection,
-
     )
 }
 
@@ -111,7 +109,6 @@ private fun CenterContentMash(
     onHighlightColorToggle: (Int) -> Unit,
     onPaletteCompletionToggle: (Int) -> Unit,
     onClearSelection: () -> Unit,
-
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -361,8 +358,7 @@ private fun DownloadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = HandHopHopDesignSystem.colors
-    val dimensions = HandHopHopDesignSystem.dimensions
+
     HandHopHopButton(
         onClick = onClick,
         enabled = enabled,
@@ -488,9 +484,6 @@ private fun NumberedSchemeCanvas(
     var scale by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableFloatStateOf(1f)
     }
-    var canvasSize by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
-        mutableStateOf(IntSize.Zero)
-    }
     var offset by remember(scheme.gridW, scheme.gridH, scheme.indices.size) {
         mutableStateOf<Offset?>(null)
     }
@@ -547,7 +540,6 @@ private fun NumberedSchemeCanvas(
             .clipToBounds()
             .background(schemeBackgroundColor)
             .onSizeChanged { size ->
-                canvasSize = size
                 offset = clampOffset(
                     viewWidth = size.width.toFloat(),
                     viewHeight = size.height.toFloat(),
@@ -599,7 +591,7 @@ private fun NumberedSchemeCanvas(
                         }
 
                         val zoom = event.calculateZoom()
-                        if (zoom < 0.999f || zoom > 1.001f) {
+                        if (zoom !in 0.999f..1.001f) {
                             tapCandidate = false
                         }
 

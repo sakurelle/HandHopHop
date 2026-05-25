@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Overlay backgrounds -->
+    <color name="feed_overlay_background">#8C000000</color>
+
+    <!-- Progress circle -->
+    <color name="feed_progress_indicator_color">#FFFFFFFF</color>
+    <color name="feed_progress_indicator_track_color">#4DFFFFFF</color>
+    <color name="feed_progress_text_color">#FFFFFFFF</color>
+
+    <!-- Bookmark -->
+    <color name="feed_bookmark_selected_color">#FFFF5A5F</color>
+    <color name="feed_bookmark_unselected_color">#FFFFFFFF</color>
+
+</resources>

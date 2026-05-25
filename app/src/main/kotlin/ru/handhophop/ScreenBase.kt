@@ -66,7 +66,7 @@ internal fun ScreenBase(
                 mashScreen(
                     key.workId,
                     key.imageUrl,
-                    { feedScreen { Unit } },
+                    { feedScreen { } },
                     {
                         if (backStack.size > 1) {
                             backStack.removeAt(backStack.lastIndex)

@@ -41,8 +41,6 @@ data class DesignColors(
     val onPrimaryAction: Color
         get() = notWhite
 
-    val floatingAction: Color
-        get() = textAndIcons
 }
 
 @Immutable

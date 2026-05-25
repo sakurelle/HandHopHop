@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
     <string name="recommended_row_header">На основе ваших предпочтений</string>
 
-    <string name="ai_title">Сгенерировано ИИ</string>
     <string name="orientation_title">Ориентация картинок</string>
     <string name="color_title">Основной цвет</string>
+    <string name="category_title">Категория</string>
+    <string name="sorting_title">Сортировка</string>
 
-    <string name="all">all</string>
-    <string name="any">any</string>
-    <string name="black">black</string>
-    <string name="blue">blue</string>
-    <string name="gray">gray</string>
-    <string name="green">green</string>
-    <string name="orange">orange</string>
-    <string name="red">red</string>
-    <string name="white">white</string>
-    <string name="yellow">yellow</string>
-    <string name="purple">purple</string>
-    <string name="cyan">cyan</string>
-    <string name="pink">pink</string>
+    <string name="category_general">General</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_people">People</string>
+    <string name="category_all">Все категории</string>
 
-    <string name="landscape">landscape</string>
-    <string name="portrait">portrait</string>
-    <string name="square">square</string>
-    <string name="panoramic">panoramic</string>
-
-    <string name="ai_only">only</string>
-    <string name="ai_excluded">excluded</string>
+    <string name="sorting_random">Случайная</string>
+    <string name="sorting_relevance">По релевантности</string>
+    <string name="sorting_date_added">По дате добавления</string>
+    <string name="sorting_views">По просмотрам</string>
+    <string name="sorting_favorites">По избранному</string>
+    <string name="sorting_toplist">Топ лист</string>
 
     <string name="all_option">Все</string>
-    <string name="any_option">Любая</string>
     <string name="black_option">Черный</string>
     <string name="blue_option">Синий</string>
     <string name="gray_option">Серый</string>
@@ -48,8 +37,8 @@
     <string name="square_option">Квадратная</string>
     <string name="panoramic_option">Панорамная</string>
 
-    <string name="ai_only_option">Только ИИ</string>
-    <string name="ai_excluded_option">Без ИИ</string>
-
-
+    <string name="feed_bookmark_add_to_favorites">Добавить в избранное</string>
+    <string name="feed_bookmark_remove_from_favorites">Удалить из избранного</string>
+    <string name="feed_progress_percent">%1$d%%</string>
+    <string name="feed_error_message">Ошибка: %1$s</string>
 </resources>

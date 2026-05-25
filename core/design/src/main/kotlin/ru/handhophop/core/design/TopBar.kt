@@ -19,7 +19,6 @@ fun TopBar(
     state: TopBarState,
     onClickRight: () -> Unit,
     onClickLeft: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val height = dimensionResource(R.dimen.top_bar_height)
     val radius = dimensionResource(R.dimen.main_radius)

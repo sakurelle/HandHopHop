@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import ru.handhophop.core.network.FreepikNetwork
+import ru.handhophop.core.network.WallhavenNetwork
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.feed.data.FeedRepository
@@ -18,9 +18,10 @@ fun FeedEntryPoint(
 
     val repository = remember(context) {
         FeedRepository(
-            apiService = FreepikNetwork.getApiService(),
+            apiService = WallhavenNetwork.getApiService(),
             workLocalRepository = WorkLocalRepository(
-                workDao = HandHopHopDatabaseProvider.get(context).workDao()
+                workDao = HandHopHopDatabaseProvider.get(context).workDao(),
+                appContext = context.applicationContext,
             )
         )
     }

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "ru.handhophop.feature.feed"
-    compileSdk = 35
+    compileSdk = 36
 
     compileSdk {
         version = release(36)
@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:design"))
     implementation(project(":core:system"))
+    implementation(project(":feature:bookmark"))
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.coil)

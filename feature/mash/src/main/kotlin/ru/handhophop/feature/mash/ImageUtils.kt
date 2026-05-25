@@ -6,13 +6,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.max
@@ -37,15 +36,6 @@ internal suspend fun loadBitmapFromUrl(
     }.getOrNull()
 }
 
-internal suspend fun loadDefaultBitmap(
-    context: Context,
-    @DrawableRes drawableRes: Int
-): Bitmap? = withContext(Dispatchers.IO) {
-    runCatching {
-        ContextCompat.getDrawable(context, drawableRes)?.let(::drawableToBitmap)
-    }.getOrNull()
-}
-
 internal fun bitmapToByteArray(
     bitmap: Bitmap,
 ): ByteArray? = runCatching {
@@ -59,6 +49,16 @@ internal fun byteArrayToBitmap(
     bytes: ByteArray,
 ): Bitmap? = runCatching {
     BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}.getOrNull()
+
+internal fun readImageBytesFromFile(
+    imagePath: String?,
+): ByteArray? = runCatching {
+    imagePath
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::File)
+        ?.takeIf(File::exists)
+        ?.readBytes()
 }.getOrNull()
 
 private fun drawableToBitmap(drawable: Drawable): Bitmap? =

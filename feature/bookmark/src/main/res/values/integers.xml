@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="bookmark_grid_columns">2</integer>
+
+    <integer name="bookmark_bitmap_decode_offset">0</integer>
+
+    <integer name="bookmark_progress_min">0</integer>
+    <integer name="bookmark_progress_max">100</integer>
+
+    <integer name="bookmark_alpha_denominator">100</integer>
+    <integer name="bookmark_shimmer_base_alpha_percent">90</integer>
+    <integer name="bookmark_shimmer_initial_translate_x">-400</integer>
+    <integer name="bookmark_shimmer_target_translate_x">1200</integer>
+    <integer name="bookmark_shimmer_duration_millis">1200</integer>
+    <integer name="bookmark_shimmer_gradient_offset">300</integer>
+    <integer name="bookmark_shimmer_gradient_end_y">300</integer>
+
+    <integer name="bookmark_shimmer_gradient_start_y">0</integer>
+</resources>

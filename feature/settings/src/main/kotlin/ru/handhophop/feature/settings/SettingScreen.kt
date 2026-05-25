@@ -243,8 +243,8 @@ fun SettingScreen(
                     leftIconRes = null,
                     rightIconRes = null,
                 ),
-                { Unit },
-                { Unit },
+                onClickRight = {},
+                onClickLeft = {},
             )
 
             Box(
