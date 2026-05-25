@@ -73,6 +73,7 @@ internal class MashViewModel : ViewModel() {
             is TogglePaletteCompletedAction -> {
                 togglePaletteCells(action.paletteIndex)
             }
+
         }
     }
 
@@ -89,7 +90,6 @@ internal class MashViewModel : ViewModel() {
             completedCellIndices = emptySet()
         )
     }
-
 
     internal fun restoreCachedWork(cachedState: MashUiState) {
         _uiState.value = cachedState.withDerivedPaletteState()

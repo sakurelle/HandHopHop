@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="work_completed_screen_horizontal_padding">16dp</dimen>
+    <dimen name="work_completed_content_spacing">16dp</dimen>
+
+    <dimen name="work_completed_card_radius">28dp</dimen>
+    <dimen name="work_completed_card_elevation">2dp</dimen>
+    <dimen name="work_completed_card_padding">16dp</dimen>
+    <dimen name="work_completed_card_inner_spacing">12dp</dimen>
+    <dimen name="work_completed_image_radius">16dp</dimen>
+
+    <dimen name="work_completed_text_spacing">8dp</dimen>
+
+    <dimen name="work_completed_check_badge_size">42dp</dimen>
+    <dimen name="work_completed_check_offset">8dp</dimen>
+
+    <dimen name="work_completed_button_height">44dp</dimen>
+    <dimen name="work_completed_button_radius">10dp</dimen>
+
+    <dimen name="work_completed_see_all_icon_size">18dp</dimen>
+
+    <dimen name="work_completed_recommendations_grid_height">360dp</dimen>
+    <dimen name="work_completed_recommendations_spacing">12dp</dimen>
+    <dimen name="work_completed_recommendations_bottom_padding">8dp</dimen>
+    <dimen name="work_completed_recommendation_card_radius">12dp</dimen>
+
+    <dimen name="work_completed_bookmark_button_width">32dp</dimen>
+    <dimen name="work_completed_bookmark_button_height">28dp</dimen>
+    <dimen name="work_completed_bookmark_button_bottom_start_radius">8dp</dimen>
+    <dimen name="work_completed_bookmark_icon_size">18dp</dimen>
+
+    <dimen name="work_completed_top_spacing">10dp</dimen>
+    <dimen name="work_completed_hero_border_width">1dp</dimen>
+    <dimen name="work_completed_secondary_button_border_width">1dp</dimen>
+    <dimen name="work_completed_check_icon_size">24dp</dimen>
+    <dimen name="work_completed_recommendation_card_aspect_ratio_width">3dp</dimen>
+    <dimen name="work_completed_recommendation_card_aspect_ratio_height">4dp</dimen>
+</resources>
