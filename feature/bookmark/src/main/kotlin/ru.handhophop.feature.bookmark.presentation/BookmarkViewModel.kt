@@ -27,11 +27,15 @@ internal class BookmarkViewModel(
                 repository.getBookmarkPreviews()
                     .asSequence()
                     .map { work ->
+                        val photoUrl = work.url.orEmpty()
+                        val canBookmark = photoUrl.isOnlinePhotoUrl()
+
                         BookmarkPhotoItem(
                             id = work.id,
-                            photoUrl = work.url.orEmpty(),
+                            photoUrl = photoUrl,
                             imagePath = work.imagePath,
-                            isBookmarked = work.isFavorite,
+                            isBookmarked = canBookmark && work.isFavorite,
+                            canBookmark = canBookmark,
                             isStarted = work.isStarted,
                             progressPercentage = work.percentage ?: 0,
                             projectName = work.projectName,
@@ -62,6 +66,10 @@ internal class BookmarkViewModel(
     }
 
     fun onFavoriteClick(photo: BookmarkPhotoItem) {
+        if (!photo.canBookmark) {
+            return
+        }
+
         viewModelScope.launch {
             val newIsBookmarked = !photo.isBookmarked
 
@@ -137,4 +145,8 @@ internal class BookmarkViewModel(
             return BookmarkViewModel(repository) as T
         }
     }
+}
+
+private fun String.isOnlinePhotoUrl(): Boolean {
+    return startsWith("http://") || startsWith("https://")
 }

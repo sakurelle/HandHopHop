@@ -46,7 +46,6 @@ import ru.handhophop.feature.mash.Statistics.toProjectMetrics
 internal fun MashHomeScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
-    onSearchFeedClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
@@ -163,8 +162,8 @@ internal fun MashHomeScreen(
                         projectConfig == null -> MashHomeStateCard(
                             title = stringResource(R.string.mash_home_no_project_title),
                             description = stringResource(R.string.mash_home_no_project_description),
-                            buttonText = stringResource(R.string.mash_home_go_to_feed),
-                            onButtonClick = onSearchFeedClick,
+                            buttonText = stringResource(R.string.mash_home_create_work),
+                            onButtonClick = onCreateProjectClick,
                         )
 
                         uiState.isLoading && !metrics.isReady -> MashHomeStateCard(

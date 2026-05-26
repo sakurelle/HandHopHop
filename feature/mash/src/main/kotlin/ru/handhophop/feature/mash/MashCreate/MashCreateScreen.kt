@@ -469,12 +469,11 @@ private fun MashCreateImageSection(
             HandHopHopButton(
                 onClick = onPickLocalImage,
                 size = ButtonState.Size.FILL,
-                textColor = ButtonState.Color.Button,
-                buttonColor = ButtonState.Color.Background,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
             ) {
                 Text(
                     text = stringResource(R.string.mash_create_choose_from_gallery),
-                    color = colors.primaryAction,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                 )

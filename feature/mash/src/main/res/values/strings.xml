@@ -66,6 +66,7 @@
     <string name="mash_home_colors_subtitle">%1$d из %2$d используемых цветов уже отмечены</string>
     <string name="mash_home_create_project">Создать проект</string>
     <string name="mash_home_go_to_feed">Изучить ленту</string>
+    <string name="mash_home_create_work">Создать работу</string>
     <string name="mash_home_new_project">Новый проект</string>
     <string name="mash_home_open_project">Продолжить проект</string>
     <string name="mash_home_open_statistics">Статистика</string>

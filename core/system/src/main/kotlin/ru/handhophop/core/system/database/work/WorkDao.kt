@@ -374,7 +374,16 @@ interface WorkDao {
             w.id AS id,
             w.url AS url,
             w.image_path AS imagePath,
-            1 AS isFavorite,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work AS wf
+                    WHERE wf.url = w.url
+                        AND wf.is_favorite = 1
+                )
+                THEN 1
+                ELSE 0
+            END AS isFavorite,
             CASE
                 WHEN (
                     w.project_name IS NOT NULL
@@ -404,16 +413,61 @@ interface WorkDao {
         FROM work AS w
         WHERE w.url IS NOT NULL
             AND w.url != ''
-            AND EXISTS (
-                SELECT 1
-                FROM work AS wf
-                WHERE wf.url = w.url
-                    AND wf.is_favorite = 1
+            AND (
+                EXISTS (
+                    SELECT 1
+                    FROM work AS wf
+                    WHERE wf.url = w.url
+                        AND wf.is_favorite = 1
+                )
+                OR (
+                    w.project_name IS NOT NULL
+                    AND w.project_name != ''
+                    AND w.scheme_type IS NOT NULL
+                    AND w.scheme_type != ''
+                    AND w.color_count IS NOT NULL
+                    AND w.color_count > 0
+                    AND w.difficulty IS NOT NULL
+                    AND w.difficulty != ''
+                )
+                OR (
+                    w.percentage IS NOT NULL
+                    AND w.percentage > 0
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = w.id
+                    LIMIT 1
+                )
             )
             AND w.id = (
                 SELECT w2.id
                 FROM work AS w2
                 WHERE w2.url = w.url
+                    AND (
+                        w2.is_favorite = 1
+                        OR (
+                            w2.project_name IS NOT NULL
+                            AND w2.project_name != ''
+                            AND w2.scheme_type IS NOT NULL
+                            AND w2.scheme_type != ''
+                            AND w2.color_count IS NOT NULL
+                            AND w2.color_count > 0
+                            AND w2.difficulty IS NOT NULL
+                            AND w2.difficulty != ''
+                        )
+                        OR (
+                            w2.percentage IS NOT NULL
+                            AND w2.percentage > 0
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM work_progress_chunk
+                            WHERE work_progress_chunk.work_id = w2.id
+                            LIMIT 1
+                        )
+                    )
                 ORDER BY
                     CASE
                         WHEN w2.project_name IS NOT NULL

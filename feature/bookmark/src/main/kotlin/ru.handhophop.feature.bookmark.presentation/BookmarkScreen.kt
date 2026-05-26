@@ -246,12 +246,14 @@ private fun BookmarkPhotoCard(
                 onClick = onClick,
             )
 
-            BookmarkButton(
-                isBookmarked = photo.isBookmarked,
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-            )
+            if (photo.canBookmark) {
+                BookmarkButton(
+                    isBookmarked = photo.isBookmarked,
+                    onClick = onFavoriteClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                )
+            }
 
             if (photo.isStarted) {
                 BookmarkProgressBadge(

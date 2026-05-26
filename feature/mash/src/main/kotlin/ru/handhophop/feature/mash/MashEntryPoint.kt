@@ -540,9 +540,6 @@ fun MashEntryPoint(
                         }
                     }
                 },
-                onSearchFeedClick = {
-                    onOpenFeed()
-                }
             )
         }
 
@@ -579,7 +576,11 @@ fun MashEntryPoint(
                     },
                     imageLoadFailed = createImageLoadFailed,
                     onBackClick = {
-                        onBack()
+                        if (initialWorkId == null && initialImageUrl == null) {
+                            destination = MashDestination.HOME
+                        } else {
+                            onBack()
+                        }
                     },
                     onPickLocalImage = {
                         localImagePickerLauncher.launch(
@@ -589,9 +590,11 @@ fun MashEntryPoint(
                         )
                     },
                     onOpenFeed = {
+                        selectedCreateImageUrl = null
                         currentWorkImagePath = null
                         workImageBytes = null
                         imageLoadAttemptKey = null
+                        createImageLoadFailed = false
                         onOpenFeed()
                     },
                     onCreateFinished = { newConfig ->
