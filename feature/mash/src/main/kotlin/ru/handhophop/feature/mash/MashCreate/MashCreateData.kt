@@ -9,10 +9,9 @@ internal const val MASH_CREATE_MAX_COLORS = 30
 internal const val MASH_CREATE_DEFAULT_COLORS = 20
 
 internal enum class MashCreateSchemeType(
-    @StringRes val titleRes: Int,
 ) {
-    COLORING(R.string.mash_create_scheme_coloring),
-    EMBROIDERY(R.string.mash_create_scheme_embroidery),
+    COLORING(),
+    EMBROIDERY(),
 }
 
 internal enum class MashCreateDifficulty(
@@ -43,6 +42,7 @@ internal data class MashThread(
 internal data class MashCreateConfig(
     val projectName: String,
     val imageUrl: String?,
+    val imagePath: String? = null,
     val schemeType: MashCreateSchemeType,
     val colorCount: Int,
     val difficulty: MashCreateDifficulty,

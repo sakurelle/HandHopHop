@@ -1,5 +1,6 @@
 package ru.handhophop.feature.mash.MashCreate
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,7 +49,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import ru.handhophop.core.design.ButtonState
 import ru.handhophop.core.design.HandHopHopButton
@@ -57,15 +57,32 @@ import ru.handhophop.core.design.TopBar
 import ru.handhophop.core.design.TopBarState
 import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.mash.R
+import ru.handhophop.feature.mash.byteArrayToBitmap
 import ru.handhophop.feature.mash.loadBitmapFromUrl
+import ru.handhophop.feature.mash.readImageBytesFromFile
 import ru.handhophop.feature.mash.selectPaletteForImage
+
+private sealed interface ImagePreviewState {
+    data object Empty : ImagePreviewState
+    data object Loading : ImagePreviewState
+    data object Failed : ImagePreviewState
+
+    data class Loaded(
+        val bitmap: Bitmap,
+    ) : ImagePreviewState
+}
 
 @Composable
 internal fun MashCreateScreen(
     imageUrl: String?,
+    localImagePath: String? = null,
+    localImageBytes: ByteArray? = null,
+    imageLoadFailed: Boolean = false,
     suggestedProjectName: String = "",
     onCreateFinished: (MashCreateConfig) -> Unit = {},
     onBackClick: () -> Unit = {},
+    onPickLocalImage: () -> Unit = {},
+    onOpenFeed: () -> Unit = {},
 ) {
     var projectName by rememberSaveable(imageUrl, suggestedProjectName) {
         mutableStateOf(suggestedProjectName)
@@ -77,20 +94,47 @@ internal fun MashCreateScreen(
         mutableStateOf(MashCreateDifficulty.MEDIUM)
     }
     val context = LocalContext.current
-    val previewBitmap by produceState<Bitmap?>(
-        initialValue = null,
-        key1 = imageUrl,
-    ) {
-        value = if (imageUrl.isNullOrBlank()) {
-            null
+    val hasLocalImage = !localImagePath.isNullOrBlank() ||
+            localImageBytes?.isNotEmpty() == true
+    val hasOnlineImage = !imageUrl.isNullOrBlank()
+    val previewState by produceState(
+        initialValue = if (hasLocalImage || hasOnlineImage) {
+            ImagePreviewState.Loading
         } else {
-            loadBitmapFromUrl(
-                context = context,
-                url = imageUrl,
-            )
+            ImagePreviewState.Empty
+        },
+        key1 = imageUrl,
+        key2 = localImagePath,
+        key3 = localImageBytes,
+    ) {
+        value = when {
+            localImageBytes?.isNotEmpty() == true -> {
+                byteArrayToBitmap(localImageBytes)
+                    ?.let(ImagePreviewState::Loaded)
+                    ?: ImagePreviewState.Failed
+            }
+
+            !localImagePath.isNullOrBlank() -> {
+                readImageBytesFromFile(localImagePath)
+                    ?.let(::byteArrayToBitmap)
+                    ?.let(ImagePreviewState::Loaded)
+                    ?: ImagePreviewState.Failed
+            }
+
+            !imageUrl.isNullOrBlank() -> {
+                loadBitmapFromUrl(
+                    context = context,
+                    url = imageUrl,
+                )
+                    ?.let(ImagePreviewState::Loaded)
+                    ?: ImagePreviewState.Failed
+            }
+
+            else -> ImagePreviewState.Empty
         }
     }
 
+    val previewBitmap = (previewState as? ImagePreviewState.Loaded)?.bitmap
     val previewThreads = previewBitmap?.let { bitmap ->
         selectPaletteForImage(
             source = bitmap,
@@ -99,7 +143,8 @@ internal fun MashCreateScreen(
             maxColors = colorCount,
         )
     } ?: MashCreateData.getThreadsByCount(colorCount)
-    val isCreateButtonEnabled = projectName.isNotBlank()
+    val isCreateButtonEnabled = projectName.isNotBlank() &&
+            previewState is ImagePreviewState.Loaded
 
     fun createWork() {
         if (!isCreateButtonEnabled) return
@@ -107,7 +152,8 @@ internal fun MashCreateScreen(
         onCreateFinished(
             MashCreateConfig(
                 projectName = projectName.trim(),
-                imageUrl = imageUrl,
+                imageUrl = if (hasLocalImage) null else imageUrl,
+                imagePath = localImagePath?.takeIf { hasLocalImage },
                 schemeType = MashCreateSchemeType.EMBROIDERY,
                 colorCount = colorCount,
                 difficulty = difficulty,
@@ -118,7 +164,13 @@ internal fun MashCreateScreen(
 
     MashCreateContent(
         projectName = projectName,
-        previewBitmap = previewBitmap,
+        previewState = previewState,
+        imageSourceLabelRes = when {
+            hasLocalImage -> R.string.mash_create_image_source_local
+            hasOnlineImage -> R.string.mash_create_image_source_online
+            else -> null
+        },
+        imageLoadFailed = imageLoadFailed || previewState is ImagePreviewState.Failed,
         colorCount = colorCount,
         difficulty = difficulty,
         threads = previewThreads,
@@ -131,13 +183,17 @@ internal fun MashCreateScreen(
         },
         onDifficultyChanged = { difficulty = it },
         onCreateClick = ::createWork,
+        onPickLocalImage = onPickLocalImage,
+        onOpenFeed = onOpenFeed,
     )
 }
 
 @Composable
 private fun MashCreateContent(
     projectName: String,
-    previewBitmap: Bitmap?,
+    previewState: ImagePreviewState,
+    imageSourceLabelRes: Int?,
+    imageLoadFailed: Boolean,
     colorCount: Int,
     difficulty: MashCreateDifficulty,
     threads: List<MashThread>,
@@ -148,6 +204,8 @@ private fun MashCreateContent(
     onColorCountChanged: (Int) -> Unit,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
     onCreateClick: () -> Unit,
+    onPickLocalImage: () -> Unit,
+    onOpenFeed: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -211,7 +269,13 @@ private fun MashCreateContent(
                             onClearClick = onClearProjectNameClick,
                         )
 
-                        MashCreateImageSection(previewBitmap = previewBitmap)
+                        MashCreateImageSection(
+                            previewState = previewState,
+                            imageSourceLabelRes = imageSourceLabelRes,
+                            imageLoadFailed = imageLoadFailed,
+                            onPickLocalImage = onPickLocalImage,
+                            onOpenFeed = onOpenFeed,
+                        )
 
                         MashCreateSchemeTypeSection()
 
@@ -305,7 +369,11 @@ private fun MashCreateProjectNameSection(
 
 @Composable
 private fun MashCreateImageSection(
-    previewBitmap: Bitmap?,
+    previewState: ImagePreviewState,
+    imageSourceLabelRes: Int?,
+    imageLoadFailed: Boolean,
+    onPickLocalImage: () -> Unit,
+    onOpenFeed: () -> Unit,
 ) {
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
@@ -321,6 +389,26 @@ private fun MashCreateImageSection(
             color = colors.textPrimary,
         )
 
+        if (imageSourceLabelRes != null) {
+            Text(
+                text = stringResource(imageSourceLabelRes),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.primaryAction,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(dimensions.sm))
+                    .background(colors.surfaceSoft)
+                    .border(
+                        width = dimensions.xs / 4,
+                        color = colors.primaryAction,
+                        shape = RoundedCornerShape(dimensions.sm),
+                    )
+                    .padding(
+                        horizontal = dimensions.sm,
+                        vertical = dimensions.xs,
+                    ),
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -330,32 +418,100 @@ private fun MashCreateImageSection(
                     width = dimensions.xs / 4,
                     color = colors.outline,
                     shape = imageShape
-                ),
+            ),
             contentAlignment = Alignment.Center,
         ) {
-            if (previewBitmap == null) {
-                Text(
-                    text = stringResource(R.string.mash_create_image_placeholder),
-                    color = colors.textSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(4f / 3f)
-                        .padding(dimensions.lg),
-                )
-            } else {
-                val aspectRatio = previewBitmap.width.toFloat() / previewBitmap.height.toFloat()
+            when (previewState) {
+                ImagePreviewState.Empty -> {
+                    ImagePlaceholderText(
+                        text = stringResource(R.string.mash_create_image_placeholder),
+                    )
+                }
 
-                Image(
-                    bitmap = previewBitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(aspectRatio),
+                ImagePreviewState.Loading -> {
+                    ImagePlaceholderText(
+                        text = stringResource(R.string.mash_create_image_selected),
+                    )
+                }
+
+                ImagePreviewState.Failed -> {
+                    ImagePlaceholderText(
+                        text = stringResource(R.string.mash_create_image_load_failed),
+                    )
+                }
+
+                is ImagePreviewState.Loaded -> {
+                    val previewBitmap = previewState.bitmap
+                    val aspectRatio = previewBitmap.width.toFloat() / previewBitmap.height.toFloat()
+
+                    Image(
+                        bitmap = previewBitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(aspectRatio),
+                    )
+                }
+            }
+        }
+
+        if (imageLoadFailed) {
+            Text(
+                text = stringResource(R.string.mash_create_image_load_failed),
+                color = colors.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(dimensions.sm),
+        ) {
+            HandHopHopButton(
+                onClick = onPickLocalImage,
+                size = ButtonState.Size.FILL,
+                textColor = ButtonState.Color.Button,
+                buttonColor = ButtonState.Color.Background,
+            ) {
+                Text(
+                    text = stringResource(R.string.mash_create_choose_from_gallery),
+                    color = colors.primaryAction,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+
+            HandHopHopButton(
+                onClick = onOpenFeed,
+                size = ButtonState.Size.FILL,
+                textColor = ButtonState.Color.White,
+                buttonColor = ButtonState.Color.Button,
+            ) {
+                Text(
+                    text = stringResource(R.string.mash_create_open_online_gallery),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ImagePlaceholderText(
+    text: String,
+) {
+    val colors = HandHopHopDesignSystem.colors
+    val dimensions = HandHopHopDesignSystem.dimensions
+
+    Text(
+        text = text,
+        color = colors.textSecondary,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(4f / 3f)
+            .padding(dimensions.lg),
+    )
 }
 
 @Composable
@@ -543,12 +699,13 @@ private fun MashCreateThreadPreview(
     }
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 private fun MashCreateDifficultySection(
     difficulty: MashCreateDifficulty,
     onDifficultyChanged: (MashCreateDifficulty) -> Unit,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val difficultySteps = MashCreateDifficulty.entries.size - 2

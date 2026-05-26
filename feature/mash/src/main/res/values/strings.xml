@@ -23,6 +23,12 @@
     <string name="mash_create_image_label">Ваша картинка:</string>
     <string name="mash_create_image_placeholder">Изображение пока не выбрано</string>
     <string name="mash_create_image_selected">Изображение выбрано</string>
+    <string name="mash_create_choose_from_gallery">Выбрать из галереи</string>
+    <string name="mash_create_open_online_gallery">Открыть онлайн-галерею</string>
+    <string name="mash_create_replace_image">Заменить изображение</string>
+    <string name="mash_create_image_source_local">Фото из галереи</string>
+    <string name="mash_create_image_source_online">Онлайн-галерея</string>
+    <string name="mash_create_image_load_failed">Не удалось открыть изображение</string>
     <string name="mash_create_scheme_type_label">Тип схемы:</string>
     <string name="mash_create_scheme_coloring">Раскраска</string>
     <string name="mash_create_scheme_embroidery">Вышивка</string>

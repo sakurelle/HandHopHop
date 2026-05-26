@@ -148,11 +148,12 @@ class WorkLocalRepository(
 
     suspend fun addFavorite(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
-        val imagePath = persistImageIfNeeded(
-            url = work.url,
-            imageBytes = work.image,
-            currentImagePath = current?.imagePath,
-        )
+        val imagePath = work.imagePath
+            ?: persistImageIfNeeded(
+                url = work.url,
+                imageBytes = work.image,
+                currentImagePath = current?.imagePath,
+            )
 
         return if (current == null) {
             workDao.insert(
@@ -182,11 +183,12 @@ class WorkLocalRepository(
     suspend fun addWork(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
         val progressChunks = work.gridRle.toProgressChunks()
-        val imagePath = persistImageIfNeeded(
-            url = work.url,
-            imageBytes = work.image,
-            currentImagePath = current?.imagePath,
-        )
+        val imagePath = work.imagePath
+            ?: persistImageIfNeeded(
+                url = work.url,
+                imageBytes = work.image,
+                currentImagePath = current?.imagePath,
+            )
 
         return if (current == null) {
             val insertedId = workDao.insert(
@@ -242,20 +244,6 @@ class WorkLocalRepository(
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
         return workDao.getAll().map(WorkUrlPreview::toLocalItem)
-    }
-
-    suspend fun getFavoriteWorks(): List<WorkLocalItem> {
-        return workDao.getFavorites()
-            .map(WorkFavoritePreview::toLocalItem)
-            .distinctBy { it.url }
-    }
-
-    suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {
-        if (urls.isEmpty()) {
-            return emptyList()
-        }
-
-        return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
     }
 
     suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta> {
