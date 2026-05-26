@@ -32,13 +32,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.painterResource
@@ -126,7 +126,7 @@ private fun WorkCompletedScreen(
                     titleRes = R.string.work_completed_title,
                     leftIconRes = DesignR.drawable.arrow,
                 ),
-                onClickRight = { Unit },
+                onClickRight = { },
                 onClickLeft = onBackClick,
             )
         },
@@ -136,11 +136,11 @@ private fun WorkCompletedScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding()+dimensionResource(R.dimen.work_completed_top_spacing))
-                .padding(horizontal = dimensionResource(R.dimen.work_completed_screen_horizontal_padding))
-                .padding(top = dimensionResource(R.dimen.work_completed_top_spacing)),
+                .padding(top = paddingValues.calculateTopPadding()+dimensionResource(DesignR.dimen.work_completed_top_spacing))
+                .padding(horizontal = dimensionResource(DesignR.dimen.work_completed_screen_horizontal_padding))
+                .padding(top = dimensionResource(DesignR.dimen.work_completed_top_spacing)),
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.work_completed_content_spacing),
+                dimensionResource(DesignR.dimen.work_completed_content_spacing),
             ),
         ) {
             WorkCompletedHeroCard(
@@ -173,31 +173,33 @@ private fun WorkCompletedHeroCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = HandHopHopDesignSystem.colors
-    val imageModel = imagePath
-        ?.let(::File)
-        ?.takeIf(File::exists)
-        ?: imageUrl
+    val imageModel = remember(imagePath, imageUrl) {
+        imagePath
+            ?.let(::File)
+            ?.takeIf(File::exists)
+            ?: imageUrl
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensionResource(R.dimen.work_completed_card_radius)),
+        shape = RoundedCornerShape(dimensionResource(DesignR.dimen.work_completed_card_radius)),
         colors = CardDefaults.cardColors(
             containerColor = colors.surface,
         ),
         border = BorderStroke(
-            width = dimensionResource(R.dimen.work_completed_hero_border_width),
-            color = colorResource(R.color.work_completed_hero_border_color),
+            width = dimensionResource(DesignR.dimen.work_completed_hero_border_width),
+            color = colors.primaryAction,
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = dimensionResource(R.dimen.work_completed_card_elevation),
+            defaultElevation = dimensionResource(DesignR.dimen.work_completed_card_elevation),
         ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(dimensionResource(R.dimen.work_completed_card_padding)),
+                .padding(dimensionResource(DesignR.dimen.work_completed_card_padding)),
             horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(R.dimen.work_completed_card_inner_spacing),
+                dimensionResource(DesignR.dimen.work_completed_card_inner_spacing),
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -211,7 +213,7 @@ private fun WorkCompletedHeroCard(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(dimensionResource(R.dimen.work_completed_image_radius))),
+                        .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.work_completed_image_radius))),
                     contentScale = ContentScale.Crop,
                 )
 
@@ -219,8 +221,8 @@ private fun WorkCompletedHeroCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .offset(
-                            x = -dimensionResource(R.dimen.work_completed_check_offset),
-                            y = -dimensionResource(R.dimen.work_completed_check_offset),
+                            x = -dimensionResource(DesignR.dimen.work_completed_check_offset),
+                            y = -dimensionResource(DesignR.dimen.work_completed_check_offset),
                         ),
                 )
             }
@@ -228,7 +230,7 @@ private fun WorkCompletedHeroCard(
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.work_completed_text_spacing),
+                    dimensionResource(DesignR.dimen.work_completed_text_spacing),
                 ),
             ) {
                 Text(
@@ -270,9 +272,9 @@ private fun WorkCompletedCheckBadge(
 ) {
     Box(
         modifier = modifier
-            .size(dimensionResource(R.dimen.work_completed_check_badge_size))
+            .size(dimensionResource(DesignR.dimen.work_completed_check_badge_size))
             .background(
-                color = colorResource(R.color.work_completed_check_background),
+                color = HandHopHopDesignSystem.colors.primaryAction,
                 shape = CircleShape,
             ),
         contentAlignment = Alignment.Center,
@@ -280,9 +282,9 @@ private fun WorkCompletedCheckBadge(
         Icon(
             painter = painterResource(R.drawable.ic_work_completed_check),
             contentDescription = null,
-            tint = colorResource(R.color.work_completed_check_color),
+            tint = HandHopHopDesignSystem.colors.onPrimaryAction,
             modifier = Modifier.size(
-                dimensionResource(R.dimen.work_completed_check_icon_size),
+                dimensionResource(DesignR.dimen.work_completed_check_icon_size),
             ),
         )
     }
@@ -297,11 +299,11 @@ private fun WorkCompletedPrimaryButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(dimensionResource(R.dimen.work_completed_button_height)),
-        shape = RoundedCornerShape(dimensionResource(R.dimen.work_completed_button_radius)),
+            .height(dimensionResource(DesignR.dimen.work_completed_button_height)),
+        shape = RoundedCornerShape(dimensionResource(DesignR.dimen.work_completed_button_radius)),
         colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = colorResource(DesignR.color.button),
-            contentColor = colorResource(DesignR.color.white),
+            containerColor = HandHopHopDesignSystem.colors.primaryAction,
+            contentColor = HandHopHopDesignSystem.colors.onPrimaryAction,
         ),
     ) {
         Text(
@@ -320,14 +322,14 @@ private fun WorkCompletedSecondaryButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(dimensionResource(R.dimen.work_completed_button_height)),
-        shape = RoundedCornerShape(dimensionResource(R.dimen.work_completed_button_radius)),
+            .height(dimensionResource(DesignR.dimen.work_completed_button_height)),
+        shape = RoundedCornerShape(dimensionResource(DesignR.dimen.work_completed_button_radius)),
         border = BorderStroke(
-            width = dimensionResource(R.dimen.work_completed_secondary_button_border_width),
-            color = colorResource(R.color.work_completed_secondary_button_border_color),
+            width = dimensionResource(DesignR.dimen.work_completed_secondary_button_border_width),
+            color = HandHopHopDesignSystem.colors.primaryAction,
         ),
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = colorResource(DesignR.color.button),
+            contentColor = HandHopHopDesignSystem.colors.primaryAction,
         ),
     ) {
         Text(text = text)
@@ -363,9 +365,9 @@ private fun WorkCompletedRecommendationsHeader(
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_right),
                 contentDescription = null,
-                tint = colorResource(R.color.work_completed_accent_color),
+                tint = HandHopHopDesignSystem.colors.primaryAction,
                 modifier = Modifier.size(
-                    dimensionResource(R.dimen.work_completed_see_all_icon_size),
+                    dimensionResource(DesignR.dimen.work_completed_see_all_icon_size),
                 ),
             )
         }
@@ -381,7 +383,7 @@ private fun WorkCompletedRecommendationsGrid(
 ) {
     if (uiState.isLoading) {
         Box(
-            modifier = modifier.height(dimensionResource(R.dimen.work_completed_recommendations_grid_height)),
+            modifier = modifier.height(dimensionResource(DesignR.dimen.work_completed_recommendations_grid_height)),
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator(
@@ -393,15 +395,15 @@ private fun WorkCompletedRecommendationsGrid(
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(integerResource(R.integer.work_completed_recommendations_columns)),
-        modifier = modifier.height(dimensionResource(R.dimen.work_completed_recommendations_grid_height)),
+        modifier = modifier.height(dimensionResource(DesignR.dimen.work_completed_recommendations_grid_height)),
         contentPadding = PaddingValues(
-            bottom = dimensionResource(R.dimen.work_completed_recommendations_bottom_padding),
+            bottom = dimensionResource(DesignR.dimen.work_completed_recommendations_bottom_padding),
         ),
         horizontalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.work_completed_recommendations_spacing),
+            dimensionResource(DesignR.dimen.work_completed_recommendations_spacing),
         ),
         verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(R.dimen.work_completed_recommendations_spacing),
+            dimensionResource(DesignR.dimen.work_completed_recommendations_spacing),
         ),
         userScrollEnabled = false,
     ) {
@@ -428,7 +430,7 @@ private fun WorkCompletedRecommendationCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(0.75f)
-            .clip(RoundedCornerShape(dimensionResource(R.dimen.work_completed_recommendation_card_radius)))
+            .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.work_completed_recommendation_card_radius)))
             .clickable(onClick = onClick),
     ) {
         AsyncImage(
@@ -463,13 +465,13 @@ private fun WorkCompletedBookmarkButton(
     Box(
         modifier = modifier
             .size(
-                width = dimensionResource(R.dimen.work_completed_bookmark_button_width),
-                height = dimensionResource(R.dimen.work_completed_bookmark_button_height),
+                width = dimensionResource(DesignR.dimen.work_completed_bookmark_button_width),
+                height = dimensionResource(DesignR.dimen.work_completed_bookmark_button_height),
             )
             .background(
-                color = colorResource(R.color.work_completed_bookmark_background),
+                color = HandHopHopDesignSystem.colors.imageOverlay,
                 shape = RoundedCornerShape(
-                    bottomStart = dimensionResource(R.dimen.work_completed_bookmark_button_bottom_start_radius),
+                    bottomStart = dimensionResource(DesignR.dimen.work_completed_bookmark_button_bottom_start_radius),
                 ),
             )
             .clickable(onClick = onClick),
@@ -483,11 +485,11 @@ private fun WorkCompletedBookmarkButton(
                 stringResource(R.string.work_completed_add_to_favorites)
             },
             tint = if (isBookmarked) {
-                colorResource(R.color.work_completed_bookmark_selected_color)
+                HandHopHopDesignSystem.colors.favoriteAccent
             } else {
-                colorResource(R.color.work_completed_bookmark_unselected_color)
+                HandHopHopDesignSystem.colors.onImage
             },
-            modifier = Modifier.size(dimensionResource(R.dimen.work_completed_bookmark_icon_size)),
+            modifier = Modifier.size(dimensionResource(DesignR.dimen.work_completed_bookmark_icon_size)),
         )
     }
 }

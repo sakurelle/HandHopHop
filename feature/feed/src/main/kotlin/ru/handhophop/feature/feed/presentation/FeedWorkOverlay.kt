@@ -14,12 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.feature.feed.R
 import ru.handhophop.design.R as DesignR
 
@@ -28,6 +28,7 @@ internal fun FeedProgressCircle(
     progressPercentage: Int,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val safeProgress = remember(progressPercentage) {
         progressPercentage.coerceIn(0, 100)
     }
@@ -37,26 +38,26 @@ internal fun FeedProgressCircle(
 
     Box(
         modifier = modifier
-            .size(dimensionResource(R.dimen.feed_progress_circle_size))
+            .size(dimensionResource(DesignR.dimen.feed_progress_circle_size))
             .background(
-                color = colorResource(R.color.feed_overlay_background),
+                color = colors.imageOverlay,
                 shape = CircleShape,
             ),
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(
             progress = { progress },
-            modifier = Modifier.size(dimensionResource(R.dimen.feed_progress_indicator_size)),
-            strokeWidth = dimensionResource(R.dimen.feed_progress_indicator_stroke_width),
-            color = colorResource(R.color.feed_progress_indicator_color),
-            trackColor = colorResource(R.color.feed_progress_indicator_track_color),
+            modifier = Modifier.size(dimensionResource(DesignR.dimen.feed_progress_indicator_size)),
+            strokeWidth = dimensionResource(DesignR.dimen.feed_progress_indicator_stroke_width),
+            color = colors.onImage,
+            trackColor = colors.onImageTrack,
             strokeCap = StrokeCap.Round,
         )
 
         Text(
             text = stringResource(R.string.feed_progress_percent, safeProgress),
-            color = colorResource(R.color.feed_progress_text_color),
-            fontSize = dimensionResource(R.dimen.feed_progress_text_size).value.sp,
+            color = colors.onImage,
+            fontSize = dimensionResource(DesignR.dimen.feed_progress_text_size).value.sp,
             fontWeight = FontWeight.SemiBold,
         )
     }
@@ -68,6 +69,7 @@ internal fun FeedBookmarkButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val iconRes = remember(isBookmarked) {
         if (isBookmarked) {
             DesignR.drawable.ic_bookmark_filled
@@ -85,23 +87,23 @@ internal fun FeedBookmarkButton(
     Box(
         modifier = modifier
             .size(
-                width = dimensionResource(R.dimen.feed_bookmark_button_width),
-                height = dimensionResource(R.dimen.feed_bookmark_button_height),
+                width = dimensionResource(DesignR.dimen.feed_bookmark_button_width),
+                height = dimensionResource(DesignR.dimen.feed_bookmark_button_height),
             )
             .background(
-                color = colorResource(R.color.feed_overlay_background),
+                color = colors.imageOverlay,
                 shape = RoundedCornerShape(
                     topStart = dimensionResource(
-                        R.dimen.feed_bookmark_button_corner_zero
+                        DesignR.dimen.feed_bookmark_button_corner_zero
                     ),
                     topEnd = dimensionResource(
-                        R.dimen.feed_bookmark_button_corner_zero
+                        DesignR.dimen.feed_bookmark_button_corner_zero
                     ),
                     bottomStart = dimensionResource(
-                        R.dimen.feed_bookmark_button_bottom_start_radius
+                        DesignR.dimen.feed_bookmark_button_bottom_start_radius
                     ),
                     bottomEnd = dimensionResource(
-                        R.dimen.feed_bookmark_button_corner_zero
+                        DesignR.dimen.feed_bookmark_button_corner_zero
                     ),
                 ),
             )
@@ -112,11 +114,11 @@ internal fun FeedBookmarkButton(
             painter = painterResource(iconRes),
             contentDescription = contentDescription,
             tint = if (isBookmarked) {
-                colorResource(R.color.feed_bookmark_selected_color)
+                colors.favoriteAccent
             } else {
-                colorResource(R.color.feed_bookmark_unselected_color)
+                colors.onImage
             },
-            modifier = Modifier.size(dimensionResource(R.dimen.feed_bookmark_icon_size)),
+            modifier = Modifier.size(dimensionResource(DesignR.dimen.feed_bookmark_icon_size)),
         )
     }
 }

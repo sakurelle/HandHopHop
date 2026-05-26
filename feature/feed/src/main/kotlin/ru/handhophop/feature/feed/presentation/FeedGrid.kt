@@ -81,7 +81,7 @@ internal fun FeedGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        horizontal = dimensionResource(R.dimen.feed_grid_card_horizontal_padding),
+                        horizontal = dimensionResource(DesignR.dimen.feed_grid_card_horizontal_padding),
                     ),
             )
         }
@@ -91,7 +91,7 @@ internal fun FeedGrid(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensionResource(R.dimen.feed_grid_loading_more_padding)),
+                        .padding(dimensionResource(DesignR.dimen.feed_grid_loading_more_padding)),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
@@ -118,7 +118,7 @@ private fun FeedPhotoCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(
-                        dimensionResource(R.dimen.feed_grid_card_corner_radius),
+                        dimensionResource(DesignR.dimen.feed_grid_card_corner_radius),
                         ),
                     )
                     .clickable(onClick = onClick)
@@ -129,7 +129,7 @@ private fun FeedPhotoCard(
                     progressPercentage = photo.progressPercentage,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(dimensionResource(R.dimen.feed_grid_progress_padding)),
+                        .padding(dimensionResource(DesignR.dimen.feed_grid_progress_padding)),
                 )
             }
 

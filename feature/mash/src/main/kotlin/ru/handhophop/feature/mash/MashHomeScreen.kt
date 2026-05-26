@@ -54,7 +54,9 @@ internal fun MashHomeScreen(
     onOpenStatisticsClick: () -> Unit,
     onDeleteSheme: () -> Unit,
 ) {
-    val metrics = uiState.toProjectMetrics()
+    val metrics = remember(uiState.scheme, uiState.completedCellIndices) {
+        uiState.toProjectMetrics()
+    }
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md

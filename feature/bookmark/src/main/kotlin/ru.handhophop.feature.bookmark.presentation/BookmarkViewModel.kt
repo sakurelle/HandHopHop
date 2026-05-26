@@ -42,6 +42,7 @@ internal class BookmarkViewModel(
                         )
                     }
                     .toList()
+                    .mergeDuplicatePhotos()
             }.fold(
                 onSuccess = { photos ->
                     val allPhotos = photos.toImmutableList()
@@ -117,7 +118,7 @@ internal class BookmarkViewModel(
         val currentState = _uiState.value as? BookmarkUiState.Success ?: return
 
         val allPhotos = currentState.allPhotos.map { photo ->
-            if (photo.photoUrl == photoUrl) {
+            if (photo.photoUrl.normalizedPhotoUrlKey() == photoUrl.normalizedPhotoUrlKey()) {
                 photo.copy(isBookmarked = isBookmarked)
             } else {
                 photo
@@ -149,4 +150,53 @@ internal class BookmarkViewModel(
 
 private fun String.isOnlinePhotoUrl(): Boolean {
     return startsWith("http://") || startsWith("https://")
+}
+
+private fun List<BookmarkPhotoItem>.mergeDuplicatePhotos(): List<BookmarkPhotoItem> {
+    return groupBy(BookmarkPhotoItem::stablePhotoKey)
+        .values
+        .map { duplicates ->
+            val preferred = duplicates.maxWithOrNull(
+                compareBy<BookmarkPhotoItem>(
+                    { if (it.isStarted) 1 else 0 },
+                    { if (it.progressPercentage > 0) 1 else 0 },
+                    { if (it.isBookmarked) 1 else 0 },
+                    { if (it.projectName.isNullOrBlank()) 0 else 1 },
+                    { it.id },
+                ),
+            ) ?: duplicates.first()
+
+            preferred.copy(
+                photoUrl = preferred.photoUrl
+                    .takeIf { it.isNotBlank() }
+                    ?: duplicates.firstNotNullOfOrNull { photo ->
+                        photo.photoUrl.takeIf { it.isNotBlank() }
+                    }
+                    .orEmpty(),
+                imagePath = preferred.imagePath
+                    ?.takeIf { it.isNotBlank() }
+                    ?: duplicates.firstNotNullOfOrNull { photo ->
+                        photo.imagePath?.takeIf { it.isNotBlank() }
+                    },
+                isBookmarked = duplicates.any(BookmarkPhotoItem::isBookmarked),
+                canBookmark = duplicates.any(BookmarkPhotoItem::canBookmark),
+                isStarted = duplicates.any(BookmarkPhotoItem::isStarted),
+                progressPercentage = duplicates.maxOf(BookmarkPhotoItem::progressPercentage),
+                projectName = preferred.projectName
+                    ?.takeIf { it.isNotBlank() }
+                    ?: duplicates.firstNotNullOfOrNull { photo ->
+                        photo.projectName?.takeIf { it.isNotBlank() }
+                    },
+            )
+        }
+        .sortedByDescending(BookmarkPhotoItem::id)
+}
+
+private fun BookmarkPhotoItem.stablePhotoKey(): String {
+    return photoUrl.normalizedPhotoUrlKey()
+        .ifBlank { "local:$id" }
+}
+
+private fun String.normalizedPhotoUrlKey(): String {
+    return trim().replace("http://", "https://")
 }
