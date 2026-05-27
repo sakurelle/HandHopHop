@@ -3,8 +3,10 @@ package ru.handhophop.feature.feed.data
 import android.util.Log
 import ru.handhophop.core.network.api.WallhavenApiService
 import ru.handhophop.core.network.models.WallhavenPhoto
+import ru.handhophop.core.system.database.work.WorkFeedMeta
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
+import kotlinx.coroutines.flow.StateFlow
 
 internal class FeedRepository(
     private val apiService: WallhavenApiService,
@@ -42,6 +44,10 @@ internal class FeedRepository(
 
     private fun String.normalizePhotoUrl(): String {
         return replace("http://", "https://")
+    }
+
+    fun observeWorkDataVersion(): StateFlow<Int> {
+        return workLocalRepository.observeWorkDataVersion()
     }
 
     private suspend fun fillPhotosWithLocalData(
@@ -165,6 +171,17 @@ internal class FeedRepository(
     fun clearCache() {
         Log.d(TAG, "Clearing photo cache. Previous size=${cachedIds.size}")
         cachedIds.clear()
+    }
+
+    suspend fun getFeedMetaByUrls(
+        urls: List<String>,
+    ): Map<String, WorkFeedMeta> {
+        if (urls.isEmpty()) {
+            return emptyMap()
+        }
+
+        return workLocalRepository.getFeedMetaByUrls(urls)
+            .associateBy { it.url.orEmpty().normalizePhotoUrl() }
     }
 
     fun updateTerm() {

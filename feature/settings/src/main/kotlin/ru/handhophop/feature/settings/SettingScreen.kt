@@ -139,7 +139,7 @@ fun SettingScreen(
                         isError = voucherError != null,
                         supportingText = {
                             if (voucherError != null) {
-                                Text(text = voucherError!!, color = colors.error)
+                                Text(text = voucherError, color = colors.error)
                             }
                         },
                         colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(

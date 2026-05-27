@@ -16,6 +16,10 @@ data class DesignColors(
     val onError: Color = Color.Unspecified,
     val shimmerBase: Color = Color.Unspecified,
     val shimmerHighlight: Color = Color.Unspecified,
+    val imageOverlay: Color = Color.Unspecified,
+    val onImage: Color = Color.Unspecified,
+    val onImageTrack: Color = Color.Unspecified,
+    val favoriteAccent: Color = Color.Unspecified,
 ) {
     val background: Color
         get() = surfaceSoft
@@ -62,6 +66,10 @@ private val LightDesignColors = DesignColors(
     onError = Color(0xFFFBFBFB),
     shimmerBase = Color(0xFFE4D7CE),
     shimmerHighlight = Color(0xFFF7EEE7),
+    imageOverlay = Color(0x8C000000),
+    onImage = Color(0xFFFFFFFF),
+    onImageTrack = Color(0x59FFFFFF),
+    favoriteAccent = Color(0xFFFF5A5F),
 )
 
 private val DarkDesignColors = DesignColors(
@@ -77,6 +85,10 @@ private val DarkDesignColors = DesignColors(
     onError = Color(0xFF211915),
     shimmerBase = Color(0xFF3B2B21),
     shimmerHighlight = Color(0xFF6B503B),
+    imageOverlay = Color(0xA2140F0C),
+    onImage = Color(0xFFF7EDE3),
+    onImageTrack = Color(0x66F7EDE3),
+    favoriteAccent = Color(0xFFFF7A7D),
 )
 
 internal val HandHopHopDesignColorScheme = DesignColorScheme(

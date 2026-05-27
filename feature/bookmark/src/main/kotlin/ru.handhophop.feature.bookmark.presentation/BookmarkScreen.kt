@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.painterResource
@@ -54,6 +53,7 @@ import ru.handhophop.core.design.TopBarState
 import ru.handhophop.core.system.database.HandHopHopDatabaseProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 import ru.handhophop.feature.bookmark.R
+import ru.handhophop.design.R as DesignR
 
 @Composable
 fun BookmarkEntryPoint(
@@ -154,13 +154,13 @@ private fun BookmarkGrid(
         columns = StaggeredGridCells.Fixed(integerResource(R.integer.bookmark_grid_columns)),
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
-            start = dimensionResource(R.dimen.bookmark_grid_horizontal_padding),
-            end = dimensionResource(R.dimen.bookmark_grid_horizontal_padding),
-            top = dimensionResource(R.dimen.bookmark_grid_top_padding),
-            bottom = dimensionResource(R.dimen.bookmark_grid_bottom_padding),
+            start = dimensionResource(DesignR.dimen.bookmark_grid_horizontal_padding),
+            end = dimensionResource(DesignR.dimen.bookmark_grid_horizontal_padding),
+            top = dimensionResource(DesignR.dimen.bookmark_grid_top_padding),
+            bottom = dimensionResource(DesignR.dimen.bookmark_grid_bottom_padding),
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
+        verticalItemSpacing = dimensionResource(DesignR.dimen.bookmark_grid_item_spacing),
     ) {
         items(items = state.photos, key = { it.id }) { photo ->
             BookmarkPhotoCard(
@@ -180,7 +180,7 @@ private fun BookmarkEmptyState(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = dimensionResource(R.dimen.bookmark_empty_state_horizontal_padding)),
+            .padding(horizontal = dimensionResource(DesignR.dimen.bookmark_empty_state_horizontal_padding)),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -240,18 +240,20 @@ private fun BookmarkPhotoCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(
-                        dimensionResource(R.dimen.bookmark_grid_card_corner_radius)
+                        dimensionResource(DesignR.dimen.bookmark_grid_card_corner_radius)
                         )
                     ),
                 onClick = onClick,
             )
 
-            BookmarkButton(
-                isBookmarked = photo.isBookmarked,
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-            )
+            if (photo.canBookmark) {
+                BookmarkButton(
+                    isBookmarked = photo.isBookmarked,
+                    onClick = onFavoriteClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                )
+            }
 
             if (photo.isStarted) {
                 BookmarkProgressBadge(
@@ -270,6 +272,7 @@ private fun BookmarkProgressBadge(
     progressPercentage: Int,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val minProgress = integerResource(R.integer.bookmark_progress_min)
     val maxProgress = integerResource(R.integer.bookmark_progress_max)
 
@@ -289,32 +292,35 @@ private fun BookmarkProgressBadge(
 
     Column(
         modifier = modifier
-            .background(colorResource(R.color.bookmark_progress_badge_background))
-            .padding(horizontal = dimensionResource(R.dimen.bookmark_progress_horizontal_padding), vertical = dimensionResource(R.dimen.bookmark_progress_vertical_padding)),
+            .background(colors.imageOverlay)
+            .padding(
+                horizontal = dimensionResource(DesignR.dimen.bookmark_progress_horizontal_padding),
+                vertical = dimensionResource(DesignR.dimen.bookmark_progress_vertical_padding),
+            ),
     ) {
         Text(
             text = title,
-            color = Color.White,
+            color = colors.onImage,
             style = MaterialTheme.typography.labelMedium,
         )
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = dimensionResource(R.dimen.bookmark_progress_top_padding))
-                .height(dimensionResource(R.dimen.bookmark_progress_height))
+                .padding(top = dimensionResource(DesignR.dimen.bookmark_progress_top_padding))
+                .height(dimensionResource(DesignR.dimen.bookmark_progress_height))
                 .background(
-                    color = colorResource(R.color.bookmark_progress_track_color),
-                    shape = RoundedCornerShape(dimensionResource(R.dimen.bookmark_progress_corner_radius)),
+                    color = colors.onImageTrack,
+                    shape = RoundedCornerShape(dimensionResource(DesignR.dimen.bookmark_progress_corner_radius)),
                 ),
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(progressFraction)
-                    .height(dimensionResource(R.dimen.bookmark_progress_height))
+                    .height(dimensionResource(DesignR.dimen.bookmark_progress_height))
                     .background(
-                        color = colorResource(R.color.bookmark_progress_indicator_color),
-                        shape = RoundedCornerShape(dimensionResource(R.dimen.bookmark_progress_corner_radius)),
+                        color = colors.onImage,
+                        shape = RoundedCornerShape(dimensionResource(DesignR.dimen.bookmark_progress_corner_radius)),
                     ),
             )
         }
@@ -326,25 +332,44 @@ private fun BookmarkLoadingSkeleton(
     modifier: Modifier = Modifier,
 ) {
     val shimmerBrush = rememberShimmerBrush()
-    val gridHeights = listOf(
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_first),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_second),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_third),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_fourth),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_fifth),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_sixth),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_seventh),
-        dimensionResource(R.dimen.bookmark_loading_skeleton_height_eighth),
-    )
+    val firstHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_first)
+    val secondHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_second)
+    val thirdHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_third)
+    val fourthHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_fourth)
+    val fifthHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_fifth)
+    val sixthHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_sixth)
+    val seventhHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_seventh)
+    val eighthHeight = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_height_eighth)
+    val gridHeights = remember(
+        firstHeight,
+        secondHeight,
+        thirdHeight,
+        fourthHeight,
+        fifthHeight,
+        sixthHeight,
+        seventhHeight,
+        eighthHeight,
+    ) {
+        listOf(
+            firstHeight,
+            secondHeight,
+            thirdHeight,
+            fourthHeight,
+            fifthHeight,
+            sixthHeight,
+            seventhHeight,
+            eighthHeight,
+        )
+    }
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(integerResource(R.integer.bookmark_grid_columns)),
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
-            horizontal = dimensionResource(R.dimen.bookmark_loading_skeleton_horizontal_padding),
-            vertical = dimensionResource(R.dimen.bookmark_loading_skeleton_vertical_padding),
+            horizontal = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_horizontal_padding),
+            vertical = dimensionResource(DesignR.dimen.bookmark_loading_skeleton_vertical_padding),
         ),
-        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.bookmark_grid_item_spacing)),
-        verticalItemSpacing = dimensionResource(R.dimen.bookmark_grid_item_spacing),
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.bookmark_grid_item_spacing)),
+        verticalItemSpacing = dimensionResource(DesignR.dimen.bookmark_grid_item_spacing),
         userScrollEnabled = false,
     ) {
         items(gridHeights) { itemHeight ->
@@ -355,7 +380,7 @@ private fun BookmarkLoadingSkeleton(
                     .background(
                         brush = shimmerBrush,
                         shape = RoundedCornerShape(
-                            dimensionResource(R.dimen.bookmark_loading_skeleton_corner_radius),
+                            dimensionResource(DesignR.dimen.bookmark_loading_skeleton_corner_radius),
                         ),
                     ),
             )
@@ -372,7 +397,7 @@ private fun BookmarkErrorState(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = dimensionResource(R.dimen.bookmark_error_state_horizontal_padding)),
+            .padding(horizontal = dimensionResource(DesignR.dimen.bookmark_error_state_horizontal_padding)),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -398,6 +423,7 @@ private fun BookmarkButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     val iconRes = if (isBookmarked) {
         R.drawable.ic_bookmark_filled
     } else {
@@ -413,16 +439,16 @@ private fun BookmarkButton(
     Box(
         modifier = modifier
             .size(
-                width = dimensionResource(R.dimen.bookmark_button_width),
-                height = dimensionResource(R.dimen.bookmark_button_height),
+                width = dimensionResource(DesignR.dimen.bookmark_button_width),
+                height = dimensionResource(DesignR.dimen.bookmark_button_height),
             )
             .background(
-                color = colorResource(R.color.bookmark_button_background),
+                color = colors.imageOverlay,
                 shape = RoundedCornerShape(
-                    topStart = dimensionResource(R.dimen.bookmark_button_top_start_radius),
-                    topEnd = dimensionResource(R.dimen.bookmark_button_top_end_radius),
-                    bottomStart = dimensionResource(R.dimen.bookmark_button_bottom_start_radius),
-                    bottomEnd = dimensionResource(R.dimen.bookmark_button_bottom_end_radius),
+                    topStart = dimensionResource(DesignR.dimen.bookmark_button_top_start_radius),
+                    topEnd = dimensionResource(DesignR.dimen.bookmark_button_top_end_radius),
+                    bottomStart = dimensionResource(DesignR.dimen.bookmark_button_bottom_start_radius),
+                    bottomEnd = dimensionResource(DesignR.dimen.bookmark_button_bottom_end_radius),
                 ),
             )
             .clickable(onClick = onClick),
@@ -432,12 +458,12 @@ private fun BookmarkButton(
             painter = painterResource(iconRes),
             contentDescription = contentDescription,
             modifier = Modifier.size(
-                dimensionResource(R.dimen.bookmark_heart_icon_size)
+                dimensionResource(DesignR.dimen.bookmark_heart_icon_size)
             ),
             tint = if (isBookmarked) {
-                colorResource(R.color.bookmark_button_selected_icon_color)
+                colors.favoriteAccent
             } else {
-                colorResource(R.color.bookmark_button_unselected_icon_color)
+                colors.onImage
             },
         )
     }

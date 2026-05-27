@@ -35,6 +35,7 @@ internal data class BookmarkPhotoItem(
     val photoUrl: String,
     val imagePath: String? = null,
     val isBookmarked: Boolean = false,
+    val canBookmark: Boolean = true,
     val isStarted: Boolean = false,
     val progressPercentage: Int = 0,
     val projectName: String? = null,

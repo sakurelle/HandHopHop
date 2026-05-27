@@ -5,11 +5,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import ru.handhophop.feature.bookmark.R
+import ru.handhophop.core.design.HandHopHopDesignSystem
+import ru.handhophop.design.R as DesignR
 
 @Composable
 fun BookmarkFilterOption(
@@ -17,26 +17,27 @@ fun BookmarkFilterOption(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val colors = HandHopHopDesignSystem.colors
     Button(
         onClick = onClick,
-        shape = RoundedCornerShape(dimensionResource(R.dimen.bookmark_grid_card_corner_radius)),
+        shape = RoundedCornerShape(dimensionResource(DesignR.dimen.bookmark_grid_card_corner_radius)),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) {
-                colorResource(R.color.bookmark_filter_selected_background)
+                colors.primaryAction
             } else {
-                colorResource(R.color.bookmark_filter_unselected_background)
+                colors.bottomBar
             },
             contentColor = if (selected) {
-                colorResource(R.color.bookmark_filter_selected_text)
+                colors.onPrimaryAction
             } else {
-                colorResource(R.color.bookmark_filter_unselected_text)
+                colors.textPrimary
             }
         ),
     ) {
         Text(
             text = text,
             textAlign = TextAlign.Center,
-            fontSize = dimensionResource(R.dimen.bookmark_filter_option_text_size).value.sp
+            fontSize = dimensionResource(DesignR.dimen.bookmark_filter_option_text_size).value.sp
         )
     }
 }

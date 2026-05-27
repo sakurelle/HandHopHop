@@ -33,6 +33,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +43,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.handhophop.core.design.ExposableTopBar
 import ru.handhophop.core.design.HandHopHopDesignSystem
@@ -171,43 +171,71 @@ private fun FeedLoadingSkeleton(
 ) {
     HandHopHopDesignSystem.colors
     val shimmerBrush = rememberShimmerBrush()
-    val recommendedPlaceholders = List(4) { it }
-    val gridHeights = listOf(180.dp, 240.dp, 220.dp, 160.dp, 260.dp, 190.dp, 210.dp, 250.dp)
+    val recommendedPlaceholders = remember { List(4) { it } }
+    val firstHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_first)
+    val secondHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_second)
+    val thirdHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_third)
+    val fourthHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_fourth)
+    val fifthHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_fifth)
+    val sixthHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_sixth)
+    val seventhHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_seventh)
+    val eighthHeight = dimensionResource(DesignR.dimen.feed_loading_grid_height_eighth)
+    val gridHeights = remember(
+        firstHeight,
+        secondHeight,
+        thirdHeight,
+        fourthHeight,
+        fifthHeight,
+        sixthHeight,
+        seventhHeight,
+        eighthHeight,
+    ) {
+        listOf(
+            firstHeight,
+            secondHeight,
+            thirdHeight,
+            fourthHeight,
+            fifthHeight,
+            sixthHeight,
+            seventhHeight,
+            eighthHeight,
+        )
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = dimensionResource(R.dimen.feed_loading_skeleton_vertical_padding)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = dimensionResource(DesignR.dimen.feed_loading_skeleton_vertical_padding)),
         ) {
             Box(
                 modifier = Modifier
                     .padding(
-                        horizontal = dimensionResource(R.dimen.feed_loading_header_horizontal_padding),
-                        vertical = dimensionResource(R.dimen.feed_loading_header_vertical_padding),
+                        horizontal = dimensionResource(DesignR.dimen.feed_loading_header_horizontal_padding),
+                        vertical = dimensionResource(DesignR.dimen.feed_loading_header_vertical_padding),
                     )
-                    .width(dimensionResource(R.dimen.feed_loading_header_width))
-                    .height(dimensionResource(R.dimen.feed_loading_header_height))
+                    .width(dimensionResource(DesignR.dimen.feed_loading_header_width))
+                    .height(dimensionResource(DesignR.dimen.feed_loading_header_height))
                     .clip(
                         RoundedCornerShape(
-                            dimensionResource(R.dimen.feed_loading_skeleton_corner_radius),
+                            dimensionResource(DesignR.dimen.feed_loading_skeleton_corner_radius),
                         ),
                     )
                     .background(shimmerBrush),
             )
 
             LazyRow(
-                contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.feed_loading_recommended_horizontal_padding)),
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_loading_recommended_item_spacing)),
+                contentPadding = PaddingValues(horizontal = dimensionResource(DesignR.dimen.feed_loading_recommended_horizontal_padding)),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.feed_loading_recommended_item_spacing)),
             ) {
                 items(recommendedPlaceholders.size) {
                     Box(
                         modifier = Modifier
-                            .size(dimensionResource(R.dimen.feed_loading_recommended_item_size))
-                            .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_loading_skeleton_corner_radius)))
+                            .size(dimensionResource(DesignR.dimen.feed_loading_recommended_item_size))
+                            .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.feed_loading_skeleton_corner_radius)))
                             .background(shimmerBrush),
                     )
                 }
@@ -218,11 +246,11 @@ private fun FeedLoadingSkeleton(
             columns = StaggeredGridCells.Fixed(integerResource(R.integer.feed_loading_grid_columns)),
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(
-                horizontal = dimensionResource(R.dimen.feed_loading_grid_horizontal_padding),
-                vertical = dimensionResource(R.dimen.feed_loading_grid_vertical_padding),
+                horizontal = dimensionResource(DesignR.dimen.feed_loading_grid_horizontal_padding),
+                vertical = dimensionResource(DesignR.dimen.feed_loading_grid_vertical_padding),
             ),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_loading_grid_item_spacing)),
-            verticalItemSpacing = dimensionResource(R.dimen.feed_loading_grid_item_spacing),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.feed_loading_grid_item_spacing)),
+            verticalItemSpacing = dimensionResource(DesignR.dimen.feed_loading_grid_item_spacing),
             userScrollEnabled = false,
         ) {
             items(gridHeights) { itemHeight ->
@@ -230,7 +258,7 @@ private fun FeedLoadingSkeleton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(itemHeight)
-                        .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_loading_grid_card_corner_radius)))
+                        .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.feed_loading_grid_card_corner_radius)))
                         .background(shimmerBrush),
                 )
             }

@@ -1,7 +1,6 @@
+@file:Suppress("DEPRECATION")
+
 package ru.handhophop.core.network.voucher
-
-import kotlinx.coroutines.delay
-
 
 import kotlinx.datetime.Clock
 
@@ -13,7 +12,7 @@ class VoucherNetworkService {
         createAt = 	Clock.System.now().toEpochMilliseconds()
     )
 
-    suspend fun verifyVoucher(inputVoucher: String): Result<Boolean> {
+    fun verifyVoucher(inputVoucher: String): Result<Boolean> {
 
         val isValid = currentPremium.generateHash() == inputVoucher
 

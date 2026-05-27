@@ -23,5 +23,7 @@
     <color name = "plus_button">#211915</color>
     <color name="button_touched">#A49188</color>
     <color name="main_color_dark">#5B412E</color>
+    <color name="bookmark_heart_filled">#FFFF5A5F</color>
+    <color name="bookmark_heart_outline">#FFFFFFFF</color>
 
 </resources>

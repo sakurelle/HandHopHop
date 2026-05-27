@@ -259,9 +259,9 @@ private fun MashStatisticsActivityCard(
     val values = remember(weekSpentTimeMillisByDay) {
         buildWeeklyActivityValues(weekSpentTimeMillisByDay)
     }
-
-    val maxValue = remember(values) {
-        (values.maxOrNull() ?: 0).coerceAtLeast(4)
+    val maxValue = remember(values) { values.maxOrNull() ?: 0 }
+    val normalizedMaxValue = remember(maxValue) {
+        maxValue.coerceAtLeast(4)
     }
 
     val todayDuration = remember(todaySpentTimeMillis) {
@@ -340,7 +340,7 @@ private fun MashStatisticsActivityCard(
                                     .fillMaxWidth()
                                     .height(
                                         chartHeight *
-                                                (value.toFloat() / maxValue.toFloat())
+                                                (value.toFloat() / normalizedMaxValue.toFloat())
                                     )
                                     .clip(RoundedCornerShape(percent = 50))
                                     .background(colors.primaryAction)

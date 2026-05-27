@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,18 +43,20 @@ import ru.handhophop.core.design.TopBarState
 import ru.handhophop.feature.mash.MashCreate.MashCreateConfig
 import ru.handhophop.feature.mash.Statistics.MashProjectMetrics
 import ru.handhophop.feature.mash.Statistics.toProjectMetrics
+import java.io.File
 
 @Composable
 internal fun MashHomeScreen(
     projectConfig: MashCreateConfig?,
     uiState: MashUiState,
-    onSearchFeedClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
     onDeleteSheme: () -> Unit,
 ) {
-    val metrics = uiState.toProjectMetrics()
+    val metrics = remember(uiState.scheme, uiState.completedCellIndices) {
+        uiState.toProjectMetrics()
+    }
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val contentPadding = dimensions.md
@@ -163,8 +167,8 @@ internal fun MashHomeScreen(
                         projectConfig == null -> MashHomeStateCard(
                             title = stringResource(R.string.mash_home_no_project_title),
                             description = stringResource(R.string.mash_home_no_project_description),
-                            buttonText = stringResource(R.string.mash_home_go_to_feed),
-                            onButtonClick = onSearchFeedClick,
+                            buttonText = stringResource(R.string.mash_home_create_work),
+                            onButtonClick = onCreateProjectClick,
                         )
 
                         uiState.isLoading && !metrics.isReady -> MashHomeStateCard(
@@ -202,10 +206,18 @@ private fun MashCurrentWorkCard(
     onOpenProjectClick: () -> Unit,
     onOpenStatisticsClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     val colors = HandHopHopDesignSystem.colors
     val dimensions = HandHopHopDesignSystem.dimensions
     val cardCornerRadius = dimensions.lg
     val borderWidth = dimensions.xs / 4
+    val previewModel = remember(projectConfig.imagePath, projectConfig.imageUrl, context) {
+        projectConfig.imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::File)
+            ?.takeIf(File::exists)
+            ?: projectConfig.imageUrl?.takeIf { it.isNotBlank() }
+    }
     val imageModifier = Modifier
         .fillMaxWidth(0.52f)
         .aspectRatio(1f)
@@ -248,7 +260,7 @@ private fun MashCurrentWorkCard(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (projectConfig.imageUrl.isNullOrBlank()) {
+                    if (previewModel == null) {
                         Box(
                             modifier = imageModifier
                                 .background(colors.surfaceSoft)
@@ -260,7 +272,7 @@ private fun MashCurrentWorkCard(
                         )
                     } else {
                         AsyncImage(
-                            model = projectConfig.imageUrl,
+                            model = previewModel,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = imageModifier

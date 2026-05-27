@@ -126,6 +126,7 @@ internal class WorkCompletedViewModel(
         return replace("http://", "https://")
     }
 
+    @Suppress("UNCHECKED_CAST")
     class Factory(
         private val apiService: WallhavenApiService,
         private val workLocalRepository: WorkLocalRepository,

@@ -58,7 +58,7 @@ internal fun RecommendedRow(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(dimensionResource(R.dimen.feed_recommended_loading_height)),
+                    .height(dimensionResource(DesignR.dimen.feed_recommended_loading_height)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = colors.primaryAction)
@@ -70,19 +70,19 @@ internal fun RecommendedRow(
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.feed_recommended_row_horizontal_padding)),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.feed_recommended_item_spacing))
+                    contentPadding = PaddingValues(horizontal = dimensionResource(DesignR.dimen.feed_recommended_row_horizontal_padding)),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.feed_recommended_item_spacing))
                 ) {
                     items(items = state.recommendedPhotos, key = {it.id}) { photo ->
                         Box(
-                            modifier = Modifier.size(dimensionResource(R.dimen.feed_recommended_item_size))
+                            modifier = Modifier.size(dimensionResource(DesignR.dimen.feed_recommended_item_size))
                         ) {
                             AsyncImage(
                                 model = photo.photoUrl,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .matchParentSize()
-                                    .clip(RoundedCornerShape(dimensionResource(R.dimen.feed_recommended_item_corner_radius)))
+                                    .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.feed_recommended_item_corner_radius)))
                                     .clickable { onPhotoClicked(photo.photoUrl) },
                                 contentScale = ContentScale.Crop
                             )
@@ -99,7 +99,7 @@ internal fun RecommendedRow(
                                     progressPercentage = photo.progressPercentage,
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
-                                        .padding(dimensionResource(R.dimen.feed_recommended_progress_padding)),
+                                        .padding(dimensionResource(DesignR.dimen.feed_recommended_progress_padding)),
                                 )
                             }
                         }

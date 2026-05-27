@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +54,6 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -117,6 +114,7 @@ private fun CenterContentMash(
     val contentSpacing = dimensions.md
     val isPremium = PremiumProvider.isPremium()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val premiumRequiredToast = stringResource(R.string.premium_required_toast)
 
     Scaffold(
         topBar = {
@@ -129,7 +127,7 @@ private fun CenterContentMash(
                     titleRes = null
                 ),
                 onClickLeft = onBackClick,
-                onClickRight = { Unit },
+                onClickRight = { },
             )
         },
         containerColor = Color.Transparent,
@@ -185,7 +183,7 @@ private fun CenterContentMash(
                             } else {
                                 android.widget.Toast.makeText(
                                     context,
-                                    context.getString(R.string.premium_required_toast),
+                                    premiumRequiredToast,
                                     android.widget.Toast.LENGTH_SHORT
                                 ).show()
                             }

@@ -132,6 +132,15 @@ interface WorkDao {
 
     @Query(
         """
+        UPDATE work
+        SET is_favorite = 0
+        WHERE url = :key OR image_path = :key
+        """,
+    )
+    suspend fun clearFavoriteByKey(key: String)
+
+    @Query(
+        """
         DELETE FROM work_progress_chunk
         WHERE work_id IN (
             SELECT id
@@ -170,6 +179,44 @@ interface WorkDao {
         """,
     )
     suspend fun getDetailsById(workId: Long): WorkDetailsPreview?
+
+    @Query(
+        """
+        SELECT id, is_favorite, project_name, scheme_type, color_count, difficulty, url,
+               image_path, grid_width, grid_height, percentage, spent_time
+        FROM work
+        WHERE image_path = :imagePath
+        ORDER BY
+            CASE
+                WHEN project_name IS NOT NULL
+                    AND project_name != ''
+                    AND scheme_type IS NOT NULL
+                    AND scheme_type != ''
+                    AND color_count IS NOT NULL
+                    AND color_count > 0
+                    AND difficulty IS NOT NULL
+                    AND difficulty != ''
+                THEN 0
+                ELSE 1
+            END,
+            CASE
+                WHEN percentage IS NOT NULL
+                    AND percentage > 0
+                THEN 0
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work_progress_chunk
+                    WHERE work_progress_chunk.work_id = work.id
+                    LIMIT 1
+                )
+                THEN 0
+                ELSE 1
+            END,
+            id DESC
+        LIMIT 1
+        """,
+    )
+    suspend fun getDetailsByImagePath(imagePath: String): WorkDetailsPreview?
 
     @Query(
         """
@@ -256,7 +303,16 @@ interface WorkDao {
         """
         SELECT
             w.url AS url,
-            w.is_favorite AS isFavorite,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work AS wf
+                    WHERE wf.url = w.url
+                        AND wf.is_favorite = 1
+                )
+                THEN 1
+                ELSE 0
+            END AS isFavorite,
             CASE
                 WHEN (
                     w.project_name IS NOT NULL
@@ -374,27 +430,45 @@ interface WorkDao {
             w.id AS id,
             w.url AS url,
             w.image_path AS imagePath,
-            1 AS isFavorite,
             CASE
-                WHEN (
-                    w.project_name IS NOT NULL
-                    AND w.project_name != ''
-                    AND w.scheme_type IS NOT NULL
-                    AND w.scheme_type != ''
-                    AND w.color_count IS NOT NULL
-                    AND w.color_count > 0
-                    AND w.difficulty IS NOT NULL
-                    AND w.difficulty != ''
-                )
-                OR (
-                    w.percentage IS NOT NULL
-                    AND w.percentage > 0
-                )
-                OR EXISTS (
+                WHEN EXISTS (
                     SELECT 1
-                    FROM work_progress_chunk
-                    WHERE work_progress_chunk.work_id = w.id
-                    LIMIT 1
+                    FROM work AS wf
+                    WHERE COALESCE(NULLIF(wf.image_path, ''), NULLIF(wf.url, '')) =
+                        COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, ''))
+                        AND wf.is_favorite = 1
+                )
+                THEN 1
+                ELSE 0
+            END AS isFavorite,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM work AS ws
+                    WHERE COALESCE(NULLIF(ws.image_path, ''), NULLIF(ws.url, '')) =
+                        COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, ''))
+                        AND (
+                            (
+                                ws.project_name IS NOT NULL
+                                AND ws.project_name != ''
+                                AND ws.scheme_type IS NOT NULL
+                                AND ws.scheme_type != ''
+                                AND ws.color_count IS NOT NULL
+                                AND ws.color_count > 0
+                                AND ws.difficulty IS NOT NULL
+                                AND ws.difficulty != ''
+                            )
+                            OR (
+                                ws.percentage IS NOT NULL
+                                AND ws.percentage > 0
+                            )
+                            OR EXISTS (
+                                SELECT 1
+                                FROM work_progress_chunk
+                                WHERE work_progress_chunk.work_id = ws.id
+                                LIMIT 1
+                            )
+                        )
                 )
                 THEN 1
                 ELSE 0
@@ -402,18 +476,49 @@ interface WorkDao {
             w.percentage AS percentage,
             w.project_name AS projectName
         FROM work AS w
-        WHERE w.url IS NOT NULL
-            AND w.url != ''
-            AND EXISTS (
-                SELECT 1
-                FROM work AS wf
-                WHERE wf.url = w.url
-                    AND wf.is_favorite = 1
+        WHERE COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, '')) IS NOT NULL
+            AND (
+                EXISTS (
+                    SELECT 1
+                    FROM work AS wf
+                    WHERE COALESCE(NULLIF(wf.image_path, ''), NULLIF(wf.url, '')) =
+                        COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, ''))
+                        AND wf.is_favorite = 1
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM work AS ws
+                    WHERE COALESCE(NULLIF(ws.image_path, ''), NULLIF(ws.url, '')) =
+                        COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, ''))
+                        AND (
+                            (
+                                ws.project_name IS NOT NULL
+                                AND ws.project_name != ''
+                                AND ws.scheme_type IS NOT NULL
+                                AND ws.scheme_type != ''
+                                AND ws.color_count IS NOT NULL
+                                AND ws.color_count > 0
+                                AND ws.difficulty IS NOT NULL
+                                AND ws.difficulty != ''
+                            )
+                            OR (
+                                ws.percentage IS NOT NULL
+                                AND ws.percentage > 0
+                            )
+                            OR EXISTS (
+                                SELECT 1
+                                FROM work_progress_chunk
+                                WHERE work_progress_chunk.work_id = ws.id
+                                LIMIT 1
+                            )
+                        )
+                )
             )
             AND w.id = (
                 SELECT w2.id
                 FROM work AS w2
-                WHERE w2.url = w.url
+                WHERE COALESCE(NULLIF(w2.image_path, ''), NULLIF(w2.url, '')) =
+                    COALESCE(NULLIF(w.image_path, ''), NULLIF(w.url, ''))
                 ORDER BY
                     CASE
                         WHEN w2.project_name IS NOT NULL
@@ -448,7 +553,16 @@ interface WorkDao {
     )
     suspend fun getBookmarkPreviews(): List<WorkBookmarkPreview>
 
-    @Query("SELECT is_favorite FROM work WHERE url = :url ORDER BY id DESC LIMIT 1")
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT 1
+            FROM work
+            WHERE url = :url
+                AND is_favorite = 1
+        )
+        """,
+    )
     suspend fun isFavoriteByUrl(url: String): Boolean?
 
     @Query(
@@ -609,6 +723,7 @@ interface WorkDao {
         SET url = :url,
             image = NULL,
             image_path = COALESCE(:imagePath, image_path),
+            is_favorite = CASE WHEN :isFavorite THEN 1 ELSE is_favorite END,
             project_name = :projectName,
             scheme_type = :schemeType,
             color_count = :colorCount,
@@ -624,6 +739,7 @@ interface WorkDao {
         id: Long,
         url: String,
         imagePath: String?,
+        isFavorite: Boolean,
         projectName: String?,
         schemeType: String?,
         colorCount: Int?,

@@ -17,9 +17,11 @@ internal fun MashCreateConfig.toWorkLocalItem(
 
     return WorkLocalItem(
         id = id,
-        url = imageUrl.orEmpty(),
+        url = imageUrl
+            ?.takeIf { it.isNotBlank() }
+            ?: imagePath.orEmpty(),
         image = image,
-        imagePath = null,
+        imagePath = imagePath,
         isFavorite = isFavorite,
         projectName = projectName,
         schemeType = schemeType.name,
@@ -47,10 +49,16 @@ internal fun WorkLocalItem.toMashCreateConfigOrNull(): MashCreateConfig? {
         ?.let(::schemeTypeValueOfOrNull)
         ?: return null
     val projectName = projectName ?: return null
+    val localImagePath = imagePath?.takeIf { it.isNotBlank() }
 
     return MashCreateConfig(
         projectName = projectName,
-        imageUrl = url,
+        imageUrl = if (localImagePath == null) {
+            url.takeIf { it.isNotBlank() }
+        } else {
+            null
+        },
+        imagePath = localImagePath,
         schemeType = schemeType,
         colorCount = colorCount ?: return null,
         difficulty = difficulty,

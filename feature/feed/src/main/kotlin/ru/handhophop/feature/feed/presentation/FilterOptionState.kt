@@ -5,7 +5,7 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class FilterOptionState(
-    @StringRes val textRes: Int,
+    @param:StringRes val textRes: Int,
     val id: Int,
     val isSelected: Boolean,
 )

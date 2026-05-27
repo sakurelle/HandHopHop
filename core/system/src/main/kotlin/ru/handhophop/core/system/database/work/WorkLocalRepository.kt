@@ -3,6 +3,9 @@ package ru.handhophop.core.system.database.work
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
@@ -78,10 +81,20 @@ class WorkLocalRepository(
     private val workDao: WorkDao,
     private val appContext: Context? = null,
 ) {
+    companion object {
+        private val workDataVersion = MutableStateFlow(0)
+    }
+
+    fun observeWorkDataVersion(): StateFlow<Int> = workDataVersion.asStateFlow()
+
+    private fun notifyWorkDataChanged() {
+        workDataVersion.value += 1
+    }
 
     suspend fun clearAllWorks() {
         deleteImageFiles(workDao.getAllImagePaths())
         workDao.deleteAllWithProgress()
+        notifyWorkDataChanged()
     }
 
     fun getDatabaseSize(context: Context): Long {
@@ -148,11 +161,12 @@ class WorkLocalRepository(
 
     suspend fun addFavorite(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
-        val imagePath = persistImageIfNeeded(
-            url = work.url,
-            imageBytes = work.image,
-            currentImagePath = current?.imagePath,
-        )
+        val imagePath = work.imagePath
+            ?: persistImageIfNeeded(
+                url = work.url,
+                imageBytes = work.image,
+                currentImagePath = current?.imagePath,
+            )
 
         return if (current == null) {
             workDao.insert(
@@ -171,22 +185,25 @@ class WorkLocalRepository(
             )
 
             current.id
+        }.also {
+            notifyWorkDataChanged()
         }
     }
 
     suspend fun removeFavorite(url: String) {
-        deleteImageFiles(workDao.getImagePathsByUrl(url))
-        workDao.deleteByUrlWithProgress(url)
+        workDao.clearFavoriteByKey(url)
+        notifyWorkDataChanged()
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
         val current = findCurrentDetails(work)
         val progressChunks = work.gridRle.toProgressChunks()
-        val imagePath = persistImageIfNeeded(
-            url = work.url,
-            imageBytes = work.image,
-            currentImagePath = current?.imagePath,
-        )
+        val imagePath = work.imagePath
+            ?: persistImageIfNeeded(
+                url = work.url,
+                imageBytes = work.image,
+                currentImagePath = current?.imagePath,
+            )
 
         return if (current == null) {
             val insertedId = workDao.insert(
@@ -208,6 +225,7 @@ class WorkLocalRepository(
                 id = current.id,
                 url = work.url,
                 imagePath = imagePath,
+                isFavorite = work.isFavorite,
                 projectName = work.projectName,
                 schemeType = work.schemeType,
                 colorCount = work.colorCount,
@@ -224,6 +242,8 @@ class WorkLocalRepository(
             )
 
             current.id
+        }.also {
+            notifyWorkDataChanged()
         }
     }
 
@@ -233,29 +253,17 @@ class WorkLocalRepository(
         if (current?.url.isNullOrBlank()) {
             deleteImageFile(workDao.getImagePathById(id))
             workDao.deleteByIdWithProgress(id)
+            notifyWorkDataChanged()
             return
         }
 
         deleteImageFiles(workDao.getImagePathsByUrl(current.url))
         workDao.deleteByUrlWithProgress(current.url)
+        notifyWorkDataChanged()
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {
         return workDao.getAll().map(WorkUrlPreview::toLocalItem)
-    }
-
-    suspend fun getFavoriteWorks(): List<WorkLocalItem> {
-        return workDao.getFavorites()
-            .map(WorkFavoritePreview::toLocalItem)
-            .distinctBy { it.url }
-    }
-
-    suspend fun getWorksByUrls(urls: List<String>): List<WorkLocalItem> {
-        if (urls.isEmpty()) {
-            return emptyList()
-        }
-
-        return workDao.getByUrls(urls).map(WorkUrlPreview::toLocalItem)
     }
 
     suspend fun getFeedMetaByUrls(urls: List<String>): List<WorkFeedMeta> {
@@ -306,6 +314,16 @@ class WorkLocalRepository(
                 return byId
             }
         }
+
+        work.imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let { imagePath ->
+                val byImagePath = workDao.getDetailsByImagePath(imagePath)
+
+                if (byImagePath != null) {
+                    return byImagePath
+                }
+            }
 
         return workDao.getDetailsByUrl(work.url)
     }
