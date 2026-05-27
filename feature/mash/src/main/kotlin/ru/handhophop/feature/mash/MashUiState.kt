@@ -11,7 +11,7 @@ internal data class MashUiState(
     val scheme: SchemeData? = null,
     val visiblePalette: List<MashThread> = emptyList(),
     val paletteProgress: List<MashPaletteProgress> = emptyList(),
-    @StringRes val errorTextRes: Int? = null,
+    @param:StringRes val errorTextRes: Int? = null,
     val isDownloadButtonEnabled: Boolean = false,
     val isPaletteVisible: Boolean = false,
     val selectedPaletteIndex: Int? = null,

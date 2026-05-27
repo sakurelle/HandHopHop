@@ -16,7 +16,7 @@ internal enum class MashCreateSchemeType(
 
 internal enum class MashCreateDifficulty(
     val minSidePx: Int,
-    @StringRes val titleRes: Int,
+    @param:StringRes val titleRes: Int,
 ) {
     EASY(
         minSidePx = 64,

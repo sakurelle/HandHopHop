@@ -13,7 +13,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.handhophop.core.design.HandHopHopDesignSystem
-import ru.handhophop.design.R
 import ru.handhophop.design.R as DesignR
 import androidx.compose.foundation.lazy.items
 @Composable

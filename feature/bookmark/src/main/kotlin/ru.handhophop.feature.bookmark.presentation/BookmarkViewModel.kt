@@ -181,7 +181,7 @@ private fun List<BookmarkPhotoItem>.mergeDuplicatePhotos(): List<BookmarkPhotoIt
         .values
         .map { duplicates ->
             val preferred = duplicates.maxWithOrNull(
-                compareBy<BookmarkPhotoItem>(
+                compareBy(
                     { if (it.isStarted) 1 else 0 },
                     { if (it.progressPercentage > 0) 1 else 0 },
                     { if (it.isBookmarked) 1 else 0 },

@@ -373,7 +373,7 @@ internal class FeedViewModel(
                 isBookmarked = localMeta?.isFavorite == true,
                 isStarted = isStarted,
                 progressPercentage = if (isStarted) {
-                    localMeta?.percentage ?: 0
+                    localMeta.percentage ?: 0
                 } else {
                     0
                 },

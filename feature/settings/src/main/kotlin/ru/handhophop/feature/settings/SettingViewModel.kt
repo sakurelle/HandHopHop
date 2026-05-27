@@ -1,20 +1,19 @@
 package ru.handhophop.feature.settings
 
+import android.annotation.SuppressLint
 import android.content.Context
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.handhophop.core.network.voucher.VoucherNetworkService
 import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.core.system.database.work.WorkLocalRepository
 
 class SettingViewModel(
     private val repository: WorkLocalRepository,
-    private val context: Context
+    @field:SuppressLint("StaticFieldLeak") private val context: Context
 ) : ViewModel() {
 
 

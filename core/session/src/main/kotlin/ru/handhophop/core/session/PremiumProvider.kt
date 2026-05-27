@@ -1,9 +1,8 @@
 package ru.handhophop.core.session
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import kotlinx.datetime.Clock
-import ru.handhophop.core.network.voucher.VoucherData
 import ru.handhophop.core.network.voucher.VoucherNetworkService
 
 object PremiumProvider {
@@ -51,12 +50,14 @@ object PremiumProvider {
     }
 
 
+    @SuppressLint("UseKtx")
     fun generateAndSaveNewUserHash() {//времено паблик
         val voucherService = VoucherNetworkService()
         val newHash = voucherService.getVoucher()
         getPrefs().edit().putString(SAVED_HASH_KEY, newHash).apply()
     }
 
+    @SuppressLint("UseKtx")
     private fun handlePremiumExpiration() {
         getPrefs().edit()
             .putBoolean(IS_PREMIUM_KEY, false)
@@ -70,6 +71,7 @@ object PremiumProvider {
     fun getUserHash(): String = getPrefs().getString(SAVED_HASH_KEY, "") ?: ""
 
     fun getInputHash(): String = getPrefs().getString(SAVED_INPUT_HASH_KEY, "") ?: ""
+    @SuppressLint("UseKtx")
     fun putInputHash(hash: String) {
         getPrefs().edit().putString(SAVED_INPUT_HASH_KEY, hash).apply()
     }
@@ -80,6 +82,7 @@ object PremiumProvider {
         return userHash.isNotEmpty() && userHash == inputHash
     }
 
+    @SuppressLint("UseKtx")
     fun setPremiumStatus(isPremium: Boolean, code: String? = null, durationMs: Long = 2592000000L) {
         val expirationTime = if (isPremium) System.currentTimeMillis() + durationMs else 0L
 

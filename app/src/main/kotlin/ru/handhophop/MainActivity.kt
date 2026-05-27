@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import ru.handhophop.core.design.HandHopHopDesignSystem
 import ru.handhophop.core.design.HandHopHopDesignTheme
 import ru.handhophop.core.design.ThemeMode
-import ru.handhophop.core.network.voucher.VoucherNetworkService
 import ru.handhophop.core.session.PremiumProvider
 import ru.handhophop.feature.bookmark.presentation.BookmarkEntryPoint
 import ru.handhophop.feature.feed.presentation.FeedEntryPoint

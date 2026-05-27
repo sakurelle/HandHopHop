@@ -12,14 +12,14 @@ data class FeedFilter(
     val sorting: SortingFilter = SortingFilter.RANDOM,
 )
 
-enum class CategoryFilter(val id: Int, val code: String, @StringRes val labelRes: Int) {
+enum class CategoryFilter(val id: Int, val code: String, @param:StringRes val labelRes: Int) {
     GENERAL(0, "100", R.string.category_general),
     ANIME(1, "010", R.string.category_anime),
     PEOPLE(2, "001", R.string.category_people),
     ALL(3, "111", R.string.category_all),
 }
 
-enum class SortingFilter(val id: Int, val value: String, @StringRes val labelRes: Int) {
+enum class SortingFilter(val id: Int, val value: String, @param:StringRes val labelRes: Int) {
     RANDOM(0, "random", R.string.sorting_random),
     RELEVANCE(1, "relevance", R.string.sorting_relevance),
     DATE_ADDED(2, "date_added", R.string.sorting_date_added),
@@ -28,7 +28,7 @@ enum class SortingFilter(val id: Int, val value: String, @StringRes val labelRes
     TOPLIST(5, "toplist", R.string.sorting_toplist),
 }
 
-enum class ColorFilter(val id: Int, @StringRes val labelRes: Int) {
+enum class ColorFilter(val id: Int, @param:StringRes val labelRes: Int) {
     ANY(0, R.string.all_option),
     BLACK(1, R.string.black_option),
     BLUE(2, R.string.blue_option),
@@ -43,7 +43,7 @@ enum class ColorFilter(val id: Int, @StringRes val labelRes: Int) {
     PINK(11, R.string.pink_option),
 }
 
-enum class OrientationFilter(val id: Int, @StringRes val labelRes: Int) {
+enum class OrientationFilter(val id: Int, @param:StringRes val labelRes: Int) {
     ANY(0, R.string.all_option),
     LANDSCAPE(1, R.string.landscape_option),
     PORTRAIT(2, R.string.portrait_option),
