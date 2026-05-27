@@ -117,6 +117,7 @@ private fun CenterContentMash(
     val contentSpacing = dimensions.md
     val isPremium = PremiumProvider.isPremium()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val premiumRequiredToast = stringResource(R.string.premium_required_toast)
 
     Scaffold(
         topBar = {
@@ -185,7 +186,7 @@ private fun CenterContentMash(
                             } else {
                                 android.widget.Toast.makeText(
                                     context,
-                                    context.getString(R.string.premium_required_toast),
+                                    premiumRequiredToast,
                                     android.widget.Toast.LENGTH_SHORT
                                 ).show()
                             }

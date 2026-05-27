@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -6,12 +8,10 @@ plugins {
 
 android {
     namespace = "ru.handhophop.feature.mash"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 30
+        minSdk = libs.versions.appMinSdk.get().toInt()
     }
 
     buildTypes {
@@ -22,20 +22,18 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
     }
 
     buildFeatures {
         compose = true
     }
+}
 
-    dependencies {
-        implementation(project(":core:design"))
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(libs.versions.jvmTarget.get())
     }
 }
 
@@ -51,14 +49,10 @@ dependencies {
     implementation(libs.coil)
     implementation(project(":core:network"))
     implementation(project(":core:system"))
+    implementation(project(":core:design"))
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.foundation)
-
     implementation(project(":feature:feed"))
-    implementation(project(":core:system"))
     implementation(project(":core:session"))
-    implementation(project(":core:network"))
-
-
 }
