@@ -28,7 +28,7 @@ internal class BookmarkViewModel(
                     .asSequence()
                     .map { work ->
                         val photoUrl = work.url.orEmpty()
-                        val canBookmark = photoUrl.isOnlinePhotoUrl()
+                        val canBookmark = photoUrl.isNotBlank()
 
                         BookmarkPhotoItem(
                             id = work.id,
@@ -146,10 +146,6 @@ internal class BookmarkViewModel(
             return BookmarkViewModel(repository) as T
         }
     }
-}
-
-private fun String.isOnlinePhotoUrl(): Boolean {
-    return startsWith("http://") || startsWith("https://")
 }
 
 private fun List<BookmarkPhotoItem>.mergeDuplicatePhotos(): List<BookmarkPhotoItem> {

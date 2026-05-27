@@ -3,6 +3,9 @@ package ru.handhophop.core.system.database.work
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
@@ -78,10 +81,20 @@ class WorkLocalRepository(
     private val workDao: WorkDao,
     private val appContext: Context? = null,
 ) {
+    companion object {
+        private val workDataVersion = MutableStateFlow(0)
+    }
+
+    fun observeWorkDataVersion(): StateFlow<Int> = workDataVersion.asStateFlow()
+
+    private fun notifyWorkDataChanged() {
+        workDataVersion.value += 1
+    }
 
     suspend fun clearAllWorks() {
         deleteImageFiles(workDao.getAllImagePaths())
         workDao.deleteAllWithProgress()
+        notifyWorkDataChanged()
     }
 
     fun getDatabaseSize(context: Context): Long {
@@ -172,12 +185,14 @@ class WorkLocalRepository(
             )
 
             current.id
+        }.also {
+            notifyWorkDataChanged()
         }
     }
 
     suspend fun removeFavorite(url: String) {
-        deleteImageFiles(workDao.getImagePathsByUrl(url))
-        workDao.deleteByUrlWithProgress(url)
+        workDao.clearFavoriteByUrl(url)
+        notifyWorkDataChanged()
     }
 
     suspend fun addWork(work: WorkLocalItem): Long {
@@ -210,6 +225,7 @@ class WorkLocalRepository(
                 id = current.id,
                 url = work.url,
                 imagePath = imagePath,
+                isFavorite = work.isFavorite,
                 projectName = work.projectName,
                 schemeType = work.schemeType,
                 colorCount = work.colorCount,
@@ -226,6 +242,8 @@ class WorkLocalRepository(
             )
 
             current.id
+        }.also {
+            notifyWorkDataChanged()
         }
     }
 
@@ -235,11 +253,13 @@ class WorkLocalRepository(
         if (current?.url.isNullOrBlank()) {
             deleteImageFile(workDao.getImagePathById(id))
             workDao.deleteByIdWithProgress(id)
+            notifyWorkDataChanged()
             return
         }
 
         deleteImageFiles(workDao.getImagePathsByUrl(current.url))
         workDao.deleteByUrlWithProgress(current.url)
+        notifyWorkDataChanged()
     }
 
     suspend fun getAllWorks(): List<WorkLocalItem> {

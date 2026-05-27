@@ -127,6 +127,28 @@ fun MashEntryPoint(
         )
     }
 
+    fun resetCurrentWorkForNewProject() {
+        currentWorkId = null
+        createdConfig = null
+        lastGeneratedConfig = null
+        workImageBytes = null
+        currentWorkImagePath = null
+        selectedCreateImageUrl = null
+        imageLoadAttemptKey = null
+        createImageLoadFailed = false
+        pendingCompletedCells = null
+        isRestoringPersistedProgress = false
+        spentTimeBaseMillis = 0L
+        workspaceStartedAtMillis = null
+        lastActivitySavedAtMillis = null
+        pendingActivityEndMillis = null
+        pendingDownloadTitle = null
+        forceOpenCompletedWorkspace = false
+        activityStats = WorkActivityStats()
+        viewModel.resetWork()
+        MashWorkCache.currentWork = null
+    }
+
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { _ ->
@@ -234,6 +256,7 @@ fun MashEntryPoint(
         if (config != lastGeneratedConfig) {
             val completedCellsForRestore = pendingCompletedCells.orEmpty()
 
+            viewModel.resetWork()
             lastGeneratedConfig = config
             pendingCompletedCells = null
 
@@ -431,22 +454,9 @@ fun MashEntryPoint(
         }
     }
 
-    LaunchedEffect(createdConfig) {
-        val config = createdConfig ?: return@LaunchedEffect
-        val url = config.imageUrl?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
-
-        currentWorkId = repository.addFavorite(
-            WorkLocalItem(
-                id = currentWorkId ?: 0,
-                url = url,
-                image = workImageBytes,
-                isFavorite = true,
-            ),
-        )
-    }
-
     LaunchedEffect(
         createdConfig,
+        lastGeneratedConfig,
         uiState.scheme,
         uiState.completedCellIndices,
         spentTimeSaveTick,
@@ -457,6 +467,9 @@ fun MashEntryPoint(
         }
 
         val config = createdConfig ?: return@LaunchedEffect
+        if (config != lastGeneratedConfig) {
+            return@LaunchedEffect
+        }
         uiState.scheme ?: return@LaunchedEffect
 
         val workImageKey = config.imageUrl
@@ -481,10 +494,17 @@ fun MashEntryPoint(
 
     LaunchedEffect(
         destination,
+        createdConfig,
+        lastGeneratedConfig,
+        uiState.isLoading,
         uiState.scheme?.indices?.size,
         uiState.completedCellIndices.size,
         forceOpenCompletedWorkspace,
     ) {
+        if (createdConfig == null || createdConfig != lastGeneratedConfig || uiState.isLoading) {
+            return@LaunchedEffect
+        }
+
         val totalCells = uiState.scheme?.indices?.size ?: 0
         val completedCells = uiState.completedCellIndices.size
         val isCompleted = totalCells in 1..completedCells
@@ -514,7 +534,10 @@ fun MashEntryPoint(
             MashHomeScreen(
                 projectConfig = createdConfig,
                 uiState = uiState,
-                onCreateProjectClick = { destination = MashDestination.CREATE },
+                onCreateProjectClick = {
+                    resetCurrentWorkForNewProject()
+                    destination = MashDestination.CREATE
+                },
                 onOpenProjectClick = { destination = MashDestination.WORKSPACE },
                 onOpenStatisticsClick = { destination = MashDestination.STATISTICS },
                 onDeleteSheme = {
@@ -533,6 +556,7 @@ fun MashEntryPoint(
                             workspaceStartedAtMillis = null
                             lastActivitySavedAtMillis = null
                             pendingActivityEndMillis = null
+                            activityStats = WorkActivityStats()
 
                             viewModel.resetWork()
 
@@ -590,14 +614,15 @@ fun MashEntryPoint(
                         )
                     },
                     onOpenFeed = {
+                        resetCurrentWorkForNewProject()
                         selectedCreateImageUrl = null
-                        currentWorkImagePath = null
-                        workImageBytes = null
-                        imageLoadAttemptKey = null
                         createImageLoadFailed = false
                         onOpenFeed()
                     },
                     onCreateFinished = { newConfig ->
+                        viewModel.resetWork()
+                        pendingCompletedCells = null
+                        isRestoringPersistedProgress = false
                         forceOpenCompletedWorkspace = false
                         if (
                             createdConfig?.imageUrl != newConfig.imageUrl ||
@@ -684,24 +709,7 @@ fun MashEntryPoint(
                     destination = MashDestination.WORKSPACE
                 },
                 onRecommendationClick = { _ ->
-
-                    currentWorkId = null
-                    createdConfig = null
-                    lastGeneratedConfig = null
-                    workImageBytes = null
-                    currentWorkImagePath = null
-                    imageLoadAttemptKey = null
-                    pendingCompletedCells = null
-                    isRestoringPersistedProgress = false
-
-                    spentTimeBaseMillis = 0L
-                    workspaceStartedAtMillis = null
-                    lastActivitySavedAtMillis = null
-                    pendingActivityEndMillis = null
-
-                    forceOpenCompletedWorkspace = false
-                    viewModel.resetWork()
-
+                    resetCurrentWorkForNewProject()
                     destination = MashDestination.CREATE
                 },
                 onSeeAllClick = {

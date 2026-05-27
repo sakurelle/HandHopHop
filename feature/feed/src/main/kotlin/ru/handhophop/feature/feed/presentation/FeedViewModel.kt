@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -28,6 +29,16 @@ internal class FeedViewModel(
     val uiState: StateFlow<FeedUiState> = _uiState
     private val currentFilter: FeedFilter
         get() = (_uiState.value as? FeedUiState.Success)?.currentFilter ?: FeedFilter()
+
+    init {
+        viewModelScope.launch {
+            repository.observeWorkDataVersion()
+                .drop(1)
+                .collect {
+                    syncVisiblePhotoStates()
+                }
+        }
+    }
 
     fun handleAction(action: FeedUiAction) {
         when (action) {
@@ -343,6 +354,39 @@ internal class FeedViewModel(
         is java.net.UnknownHostException -> FeedError.NetworkUnavailable
         is java.io.IOException -> FeedError.LoadingFailure
         else -> FeedError.Default
+    }
+
+    private suspend fun syncVisiblePhotoStates() {
+        val currentState = _uiState.value as? FeedUiState.Success ?: return
+        val urls = buildList {
+            addAll(currentState.photos.map(FeedPhotoItem::photoUrl))
+            addAll(currentState.recommendedPhotos.map(FeedPhotoItem::photoUrl))
+        }.distinct()
+
+        val localMetaByUrl = repository.getFeedMetaByUrls(urls)
+
+        fun FeedPhotoItem.mergeWithLocalMeta(): FeedPhotoItem {
+            val localMeta = localMetaByUrl[photoUrl]
+            val isStarted = localMeta?.isStarted == true
+
+            return copy(
+                isBookmarked = localMeta?.isFavorite == true,
+                isStarted = isStarted,
+                progressPercentage = if (isStarted) {
+                    localMeta?.percentage ?: 0
+                } else {
+                    0
+                },
+            )
+        }
+
+        _uiState.update { state ->
+            val successState = state as? FeedUiState.Success ?: return@update state
+            successState.copy(
+                photos = successState.photos.map(FeedPhotoItem::mergeWithLocalMeta),
+                recommendedPhotos = successState.recommendedPhotos.map(FeedPhotoItem::mergeWithLocalMeta),
+            )
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
