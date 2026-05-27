@@ -191,7 +191,7 @@ class WorkLocalRepository(
     }
 
     suspend fun removeFavorite(url: String) {
-        workDao.clearFavoriteByUrl(url)
+        workDao.clearFavoriteByKey(url)
         notifyWorkDataChanged()
     }
 
@@ -314,6 +314,16 @@ class WorkLocalRepository(
                 return byId
             }
         }
+
+        work.imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let { imagePath ->
+                val byImagePath = workDao.getDetailsByImagePath(imagePath)
+
+                if (byImagePath != null) {
+                    return byImagePath
+                }
+            }
 
         return workDao.getDetailsByUrl(work.url)
     }
