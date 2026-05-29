@@ -1,12 +1,12 @@
 package ru.handhophop.feature.feed.data
 
 import android.util.Log
+import kotlinx.coroutines.flow.StateFlow
 import ru.handhophop.core.network.api.WallhavenApiService
 import ru.handhophop.core.network.models.WallhavenPhoto
 import ru.handhophop.core.system.database.work.WorkFeedMeta
 import ru.handhophop.core.system.database.work.WorkLocalItem
 import ru.handhophop.core.system.database.work.WorkLocalRepository
-import kotlinx.coroutines.flow.StateFlow
 
 internal class FeedRepository(
     private val apiService: WallhavenApiService,
@@ -93,16 +93,16 @@ internal class FeedRepository(
             val colorParam = when (colorId) {
                 0 -> null
                 1  -> "000000"  // black
-                2  -> "0000ff"  // blue
-                3  -> "808080"  // gray
-                4  -> "008000"  // green
-                5  -> "ffa500"  // orange
-                6  -> "ff0000"  // red
+                2  -> "0066cc"  // blue
+                3  -> "999999"  // gray
+                4  -> "669900"  // green
+                5  -> "ff9900"  // orange
+                6  -> "cc0000"  // red
                 7  -> "ffffff"  // white
                 8  -> "ffff00"  // yellow
-                9  -> "800080"  // purple
-                10 -> "00ffff"  // cyan
-                11 -> "ffc0cb"  // pink
+                9  -> "663399"  // purple
+                10 -> "66cccc"  // cyan
+                11 -> "ea4c88"  // pink
                 else -> null
             }
 

@@ -74,17 +74,24 @@ internal fun RecommendedRow(
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(DesignR.dimen.feed_recommended_item_spacing))
                 ) {
                     items(items = state.recommendedPhotos, key = {it.id}) { photo ->
+                        val shape = RoundedCornerShape(
+                            dimensionResource(DesignR.dimen.feed_recommended_item_corner_radius)
+                        )
+
                         Box(
-                            modifier = Modifier.size(dimensionResource(DesignR.dimen.feed_recommended_item_size))
+                            modifier = Modifier
+                                .size(dimensionResource(DesignR.dimen.feed_recommended_item_size))
+                                .clip(shape)
                         ) {
                             AsyncImage(
                                 model = photo.photoUrl,
                                 contentDescription = null,
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .matchParentSize()
                                     .clip(RoundedCornerShape(dimensionResource(DesignR.dimen.feed_recommended_item_corner_radius)))
                                     .clickable { onPhotoClicked(photo.photoUrl) },
-                                contentScale = ContentScale.Crop
+
                             )
 
                             FeedBookmarkButton(
